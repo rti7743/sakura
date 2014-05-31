@@ -1,0 +1,15 @@
+*.exe
+*.ilk
+*.pdb
+*.ncb
+*.suo
+*.vcproj.*.user
+*.o
+*.gch
+/sakura/Debug_Ansi
+/sakura/Debug_Unicode
+/sakura/Release_Ansi
+/sakura/Release_Unicode
+Debug
+Release
+svnrev.h
