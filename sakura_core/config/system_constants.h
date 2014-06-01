@@ -59,9 +59,9 @@
 
 //! ターゲットマシン判別 2010.08.21 Moca 追加
 #ifdef _WIN64
-	#define CON_SKR_MACHINE_SUFFIX_ "M64"
+	#define CON_SKR_MACHINE_SUFFIX_ "M64mocatest"
 #else
-	#define CON_SKR_MACHINE_SUFFIX_ ""
+	#define CON_SKR_MACHINE_SUFFIX_ "mocatest"
 #endif
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
