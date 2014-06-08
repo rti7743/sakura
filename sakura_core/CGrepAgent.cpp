@@ -1555,8 +1555,17 @@ int CGrepAgent::DoGrepReplaceFile(
 	// 2003.06.10 Moca 文字コード判定処理もFileOpenで行う
 	nCharCode = cfl.FileOpen( pszFullPath, sGrepOption.nGrepCharSet, 0, &bBom );
 	CWriteData output(nHitCount, pszFullPath, nCharCode, bBom, sGrepOption.bGrepBackup, cmemMessage );
-	if( CODE_AUTODETECT == sGrepOption.nGrepCharSet ){
-		pszCodeName = CCodeTypeName(nCharCode).Bracket();
+	TCHAR szCpName[100];
+	{
+		if( CODE_AUTODETECT == sGrepOption.nGrepCharSet ){
+			if( IsValidCodeType(nCharCode) ){
+				auto_strcpy( szCpName, CCodeTypeName(nCharCode).Bracket() );
+				pszCodeName = szCpName;
+			}else{
+				CCodePage::GetNameBracket(szCpName, nCharCode);
+				pszCodeName = szCpName;
+			}
+		}
 	}
 	/* 処理中のユーザー操作を可能にする */
 	if( !::BlockingHook( pcDlgCancel->GetHwnd() ) ){
