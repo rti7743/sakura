@@ -11,6 +11,7 @@
 #include "charset/CCodeMediator.h"
 #include "view/colors/CColorStrategy.h"
 #include "charset/CCodeBase.h"
+#include "charset/CCodePage.h"
 #include "io/CFileLoad.h"
 #include "util/window.h"
 #include "util/module.h"
@@ -372,9 +373,11 @@ DWORD CGrepAgent::DoGrep(
 
 	if( CODE_AUTODETECT == sGrepOption.nGrepCharSet ){
 		cmemMessage.AppendString( LSW( STR_GREP_CHARSET_AUTODETECT ) );	//L"    (文字コードセットの自動判別)\r\n"
-	}else if(IsValidCodeType(sGrepOption.nGrepCharSet)){
+	}else if(IsValidCodeOrCPType(sGrepOption.nGrepCharSet)){
 		cmemMessage.AppendString( LSW( STR_GREP_CHARSET ) );	//L"    (文字コードセット："
-		cmemMessage.AppendStringT( CCodeTypeName(sGrepOption.nGrepCharSet).Normal() );
+		TCHAR szCpName[100];
+		CCodePage::GetNameNormal(szCpName, sGrepOption.nGrepCharSet);
+		cmemMessage.AppendStringT( szCpName );
 		cmemMessage.AppendString( L")\r\n" );
 	}
 
@@ -914,16 +917,20 @@ int CGrepAgent::DoGrepFile(
 	/* 検索条件が長さゼロの場合はファイル名だけ返す */
 	// 2002/08/29 行ループの前からここに移動
 	if( 0 == nKeyLen ){
+		TCHAR szCpName[100];
 		if( CODE_AUTODETECT == sGrepOption.nGrepCharSet ){
 			// 2003.06.10 Moca コード判別処理をここに移動．
 			// 判別エラーでもファイル数にカウントするため
 			// ファイルの日本語コードセット判別
 			CCodeMediator cmediator( pcViewDst->GetDocument()->m_cDocType.GetDocumentAttribute().m_encoding );
 			nCharCode = cmediator.CheckKanjiCodeOfFile( pszFullPath );
-			if( !IsValidCodeType(nCharCode) ){
+			if( !IsValidCodeOrCPType(nCharCode) ){
 				pszCodeName = _T("  [(DetectError)]");
-			}else{
+			}else if( IsValidCodeType(nCharCode) ){
 				pszCodeName = CCodeTypeName(nCharCode).Bracket();
+			}else{
+				CCodePage::GetNameBracket(szCpName, nCharCode);
+				pszCodeName = szCpName;
 			}
 		}
 		{
@@ -1001,8 +1008,17 @@ int CGrepAgent::DoGrepFile(
 	// FileCloseで明示的に閉じるが、閉じていないときはデストラクタで閉じる
 	// 2003.06.10 Moca 文字コード判定処理もFileOpenで行う
 	nCharCode = cfl.FileOpen( pszFullPath, sGrepOption.nGrepCharSet, GetDllShareData().m_Common.m_sFile.GetAutoMIMEdecode() );
-	if( CODE_AUTODETECT == sGrepOption.nGrepCharSet ){
-		pszCodeName = CCodeTypeName(nCharCode).Bracket();
+	TCHAR szCpName[100];
+	{
+		if( CODE_AUTODETECT == sGrepOption.nGrepCharSet ){
+			if( IsValidCodeType(nCharCode) ){
+				auto_strcpy( szCpName, CCodeTypeName(nCharCode).Bracket() );
+				pszCodeName = szCpName;
+			}else{
+				CCodePage::GetNameBracket(szCpName, nCharCode);
+				pszCodeName = szCpName;
+			}
+		}
 	}
 
 //	/* 処理中のユーザー操作を可能にする */
