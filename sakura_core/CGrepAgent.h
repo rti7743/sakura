@@ -33,6 +33,7 @@ class CGrepEnumFiles;
 class CGrepEnumFolders;
 
 struct SGrepOption{
+	bool		bGrepReplace;			//!< Grep置換
 	bool		bGrepSubFolder;			//!< サブフォルダからも検索する
 	ECodeType	nGrepCharSet;			//!< 文字コードセット選択
 	bool		bGrepOutputLine;		//!< true: ヒット行を出力 / false: ヒット部分を出力
@@ -40,15 +41,20 @@ struct SGrepOption{
 	bool		bGrepOutputFileOnly;	//!< ファイル毎最初のみ検索
 	bool		bGrepOutputBaseFolder;	//!< ベースフォルダ表示
 	bool		bGrepSeparateFolder;	//!< フォルダ毎に表示
+	bool		bGrepPaste;				//!< Grep置換：クリップボードから貼り付ける
+	bool		bGrepBackup;			//!< Grep置換：バックアップ
 
-	SGrepOption() : 
-		 bGrepSubFolder(true)
+	SGrepOption() :
+		 bGrepReplace(false)
+		,bGrepSubFolder(true)
 		,nGrepCharSet(CODE_AUTODETECT)
 		,bGrepOutputLine(true)
 		,nGrepOutputStyle(true)
 		,bGrepOutputFileOnly(false)
 		,bGrepOutputBaseFolder(false)
 		,bGrepSeparateFolder(false)
+		,bGrepPaste(false)
+		,bGrepBackup(false)
 	{}
 };
 
@@ -68,7 +74,9 @@ public:
 	// Grep実行
 	DWORD DoGrep(
 		CEditView*				pcViewDst,
+		bool					bGrepReplace,
 		const CNativeW*			pcmGrepKey,
+		const CNativeW*			pcmGrepReplace,
 		const CNativeT*			pcmGrepFile,
 		const CNativeT*			pcmGrepFolder,
 		bool					bGrepCurFolder,
@@ -79,7 +87,9 @@ public:
 		int						nGrepOutputStyle,
 		bool					bGrepOutputFileOnly,	//!< [in] ファイル毎最初のみ出力
 		bool					bGrepOutputBaseFolder,	//!< [in] ベースフォルダ表示
-		bool					bGrepSeparateFolder	//!< [in] フォルダ毎に表示
+		bool					bGrepSeparateFolder,	//!< [in] フォルダ毎に表示
+		bool					bGrepPaste,
+		bool					bGrepBackup
 	);
 
 private:
@@ -88,6 +98,7 @@ private:
 		CEditView*				pcViewDst,
 		CDlgCancel*				pcDlgCancel,		//!< [in] Cancelダイアログへのポインタ
 		const wchar_t*			pszKey,				//!< [in] 検索パターン
+		const CNativeW&			cmGrepReplace,
 		CGrepEnumKeys&			cGrepEnumKeys,		//!< [in] 検索対象ファイルパターン(!で除外指定)
 		CGrepEnumFiles&			cGrepExceptAbsFiles,
 		CGrepEnumFolders&		cGrepExceptAbsFolders,
@@ -112,6 +123,26 @@ private:
 		const SGrepOption&		sGrepOption,
 		const CSearchStringPattern& pattern,
 		CBregexp*				pRegexp,		//	Jun. 27, 2001 genta	正規表現ライブラリの差し替え
+		int*					pnHitCount,
+		const TCHAR*			pszFullPath,
+		const TCHAR*			pszBaseFolder,
+		const TCHAR*			pszFolder,
+		const TCHAR*			pszRelPath,
+		bool&					bOutputBaseFolder,
+		bool&					bOutputFolderName,
+		CNativeW&				cmemMessage
+	);
+
+	int DoGrepReplaceFile(
+		CEditView*				pcViewDst,
+		CDlgCancel*				pcDlgCancel,
+		const wchar_t*			pszKey,
+		const CNativeW&			cmGrepReplace,
+		const TCHAR*			pszFile,
+		const SSearchOption&	sSearchOption,
+		const SGrepOption&		sGrepOption,
+		const CSearchStringPattern& pattern,
+		CBregexp*				pRegexp,
 		int*					pnHitCount,
 		const TCHAR*			pszFullPath,
 		const TCHAR*			pszBaseFolder,
