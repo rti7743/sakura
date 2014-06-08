@@ -6,6 +6,8 @@
 *.vcproj.*.user
 *.o
 *.gch
+*.patch
+tags
 /sakura/Debug_Ansi
 /sakura/Debug_Unicode
 /sakura/Release_Ansi
