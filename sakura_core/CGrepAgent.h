@@ -35,6 +35,7 @@ class CGrepEnumFolders;
 struct SGrepOption{
 	bool		bGrepReplace;			//!< Grep置換
 	bool		bGrepSubFolder;			//!< サブフォルダからも検索する
+	bool		bGrepStdout;			//!< 標準出力モード
 	ECodeType	nGrepCharSet;			//!< 文字コードセット選択
 	bool		bGrepOutputLine;		//!< true: ヒット行を出力 / false: ヒット部分を出力
 	int			nGrepOutputStyle;		//!< 出力形式 1: Normal, 2: WZ風(ファイル単位) 3: 結果のみ
@@ -81,6 +82,7 @@ public:
 		const CNativeT*			pcmGrepFolder,
 		bool					bGrepCurFolder,
 		BOOL					bGrepSubFolder,
+		bool					bGrepStdout,
 		const SSearchOption&	sSearchOption,
 		ECodeType				nGrepCharSet,	// 2002/09/21 Moca 文字コードセット選択
 		BOOL					bGrepOutputLine,

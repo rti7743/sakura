@@ -294,7 +294,7 @@ BOOL CAppNodeGroupHandle::RequestCloseEditor( EditNode* pWndArr, int nArrCnt, BO
 				/* アクティブにする */
 // 				ActivateFrameWindow( pWndArr[i].m_hWnd );	// 画面をバタつかせない様に削除 2013/4/8 Uchi
 				/* トレイからエディタへの終了要求 */
-				if( !::SendMessage( pWndArr[i].m_hWnd, MYWM_CLOSE, bExit, (LPARAM)hWndFrom ) ){	// 2007.02.13 ryoji bExitを引き継ぐ	//  終了要求元のウィンドウを通知するようにする 2013/4/9 Uchi
+				if( !::SendMessage( pWndArr[i].m_hWnd, MYWM_CLOSE, bExit ? PM_CLOSE_EXIT : 0, (LPARAM)hWndFrom ) ){	// 2007.02.13 ryoji bExitを引き継ぐ	//  終了要求元のウィンドウを通知するようにする 2013/4/9 Uchi
 //					delete []pWndArr;	// 呼元で削除に合わせる
 					return FALSE;
 				}
@@ -304,7 +304,7 @@ BOOL CAppNodeGroupHandle::RequestCloseEditor( EditNode* pWndArr, int nArrCnt, BO
 	if (bInThisClose) {
 		// 要求元は最後
 		// トレイからエディタへの終了要求
-		if( !::SendMessage( hWndFrom, MYWM_CLOSE, bExit, (LPARAM)hWndFrom ) ){
+		if( !::SendMessage( hWndFrom, MYWM_CLOSE, bExit ? PM_CLOSE_EXIT : 0, (LPARAM)hWndFrom ) ){
 			return FALSE;
 		}
 	}
