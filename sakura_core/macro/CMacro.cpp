@@ -2268,6 +2268,19 @@ bool CMacro::HandleFunction(CEditView *View, EFunctionCode ID, const VARIANT *Ar
 			Wrap( &Result )->Receive( nRet );
 			return true;
 		}
+	case F_ISTEXTSELECTINGLOCK:
+		{
+			if( View->GetSelectionInfo().m_bSelectingLock ) {
+				if( View->GetSelectionInfo().IsBoxSelecting() ) {
+					Wrap( &Result )->Receive( 2 );	//矩形選択中
+				}else{
+					Wrap( &Result )->Receive( 1 );	//選択中
+				}
+			}else{
+				Wrap( &Result )->Receive( 0 );		//非選択中
+			}
+		}
+		return true;
 	default:
 		return false;
 	}
