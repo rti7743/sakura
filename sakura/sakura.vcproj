@@ -568,11 +568,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\sakura_core\svnrev.h"
+				RelativePath="..\sakura_core\String_define.h"
 				>
 			</File>
 			<File
-				RelativePath="..\sakura_core\String_define.h"
+				RelativePath="..\sakura_core\svnrev.h"
 				>
 			</File>
 		</Filter>
@@ -2849,6 +2849,14 @@
 				</File>
 				<File
 					RelativePath="..\sakura_core\dlg\CDlgPrintSetting.h"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\dlg\CDlgProfileMgr.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\dlg\CDlgProfileMgr.h"
 					>
 				</File>
 				<File
