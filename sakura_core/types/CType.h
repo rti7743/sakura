@@ -185,6 +185,9 @@ struct STypeConfig{
 	int					m_nOutlineSortType;				//!< アウトライン解析ソート基準
 
 	ESmartIndentType	m_eSmartIndent;					//!< スマートインデント種別
+	bool				m_bIndentCppStringIgnore;		//!< C/C++インデント：文字列を無視する
+	bool				m_bIndentCppCommentIgnore;		//!< C/C++インデント：コメントを無視する
+	bool				m_bIndentCppUndoSep;			//!< C/C++インデント：Undoバッファを分ける
 	int					m_nImeState;					//!< 初期IME状態	Nov. 20, 2000 genta
 
 	//	2001/06/14 asa-o 補完のタイプ別設定
