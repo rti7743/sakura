@@ -72,10 +72,18 @@ const DWORD p_helpids[] = {	//12900
 #endif
 //	To Here Feb. 7, 2002 genta
 
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+#ifdef _UNICODE
+	#define TARGET_STRING_MODEL "WP"
+#else
+	#define TARGET_STRING_MODEL "AP"
+#endif
+#else
 #ifdef _UNICODE
 	#define TARGET_STRING_MODEL "W"
 #else
 	#define TARGET_STRING_MODEL "A"
+#endif
 #endif
 
 #ifdef _DEBUG

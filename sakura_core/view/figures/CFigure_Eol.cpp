@@ -106,7 +106,7 @@ bool CFigure_Eol::DrawImp(SColorStrategyInfo* pInfo)
 		SFONT sFont;
 		sFont.m_sFontAttr.m_bBoldFont = cSpaceType.IsBoldFont() || currentStyle.IsBoldFont();
 		sFont.m_sFontAttr.m_bUnderLine = cSpaceType.HasUnderLine();
-		sFont.m_hFont = pInfo->m_pcView->GetFontset().ChooseFontHandle( sFont.m_sFontAttr );
+		sFont.m_hFont = pInfo->m_pcView->GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
 		pInfo->m_gr.PushMyFont(sFont);
 
 		DispPos sPos(*pInfo->m_pDispPos);	// 現在位置を覚えておく
@@ -127,8 +127,18 @@ bool CFigure_Eol::DrawImp(SColorStrategyInfo* pInfo)
 // 折り返し描画
 void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayoutYInt nLineNum )
 {
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	CTypeSupport cWrapType(pcView,COLORIDX_WRAP);
+	if( cWrapType.IsDisp() ){
+		bool bTrans = pcView->IsBkBitmap() && cWrapType.GetBackColor() == CTypeSupport(pcView,COLORIDX_TEXT).GetBackColor();
+		cWrapType.SetGraphicsState_WhileThisObj(gr);
+		int fontNo = WCODE::GetFontNo('<');
+		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
+		pcView->GetTextDrawer().DispText(gr, pDispPos, nHeightMargin, L"<", 1, bTrans );
+	}
+#else
 	RECT rcClip2;
-	if(pcView->GetTextArea().GenerateClipRect(&rcClip2,*pDispPos,1))
+	if(pcView->GetTextArea().GenerateClipRect(&rcClip2,*pDispPos,CLayoutXInt(1)))
 	{
 		//サポートクラス
 		CTypeSupport cWrapType(pcView,COLORIDX_WRAP);
@@ -168,12 +178,14 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 		{
 			szText = L" ";
 		}
+		int fontNo = WCODE::GetFontNo(*szText);
+		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
 
 		//描画
 		::ExtTextOutW_AnyBuild(
 			gr,
 			pDispPos->GetDrawPos().x,
-			pDispPos->GetDrawPos().y,
+			pDispPos->GetDrawPos().y + nHeightMargin,
 			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0),
 			&rcClip2,
 			szText,
@@ -184,7 +196,8 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 			gr.PopTextBackColor();
 		}
 	}
-	pDispPos->ForwardDrawCol(1);
+	pDispPos->ForwardDrawCol(CLayoutXInt(1));
+#endif
 }
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 //                       EOF描画実装                           //
@@ -217,18 +230,27 @@ void _DispEOF(
 	static const wchar_t	szEof[] = L"[EOF]";
 	const int		nEofLen = _countof(szEof) - 1;
 
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	cEofType.SetGraphicsState_WhileThisObj(gr);
+	int fontNo = WCODE::GetFontNo('E');
+	int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
+	pcView->GetTextDrawer().DispText(gr, pDispPos, nHeightMargin, szEof, nEofLen, bTrans);
+#else
+	const CLayoutXInt nEofCol = CLayoutXInt(nEofLen);
 	//クリッピング領域を計算
 	RECT rcClip;
-	if(pArea->GenerateClipRect(&rcClip,*pDispPos,nEofLen))
+	if(pArea->GenerateClipRect(&rcClip,*pDispPos,nEofCol))
 	{
 		//色設定
 		cEofType.SetGraphicsState_WhileThisObj(gr);
 
+		int fontNo = WCODE::GetFontNo('E');
+		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
 		//描画
 		::ExtTextOutW_AnyBuild(
 			gr,
 			pDispPos->GetDrawPos().x,
-			pDispPos->GetDrawPos().y,
+			pDispPos->GetDrawPos().y + nHeightMargin,
 			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0),
 			&rcClip,
 			szEof,
@@ -238,7 +260,8 @@ void _DispEOF(
 	}
 
 	//描画位置を進める
-	pDispPos->ForwardDrawCol(nEofLen);
+	pDispPos->ForwardDrawCol(nEofCol);
+#endif
 }
 
 
@@ -260,14 +283,23 @@ void _DrawEOL(
 //2007.08.30 kobake 追加
 void _DispEOL(CGraphics& gr, DispPos* pDispPos, CEol cEol, const CEditView* pcView, bool bTrans)
 {
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	const CLayoutXInt nCol = CTypeSupport(pcView,COLORIDX_EOL).IsDisp()
+		? pcView->GetTextMetrics().GetLayoutXDefault(CKetaXInt(1)) + CLayoutXInt(4) // ONのときは1幅+4px
+		: CLayoutXInt(2); // HACK:EOL off なら2px
+#else
+	const CLayoutXInt nCol = CKetaXInt(2);
+#endif
 	RECT rcClip2;
-	if(pcView->GetTextArea().GenerateClipRect(&rcClip2,*pDispPos,2)){
+	if(pcView->GetTextArea().GenerateClipRect(&rcClip2,*pDispPos,nCol)){
+		int fontNo = WCODE::GetFontNo(' ');
+		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
 		// 2003.08.17 ryoji 改行文字が欠けないように
 		::ExtTextOutW_AnyBuild(
 			gr,
 			pDispPos->GetDrawPos().x,
 			pDispPos->GetDrawPos().y,
-			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0),
+			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0) + nHeightMargin,
 			&rcClip2,
 			L"  ",
 			2,
@@ -279,7 +311,7 @@ void _DispEOL(CGraphics& gr, DispPos* pDispPos, CEol cEol, const CEditView* pcVi
 			// From Here 2003.08.17 ryoji 改行文字が欠けないように
 
 			// リージョン作成、選択。
-			gr.SetClipping(rcClip2);
+			gr.PushClipping(rcClip2);
 			
 			// 描画領域
 			CMyRect rcEol;
@@ -293,14 +325,14 @@ void _DispEOL(CGraphics& gr, DispPos* pDispPos, CEol cEol, const CEditView* pcVi
 			_DrawEOL(gr, rcEol, cEol, gr.GetCurrentMyFontBold(), gr.GetCurrentTextForeColor());
 
 			// リージョン破棄
-			gr.ClearClipping();
+			gr.PopClipping();
 
 			// To Here 2003.08.17 ryoji 改行文字が欠けないように
 		}
 	}
 
 	//描画位置を進める(2桁)
-	pDispPos->ForwardDrawCol(2);
+	pDispPos->ForwardDrawCol(nCol);
 }
 
 

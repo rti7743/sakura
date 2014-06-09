@@ -25,6 +25,8 @@
 #include "charset/charcode.h"
 #include "mem/CMemory.h"/// 2002/2/10 aroka
 #include "mem/CMemoryIterator.h" // 2006.07.29 genta
+#include "view/CViewFont.h"
+#include "view/CTextMetrics.h"
 #include "basis/SakuraBasis.h"
 #include "CSearchAgent.h"
 #include "debug/CRunningTimer.h"
@@ -39,8 +41,8 @@ CLayoutMgr::CLayoutMgr()
 {
 	m_pcDocLineMgr = NULL;
 	m_pTypeConfig = NULL;
-	m_nMaxLineKetas = CLayoutInt(MAXLINEKETAS);
-	m_nTabSpace = CLayoutInt(4);
+	m_nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
+	m_nTabSpace = CKetaXInt(4);
 	m_pszKinsokuHead_1.clear();						/* 行頭禁則 */	//@@@ 2002.04.08 MIK
 	m_pszKinsokuTail_1.clear();						/* 行末禁則 */	//@@@ 2002.04.08 MIK
 	m_pszKinsokuKuto_1.clear();						/* 句読点ぶらさげ */	//@@@ 2002.04.17 MIK
@@ -110,9 +112,12 @@ void CLayoutMgr::_Empty()
 */
 void CLayoutMgr::SetLayoutInfo(
 	bool				bDoLayout,
+	bool				bBlockingHook,
 	const STypeConfig&	refType,
-	CLayoutInt			nTabSpace,
-	CLayoutInt			nMaxLineKetas
+	CKetaXInt			nTabSpace,
+	CKetaXInt			nMaxLineKetas,
+	CLayoutXInt			nCharLayoutXPerKeta,
+	const LOGFONT*		pLogfont
 )
 {
 	MY_RUNNINGTIMER( cRunningTimer, "CLayoutMgr::SetLayoutInfo" );
@@ -124,6 +129,22 @@ void CLayoutMgr::SetLayoutInfo(
 	m_pTypeConfig = &refType;
 	m_nMaxLineKetas = nMaxLineKetas;
 	m_nTabSpace = nTabSpace;
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	m_nSpacing = refType.m_nColumnSpace;
+	if( nCharLayoutXPerKeta == -1 )
+	{
+		// Viewが持ってるフォント情報は古い、しょうがないので自分で作る
+		HWND hwnd = NULL;
+		HDC hdc = ::GetDC(hwnd);
+		CViewFont viewFont(pLogfont);
+		CTextMetrics temp;
+		temp.Update(hdc, viewFont.GetFontHan(), refType.m_nLineSpace, refType.m_nColumnSpace);
+		m_nCharLayoutXPerKeta = temp.GetHankakuWidth() + m_pTypeConfig->m_nColumnSpace;
+		::ReleaseDC(hwnd, hdc);
+	}else{
+		m_nCharLayoutXPerKeta = nCharLayoutXPerKeta;
+	}
+#endif
 
 	//	Oct. 1, 2002 genta タイプによって処理関数を変更する
 	//	数が増えてきたらテーブルにすべき
@@ -170,7 +191,7 @@ void CLayoutMgr::SetLayoutInfo(
 
 	//レイアウト
 	if( bDoLayout ){
-		_DoLayout();
+		_DoLayout(bBlockingHook);
 	}
 }
 
@@ -481,7 +502,7 @@ void CLayoutMgr::GetEndLayoutPos(
 		ptLayoutEnd->Set(CLayoutInt(0), GetLineCount());
 	}
 	else {
-		CMemoryIterator it( btm, GetTabSpace() );
+		CMemoryIterator it = CreateCMemoryIterator(btm);
 		while( !it.end() ){
 			it.scanNext();
 			it.addDelta();
@@ -623,8 +644,8 @@ void CLayoutMgr::ShiftLogicalLineNum( CLayout* pLayoutPrev, CLogicInt nShiftLine
 
 
 bool CLayoutMgr::ChangeLayoutParam(
-	CLayoutInt	nTabSize,
-	CLayoutInt	nMaxLineKetas
+	CKetaXInt	nTabSize,
+	CKetaXInt	nMaxLineKetas
 )
 {
 	if( nTabSize < 1 || nTabSize > 64 ) { return false; }
@@ -633,7 +654,7 @@ bool CLayoutMgr::ChangeLayoutParam(
 	m_nTabSpace = nTabSize;
 	m_nMaxLineKetas = nMaxLineKetas;
 
-	_DoLayout();
+	_DoLayout(true);
 
 	return true;
 }
@@ -868,7 +889,7 @@ void CLayoutMgr::LogicToLayout(
 					nCharKetas = GetActualTabSpace( nCaretPosX );
 				}
 				else{
-					nCharKetas = CNativeW::GetKetaOfChar( pData, nDataLen, i );
+					nCharKetas = GetLayoutXOfChar( pData, nDataLen, i );
 				}
 //				if( nCharKetas == 0 )				// 削除 サロゲートペア対策	2008/7/5 Uchi
 //					nCharKetas = CLayoutInt(1);
@@ -933,6 +954,9 @@ void CLayoutMgr::LayoutToLogicEx(
 {
 	pptLogic->Set(CLogicInt(0), CLogicInt(0));
 	pptLogic->ext = 0;
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	pptLogic->haba = m_nCharLayoutXPerKeta;
+#endif
 	if( ptLayout.GetY2() > m_nLines ){
 		//2007.10.11 kobake Y値が間違っていたので修正
 		//pptLogic->Set(0, m_nLines);
@@ -1004,7 +1028,7 @@ checkloop:;
 			nCharKetas = GetActualTabSpace( nX );
 		}
 		else{
-			nCharKetas = CNativeW::GetKetaOfChar( pData, nDataLen, i );
+			nCharKetas = GetLayoutXOfChar( pData, nDataLen, i );
 		}
 //		if( nCharKetas == 0 )				// 削除 サロゲートペア対策	2008/7/5 Uchi
 //			nCharKetas = CLayoutInt(1);

@@ -200,7 +200,10 @@ void CViewCommander::Command_FONT( void )
 
 	/* フォント設定ダイアログ */
 	LOGFONT lf = GetDllShareData().m_Common.m_sView.m_lf;
-	INT nPointSize;
+	INT   nPointSize = GetDllShareData().m_Common.m_sView.m_nPointSize;
+#if defined(BUILD_OPT_ENALBE_PPFONT_SUPPORT) && !defined(USE_UNFIXED_FONT)
+#define USE_UNFIXED_FONT
+#endif
 #ifdef USE_UNFIXED_FONT
 	bool bFixedFont = false;
 #else
@@ -215,6 +218,10 @@ void CViewCommander::Command_FONT( void )
 		}else{
 			GetDllShareData().m_Common.m_sView.m_bFontIs_FIXED_PITCH = FALSE;	/* 現在のフォントは固定幅フォントである */
 		}
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+		// 2010.09.06 プロポーショナルフォントでもたぶん矩形も使えるはず
+		GetDllShareData().m_Common.m_sView.m_bFontIs_FIXED_PITCH = TRUE;
+#endif
 		/* 設定変更を反映させる */
 		/* 全編集ウィンドウへメッセージをポストする */
 		CAppNodeGroupHandle(0).PostMessageToAllEditors(
@@ -320,13 +327,25 @@ void CViewCommander::Command_SETFONTSIZE( int fontSize, int shift, int mode )
 	// 新たにタイプ別や一時設定が有効になってもフォント名は変わらないのでSIZEのみの変更通知をする
 	if( mode == 0 || mode == 1 ){
 		/* 全編集ウィンドウへメッセージをポストする */
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+		if( mode == 0 ){
+			CAppNodeGroupHandle(0).PostMessageToAllEditors(
+				MYWM_SAVEEDITSTATE,
+				(WPARAM)0, (LPARAM)0, hwndFrame
+			);
+		}
+#endif
 		CAppNodeGroupHandle(0).PostMessageToAllEditors(
 			MYWM_CHANGESETTING,
 			(WPARAM)nTypeIndex, (LPARAM)PM_CHANGESETTING_FONTSIZE, hwndFrame
 		);
 	}else if( mode == 2 ){
 		// 自分だけ更新
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+		GetDocument()->OnChangeSetting( true, false );
+#else
 		GetDocument()->OnChangeSetting( false );
+#endif
 	}
 }
 
@@ -346,7 +365,7 @@ void CViewCommander::Command_WRAPWINDOWWIDTH( void )	//	Oct. 7, 2000 JEPRO WRAPW
 {
 	// Jan. 8, 2006 genta 判定処理をm_pCommanderView->GetWrapMode()へ移動
 	CEditView::TOGGLE_WRAP_ACTION nWrapMode;
-	CLayoutInt newKetas;
+	CKetaXInt newKetas;
 	
 	nWrapMode = m_pCommanderView->GetWrapMode( &newKetas );
 	GetDocument()->m_nTextWrapMethodCur = WRAP_SETTING_WIDTH;
@@ -355,7 +374,7 @@ void CViewCommander::Command_WRAPWINDOWWIDTH( void )	//	Oct. 7, 2000 JEPRO WRAPW
 		return;	// 折り返し桁は元のまま
 	}
 
-	GetEditWindow()->ChangeLayoutParam( true, GetDocument()->m_cLayoutMgr.GetTabSpace(), newKetas );
+	GetEditWindow()->ChangeLayoutParam( true, GetDocument()->m_cLayoutMgr.GetTabSpaceKetas(), newKetas );
 	
 
 	//	Aug. 14, 2005 genta 共通設定へは反映させない
@@ -412,20 +431,20 @@ void CViewCommander::Command_TEXTWRAPMETHOD( int nWrapMethod )
 	if( pcDoc->m_nTextWrapMethodCur == nWrapMethod )
 		return;
 
-	int nWidth;
+	CKetaXInt nWidth;
 
 	switch( nWrapMethod ){
 	case WRAP_NO_TEXT_WRAP:		// 折り返さない
-		nWidth = MAXLINEKETAS;	// アプリケーションの最大幅で折り返し
+		nWidth = CKetaXInt(MAXLINEKETAS);	// アプリケーションの最大幅で折り返し
 		break;
 
 	case WRAP_SETTING_WIDTH:	// 指定桁で折り返す
-		nWidth = (Int)pcDoc->m_cDocType.GetDocumentAttribute().m_nMaxLineKetas;
+		nWidth = pcDoc->m_cDocType.GetDocumentAttribute().m_nMaxLineKetas;
 		break;
 
 	case WRAP_WINDOW_WIDTH:		// 右端で折り返す
 		// ウィンドウが左右に分割されている場合は左側のウィンドウ幅を使用する
-		nWidth = (Int)m_pCommanderView->ViewColNumToWrapColNum( GetEditWindow()->GetView(0).GetTextArea().m_nViewColNum );
+		nWidth = m_pCommanderView->ViewColNumToWrapColNum( GetEditWindow()->GetView(0).GetTextArea().m_nViewColNum );
 		break;
 
 	default:
@@ -438,7 +457,7 @@ void CViewCommander::Command_TEXTWRAPMETHOD( int nWrapMethod )
 	pcDoc->m_bTextWrapMethodCurTemp = !( pcDoc->m_cDocType.GetDocumentAttribute().m_nTextWrapMethod == nWrapMethod );
 
 	// 折り返し位置を変更
-	GetEditWindow()->ChangeLayoutParam( false, pcDoc->m_cLayoutMgr.GetTabSpace(), (CLayoutInt)nWidth );
+	GetEditWindow()->ChangeLayoutParam( false, pcDoc->m_cLayoutMgr.GetTabSpaceKetas(), nWidth );
 
 	// 2009.08.28 nasukoji	「折り返さない」ならテキスト最大幅を算出、それ以外は変数をクリア
 	if( pcDoc->m_nTextWrapMethodCur == WRAP_NO_TEXT_WRAP ){

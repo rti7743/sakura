@@ -66,7 +66,6 @@
 #include "env/CShareData.h"
 #include "env/DLLSHAREDATA.h"
 #include "func/Funccode.h"
-#include "mem/CMemoryIterator.h"	// 2007.08.22 ryoji 追加
 #include "outline/CFuncInfoArr.h" /// 2002/2/3 aroka
 #include "macro/CSMacroMgr.h"
 #include "util/file.h"
@@ -110,11 +109,11 @@ CEditDoc::CEditDoc(CEditApp* pcApp)
 	// 「指定桁で折り返す」以外の時は折り返し幅をMAXLINEKETASで初期化する
 	// 「右端で折り返す」は、この後のOnSize()で再設定される
 	const STypeConfig& ref = m_cDocType.GetDocumentAttribute();
-	CLayoutInt nMaxLineKetas = ref.m_nMaxLineKetas;
+	CKetaXInt nMaxLineKetas = ref.m_nMaxLineKetas;
 	if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH ){
-		nMaxLineKetas = MAXLINEKETAS;
+		nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 	}
-	m_cLayoutMgr.SetLayoutInfo( true, ref, ref.m_nTabSpace, nMaxLineKetas );
+	m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(1), NULL );
 
 	//	自動保存の設定	//	Aug, 21, 2000 genta
 	m_cAutoSaveAgent.ReloadAutoSaveParam();
@@ -182,11 +181,11 @@ void CEditDoc::Clear()
 
 	// 2008.06.07 nasukoji	折り返し方法の追加に対応
 	const STypeConfig& ref = m_cDocType.GetDocumentAttribute();
-	CLayoutInt nMaxLineKetas = ref.m_nMaxLineKetas;
+	CKetaXInt nMaxLineKetas = ref.m_nMaxLineKetas;
 	if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH ){
-		nMaxLineKetas = MAXLINEKETAS;
+		nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 	}
-	m_cLayoutMgr.SetLayoutInfo( true, ref, ref.m_nTabSpace, nMaxLineKetas );
+	m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &m_pcEditWnd->GetLogfont() );
 	m_pcEditWnd->ClearViewCaretPosInfo();
 }
 
@@ -627,7 +626,8 @@ void CEditDoc::OnChangeType()
 	@date 2013.04.22 novice レイアウト情報の再作成を設定できるようにした
 */
 void CEditDoc::OnChangeSetting(
-	bool	bDoLayout
+	bool	bDoLayout,
+	bool	bBlockingHook
 )
 {
 	int			i;
@@ -727,8 +727,8 @@ void CEditDoc::OnChangeSetting(
 	SelectCharWidthCache( CWM_FONT_EDIT, m_pcEditWnd->GetLogfontCacheMode() );
 	InitCharWidthCache( m_pcEditWnd->GetLogfont() );
 
-	CLayoutInt nMaxLineKetas = ref.m_nMaxLineKetas;
-	CLayoutInt nTabSpace = ref.m_nTabSpace;
+	CKetaXInt nMaxLineKetas = ref.m_nMaxLineKetas;
+	CKetaXInt nTabSpace = ref.m_nTabSpace;
 	if( bDoLayout ){
 		// 2008.06.07 nasukoji	折り返し方法の追加に対応
 		// 折り返し方法の一時設定とタイプ別設定が一致したら一時設定適用中は解除
@@ -768,16 +768,16 @@ void CEditDoc::OnChangeSetting(
 				m_bTabSpaceCurTemp = false;
 			}else{
 				// 一時適用継続
-				nTabSpace = m_cLayoutMgr.GetTabSpace();
+				nTabSpace = m_cLayoutMgr.GetTabSpaceKetas();
 			}
 		}
 	}else{
 		// レイアウトを再構築しないので元の設定を維持
 		nMaxLineKetas = m_cLayoutMgr.GetMaxLineKetas();	// 現在の折り返し幅
-		nTabSpace = m_cLayoutMgr.GetTabSpace();	// 現在のタブ幅
+		nTabSpace = m_cLayoutMgr.GetTabSpaceKetas();	// 現在のタブ幅
 	}
 	CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&m_cLayoutMgr);
-	m_cLayoutMgr.SetLayoutInfo( bDoLayout, ref, nTabSpace, nMaxLineKetas );
+	m_cLayoutMgr.SetLayoutInfo( bDoLayout, bBlockingHook, ref, nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &m_pcEditWnd->GetLogfont() );
 	CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);
 	m_pcEditWnd->ClearViewCaretPosInfo();
 

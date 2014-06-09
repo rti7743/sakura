@@ -36,6 +36,7 @@ class CViewCalc{
 protected:
 	//ŠO•”ˆË‘¶
 	CLayoutInt GetTabSpace() const;
+	CPixelXInt GetCharSpacing() const;
 
 public:
 	CViewCalc(const CEditView* pOwner) : m_pOwner(pOwner) { }

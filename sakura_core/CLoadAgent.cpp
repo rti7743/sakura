@@ -219,12 +219,12 @@ ELoadResult CLoadAgent::OnLoad(const SLoadInfo& sLoadInfo)
 	// 「指定桁で折り返す」以外の時は折り返し幅をMAXLINEKETASで初期化する
 	// 「右端で折り返す」は、この後のOnSize()で再設定される
 	const STypeConfig& ref = pcDoc->m_cDocType.GetDocumentAttribute();
-	CLayoutInt nMaxLineKetas = ref.m_nMaxLineKetas;
+	CKetaXInt nMaxLineKetas = ref.m_nMaxLineKetas;
 	if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH )
-		nMaxLineKetas = MAXLINEKETAS;
+		nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 
 	CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&pcDoc->m_cLayoutMgr);
-	pcDoc->m_cLayoutMgr.SetLayoutInfo( true, ref, ref.m_nTabSpace, nMaxLineKetas );
+	pcDoc->m_cLayoutMgr.SetLayoutInfo( true, true, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
 	pcDoc->m_pcEditWnd->ClearViewCaretPosInfo();
 	
 	CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);

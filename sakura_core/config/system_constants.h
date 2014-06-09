@@ -51,10 +51,18 @@
 #endif
 
 //! ビルドコード判別、定数サフィックス 2007.09.20 kobake
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+#ifdef _UNICODE
+	#define _CODE_SUFFIX_ "WP"
+#else
+	#define _CODE_SUFFIX_ "AP"
+#endif
+#else
 #ifdef _UNICODE
 	#define _CODE_SUFFIX_ "W"
 #else
 	#define _CODE_SUFFIX_ "A"
+#endif
 #endif
 
 //! ターゲットマシン判別 2010.08.21 Moca 追加
@@ -475,12 +483,15 @@
 	Version 151:
 	Grep置換
 
+	Version 152:
+	プロポーショナルフォント
+
 	-- 統合されたので元に戻す（1000～1023が使用済み） 	2008.11.16 nasukoji
 	-- Version 1000:
 	-- バージョン1000以降を本家統合までの間、使わせてください。かなり頻繁に構成が変更されると思われるので。by kobake 2008.03.02
 
 */
-#define N_SHAREDATA_VERSION		151
+#define N_SHAREDATA_VERSION		152
 #define STR_SHAREDATA_VERSION	NUM_TO_STR(N_SHAREDATA_VERSION)
 #define	GSTR_SHAREDATA	(_T("SakuraShareData") _T(CON_SKR_MACHINE_SUFFIX_) _T(_CODE_SUFFIX_) _T(_DEBUG_SUFFIX_) _T(STR_SHAREDATA_VERSION))
 

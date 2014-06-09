@@ -206,7 +206,7 @@ private:
 	//キャレット位置
 	CLayoutPoint	m_ptCaretPos_Layout;	// ビュー左上端からのカーソル位置。レイアウト単位。
 	CLogicPoint		m_ptCaretPos_Logic;		// カーソル位置。ロジック単位。データ内文字単位。
-
+#ifndef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	// カーソル位置計算キャッシュ
 	CLayoutInt m_nOffsetCache;
 	CLayoutInt m_nLineNoCache;
@@ -216,7 +216,7 @@ private:
 	CLayoutInt m_nOffset50Cache;
 	CLogicInt  m_nLogicOffset50Cache;
 	int m_nLineLogicModCache;
-
+#endif
 	
 public:
 	CLayoutInt		m_nCaretPosX_Prev;	// 直前のX座標記憶用。レイアウト単位。このソースの下部に詳細説明があります。

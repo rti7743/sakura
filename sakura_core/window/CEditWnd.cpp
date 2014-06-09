@@ -613,6 +613,10 @@ HWND CEditWnd::Create(
 
 	m_pcEditDoc = pcEditDoc;
 
+	m_pcEditDoc->m_cLayoutMgr.SetLayoutInfo( true, false, m_pcEditDoc->m_cDocType.GetDocumentAttribute(),
+		m_pcEditDoc->m_cLayoutMgr.GetTabSpaceKetas(), m_pcEditDoc->m_cLayoutMgr.GetMaxLineKetas(),
+		CLayoutXInt(-1), &GetLogfont() );
+
 	for( int i = 0; i < _countof(m_pcEditViewArr); i++ ){
 		m_pcEditViewArr[i] = NULL;
 	}
@@ -1764,8 +1768,16 @@ LRESULT CEditWnd::DispatchEvent(
 		case PM_CHANGESETTING_FONTSIZE:
 			if( (-1 == wParam && CWM_CACHE_SHARE == GetLogfontCacheMode())
 					|| GetDocument()->m_cDocType.GetDocumentType().GetIndex() == wParam ){
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+				// 文字幅で幅も変わるので再構築する
+				// 変更中にさらに変更されると困るのでBlockingHookは無効
+				GetDocument()->OnChangeSetting( true, false );
+#else
 				GetDocument()->OnChangeSetting( false );	// ビューに設定変更を反映させる(レイアウト情報の再作成しない)
+#endif
 			}
+			delete [] m_posSaveAry;
+			m_posSaveAry = NULL;
 			break;
 		case PM_CHANGESETTING_TYPE:
 			if( GetDocument()->m_cDocType.GetDocumentType().GetIndex() == wParam ){
@@ -1788,6 +1800,9 @@ LRESULT CEditWnd::DispatchEvent(
 				if( MyGetAncestor( ::GetForegroundWindow(), GA_ROOTOWNER2 ) == GetHwnd() )
 					::SetFocus( GetActiveView().GetHwnd() );	// フォーカスを戻す
 			}
+			break;
+			delete [] m_posSaveAry;
+			m_posSaveAry = NULL;
 			break;
 		case PM_CHANGESETTING_TYPE2:
 			if( GetDocument()->m_cDocType.GetDocumentType().GetIndex() == wParam ){
@@ -2467,7 +2482,7 @@ void CEditWnd::InitMenu_Function(HMENU hMenu, EFunctionCode eFunc, const wchar_t
 			break;
 		case F_WRAPWINDOWWIDTH:
 			{
-				CLayoutInt ketas;
+				CKetaXInt ketas;
 				WCHAR*	pszLabel;
 				CEditView::TOGGLE_WRAP_ACTION mode = GetActiveView().GetWrapMode( &ketas );
 				if( mode == CEditView::TGWRAP_NONE ){
@@ -2487,16 +2502,16 @@ void CEditWnd::InitMenu_Function(HMENU hMenu, EFunctionCode eFunc, const wchar_t
 						auto_sprintf(
 							szBuf,
 							LSW( STR_WRAP_WIDTH_WINDOW ),	//L"折り返し桁数: %d 桁（右端）",
-							GetActiveView().ViewColNumToWrapColNum(
+							int((Int)GetActiveView().ViewColNumToWrapColNum(
 								GetActiveView().GetTextArea().m_nViewColNum
-							)
+							))
 						);
 					}
 					else {
 						auto_sprintf(
 							szBuf,
 							LSW( STR_WRAP_WIDTH_FIXED ),	//L"折り返し桁数: %d 桁（指定）",
-							GetDocument()->m_cDocType.GetDocumentAttribute().m_nMaxLineKetas
+							int((Int)GetDocument()->m_cDocType.GetDocumentAttribute().m_nMaxLineKetas)
 						);
 					}
 					m_CMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING, F_WRAPWINDOWWIDTH , pszLabel, pszKey );
@@ -4426,9 +4441,9 @@ BOOL CEditWnd::DetectWidthOfLineNumberAreaAllPane( bool bRedraw )
 BOOL CEditWnd::WrapWindowWidth( int nPane )
 {
 	// 右端で折り返す
-	CLayoutInt nWidth = GetView(nPane).ViewColNumToWrapColNum( GetView(nPane).GetTextArea().m_nViewColNum );
+	CKetaXInt nWidth = GetView(nPane).ViewColNumToWrapColNum( GetView(nPane).GetTextArea().m_nViewColNum );
 	if( GetDocument()->m_cLayoutMgr.GetMaxLineKetas() != nWidth ){
-		ChangeLayoutParam( false, GetDocument()->m_cLayoutMgr.GetTabSpace(), nWidth );
+		ChangeLayoutParam( false, GetDocument()->m_cLayoutMgr.GetTabSpaceKetas(), nWidth );
 		ClearViewCaretPosInfo();
 		return TRUE;
 	}
@@ -4464,7 +4479,7 @@ BOOL CEditWnd::UpdateTextWrap( void )
 	@date 2005.08.14 genta 新規作成
 	@date 2008.06.18 ryoji レイアウト変更途中はカーソル移動の画面スクロールを見せない（画面のちらつき抑止）
 */
-void CEditWnd::ChangeLayoutParam( bool bShowProgress, CLayoutInt nTabSize, CLayoutInt nMaxLineKetas )
+void CEditWnd::ChangeLayoutParam( bool bShowProgress, CKetaXInt nTabSize, CKetaXInt nMaxLineKetas )
 {
 	HWND		hwndProgress = NULL;
 	if( bShowProgress && NULL != this ){

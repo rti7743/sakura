@@ -47,13 +47,15 @@ CLayoutInt CLayout::CalcLayoutWidth(const CLayoutMgr& cLayoutMgr) const
 
 	//ŒvŽZ
 	CLayoutInt nWidth = GetIndent();
-	for(CLogicInt i=m_ptLogicPos.GetX2();i<m_ptLogicPos.GetX2()+m_nLength;i++){
+	CLogicInt nLen = GetLogicPos().x + m_nLength; //EOL=0,1
+	for(CLogicInt i=m_ptLogicPos.GetX2();i<nLen;){
 		if(pText[i]==WCODE::TAB){
 			nWidth += cLayoutMgr.GetActualTabSpace(nWidth);
 		}
 		else{
-			nWidth += CNativeW::GetKetaOfChar(pText,nTextLen,i);
+			nWidth += cLayoutMgr.GetLayoutXOfChar(pText, nTextLen, i);
 		}
+		i += t_max(CLogicInt(1), CNativeW::GetSizeOfChar(pText, nTextLen, i));
 	}
 	return nWidth;
 }
