@@ -358,7 +358,9 @@ const EFunctionCode pnFuncList_Search[] = {	//Oct. 16, 2000 JEPRO 変数名変更(Lis
 	F_ISEARCH_REGEXP_NEXT,	//前方正規表現インクリメンタルサーチ  //2004.10.13 isearch
 	F_ISEARCH_REGEXP_PREV,	//後方正規表現インクリメンタルサーチ  //2004.10.13 isearch
 	F_ISEARCH_MIGEMO_NEXT,	//前方MIGEMOインクリメンタルサーチ    //2004.10.13 isearch
-	F_ISEARCH_MIGEMO_PREV	//後方MIGEMOインクリメンタルサーチ    //2004.10.13 isearch
+	F_ISEARCH_MIGEMO_PREV,	//後方MIGEMOインクリメンタルサーチ    //2004.10.13 isearch
+	F_FUNCLIST_NEXT		,	//次の関数リストマーク
+	F_FUNCLIST_PREV		,	//前の関数リストマーク
 };
 const int nFincList_Search_Num = _countof( pnFuncList_Search );	//Oct. 16, 2000 JEPRO 変数名変更(List4→List_Search)
 
@@ -821,6 +823,8 @@ int FuncID_To_HelpContextID( EFunctionCode nFuncID )
 	case F_ISEARCH_REGEXP_PREV:	return HLP000307;	//正規表現後方インクリメンタルサーチ	// 2006.10.05 ryoji
 	case F_ISEARCH_MIGEMO_NEXT:	return HLP000308;	//MIGEMO前方インクリメンタルサーチ	// 2006.10.05 ryoji
 	case F_ISEARCH_MIGEMO_PREV:	return HLP000309;	//MIGEMO後方インクリメンタルサーチ	// 2006.10.05 ryoji
+	case F_FUNCLIST_NEXT:		return HLP000364;	//次の関数リストマーク
+	case F_FUNCLIST_PREV:		return HLP000365;	//前の関数リストマーク
 
 	/* モード切り替え系 */
 	case F_CHGMOD_INS:		return HLP000046;	//挿入／上書きモード切り替え
