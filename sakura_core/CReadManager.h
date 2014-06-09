@@ -28,6 +28,7 @@
 #include "charset/CCodeBase.h" // EConvertResult
 
 class CDocLineMgr;
+class CLayoutMgr;
 struct SFileInfo; // doc/CDocFile.h
 
 class CReadManager : public CProgressSubject{
@@ -37,7 +38,9 @@ public:
 	EConvertResult ReadFile_To_CDocLineMgr(
 		CDocLineMgr*		pcDocLineMgr,
 		const SLoadInfo&	sLoadInfo,
-		SFileInfo*			pFileInfo
+		SFileInfo*			pFileInfo,
+		bool				bUseThread,
+		CLayoutMgr*			pcLayoutMgr
 	);
 };
 

@@ -8,6 +8,7 @@
 #include "view/CEditView.h" // SColorStrategyInfo
 #include "view/colors/CColorStrategy.h"
 #include "util/window.h"
+#include <process.h> // _beginthreadex
 #include "debug/CRunningTimer.h"
 
 //2008.07.27 kobake
@@ -599,4 +600,169 @@ void CLayoutMgr::CalculateTextWidth_Range( const CalTextWidthArg* pctwArg )
 			CalculateTextWidth( FALSE, nCalTextWidthLinesFrom, nCalTextWidthLinesTo );
 #endif
 	}
+}
+
+unsigned int WINAPI BeginLayoutThread_(void * ptr_)
+{
+	SLayoutMgrThread* ptr = reinterpret_cast<SLayoutMgrThread*>(ptr_);
+	CLayoutMgr* pLayoutMgr = ptr->m_pLayoutMgr;
+	unsigned int ret = pLayoutMgr->StartThread(ptr);
+
+	return ret;
+}
+
+
+HANDLE CLayoutMgr::CreateThread(SLayoutMgrThread* ptr)
+{
+	ptr->m_pLayoutMgr = this;
+	// CDocLineMgr/CDocLine読み書き排他制御
+	::InitializeCriticalSection( &ptr->m_cs );
+	// CDocLineMgrが行を追加したときに発行するイベント
+	ptr->m_hEvnetWaitDocLine = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+	ptr->m_bEndDocLineMgr = false;
+	ptr->m_bWaitLayoutMgr = false;
+	ptr->m_bSetEvent = false;
+	ptr->m_bException = false;
+	ptr->m_nLayoutDocLineNum = 0;
+	return (HANDLE)_beginthreadex(
+		NULL,
+		0,
+		BeginLayoutThread_,
+		(void *)ptr,
+		0,
+		NULL
+    );
+}
+
+
+unsigned int CLayoutMgr::StartThread(SLayoutMgrThread* ptr)
+{
+	_Empty();
+	Init();
+	
+	if( GetTabSpace() >= GetMaxLineKetas() ){
+		m_nTabSpace = CKetaXInt(4);
+	}
+
+	SLayoutWork	_sWork;
+	SLayoutWork* pWork = &_sWork;
+	pWork->pcDocLine				= NULL;
+	pWork->pLayout					= NULL;
+	pWork->pcColorStrategy			= NULL;
+	pWork->colorPrev				= COLORIDX_DEFAULT;
+	pWork->nCurLine					= CLogicInt(0);
+
+	{
+		bool bWait = false;
+		{
+			CLaoyutMgrThreadLock lock(ptr->m_cs);
+			bool bEnd = ptr->m_bEndDocLineMgr;
+			pWork->pcDocLine = m_pcDocLineMgr->GetDocLineTop();
+			if( pWork->pcDocLine == NULL ){
+				if( false == ptr->m_bEndDocLineMgr ){
+					ptr->m_bWaitLayoutMgr = true;
+					bWait = true;
+				}
+			}
+		}
+		if( bWait ){
+			bool bLoop = true;
+			while( bLoop ){
+				DWORD ret = ::WaitForSingleObject( ptr->m_hEvnetWaitDocLine, INFINITE );
+				if( ret == WAIT_FAILED ){
+					return -1;
+				}
+				{
+					CLaoyutMgrThreadLock lock(ptr->m_cs);
+					if( false == ptr->m_bSetEvent ){
+						::ResetEvent(ptr->m_hEvnetWaitDocLine);
+						continue;
+					}
+					ptr->m_bWaitLayoutMgr = false;
+					::ResetEvent(ptr->m_hEvnetWaitDocLine);
+					ptr->m_bSetEvent = false;
+					pWork->pcDocLine = m_pcDocLineMgr->GetDocLineTop();
+					bLoop = false;
+					if( ptr->m_bException ){
+						return -1;
+					}
+				}
+			}
+		}
+	}
+
+	while( NULL != pWork->pcDocLine ){
+		pWork->cLineStr		= pWork->pcDocLine->GetStringRefWithEOL();
+		pWork->eKinsokuType	= KINSOKU_TYPE_NONE;	//@@@ 2002.04.20 MIK
+		pWork->nBgn			= CLogicInt(0);
+		pWork->nPos			= CLogicInt(0);
+		pWork->nWordBgn		= CLogicInt(0);
+		pWork->nWordLen		= CLogicInt(0);
+		pWork->nPosX		= CLayoutInt(0);	// 表示上のX位置
+		pWork->nIndent		= CLayoutInt(0);	// インデント幅
+
+
+		_MakeOneLine(pWork, &CLayoutMgr::_OnLine1);
+
+		if( pWork->nPos - pWork->nBgn > 0 ){
+			AddLineBottom( pWork->_CreateLayout(this) );
+			pWork->colorPrev = pWork->pcColorStrategy->GetStrategyColorSafe();
+			pWork->exInfoPrev.SetColorInfo(pWork->pcColorStrategy->GetStrategyColorInfoSafe());
+		}
+
+		// 次の行へ
+		pWork->nCurLine++;
+		bool bWait = false;
+		{
+			CLaoyutMgrThreadLock lock(ptr->m_cs);
+			CDocLine* pLineTemp = pWork->pcDocLine->GetNextLine();
+			if( pLineTemp == NULL ){
+				if( false == ptr->m_bEndDocLineMgr ){
+					ptr->m_bWaitLayoutMgr = true;
+					bWait = true;
+				}else{
+					pWork->pcDocLine = NULL;
+				}
+			}else{
+				pWork->pcDocLine = pLineTemp;
+			}
+			if( ptr->m_bException ){
+				return -1;
+			}
+			ptr->m_nLayoutDocLineNum = pWork->nCurLine;
+		}
+		if( bWait ){
+			bool bLoop = true;
+			while( bLoop ){
+				DWORD ret = ::WaitForSingleObject( ptr->m_hEvnetWaitDocLine, INFINITE );
+				if( ret == WAIT_FAILED ){
+					return -1;
+				}
+				{
+					CLaoyutMgrThreadLock lock(ptr->m_cs);
+					if( false == ptr->m_bSetEvent ){
+						::ResetEvent(ptr->m_hEvnetWaitDocLine);
+						continue;
+					}
+					ptr->m_bWaitLayoutMgr = false;
+					::ResetEvent(ptr->m_hEvnetWaitDocLine);
+					ptr->m_bSetEvent = false;
+					pWork->pcDocLine = pWork->pcDocLine->GetNextLine();
+					bLoop = false;
+					if( ptr->m_bException ){
+						return -1;
+					}
+				}
+			}
+		}
+	}
+
+	// 2011.12.31 Botの色分け情報は最後に設定
+	m_nLineTypeBot = pWork->pcColorStrategy->GetStrategyColorSafe();
+	m_cLayoutExInfoBot.SetColorInfo(pWork->pcColorStrategy->GetStrategyColorInfoSafe());
+
+	m_nPrevReferLine = CLayoutInt(0);
+	m_pLayoutPrevRefer = NULL;
+
+	return 0;
 }

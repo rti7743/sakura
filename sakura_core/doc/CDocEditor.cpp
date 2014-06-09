@@ -177,20 +177,14 @@ void CDocEditor::SetImeMode( int mode )
 /*!
 	末尾に行を追加
 
-	@version 1.5
-
-	@param pData    [in] 追加する文字列へのポインタ
-	@param nDataLen [in] 文字列の長さ。文字単位。
-	@param cEol     [in] 行末コード
+	@version 2.0
 
 */
-void CDocEditAgent::AddLineStrX( const wchar_t* pData, int nDataLen )
+void CDocEditAgent::AddLineStrXMove( CNativeW& mem )
 {
 	//チェーン適用
 	CDocLine* pDocLine = m_pcDocLineMgr->AddNewLine();
 
 	//インスタンス設定
-	pDocLine->SetDocLineString(pData, nDataLen);
+	pDocLine->SetDocLineStringMove( &mem );
 }
-
-

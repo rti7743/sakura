@@ -36,6 +36,7 @@
 
 class CBregexp;// 2002/2/10 aroka
 class CLayout;// 2002/2/10 aroka
+class CLayoutMgr;
 class CDocLineMgr;// 2002/2/10 aroka
 class CDocLine;// 2002/2/10 aroka
 class CMemory;// 2002/2/10 aroka
@@ -78,6 +79,31 @@ public:
 #ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	CLayoutXInt haba;	//!< ext設定時の１文字の幅
 #endif
+};
+
+class CLaoyutMgrThreadLock
+{
+public:
+	CLaoyutMgrThreadLock(CRITICAL_SECTION &, bool bLock = true);
+	~CLaoyutMgrThreadLock();
+	void Lock();
+	void UnLock();
+private:
+	int m_nLock;
+	CRITICAL_SECTION& m_cs;
+};
+
+
+struct SLayoutMgrThread
+{
+	CRITICAL_SECTION m_cs;
+	HANDLE m_hEvnetWaitDocLine;
+	CLayoutMgr* m_pLayoutMgr;
+	volatile bool m_bEndDocLineMgr;
+	volatile bool m_bWaitLayoutMgr;
+	volatile bool m_bSetEvent;
+	volatile bool m_bException;
+	volatile int  m_nLayoutDocLineNum;
 };
 
 /*-----------------------------------------------------------------------
@@ -251,6 +277,9 @@ public:
 		CLayoutXInt		nCharLayoutXPerKeta,
 		const LOGFONT*	pLogfont
 	);
+
+	HANDLE CreateThread(SLayoutMgrThread*); // CLayoutMgrを走らせるスレッドを作成
+	unsigned int StartThread(SLayoutMgrThread*);	// _beginthreadexからの起動関数
 
 	/* 文字列置換 */
 	void ReplaceData_CLayoutMgr(

@@ -85,6 +85,7 @@ void CLayoutMgr::Init()
 	m_pLayoutPrevRefer = NULL;
 	m_nLines = CLayoutInt(0);			/* 全物理行数 */
 	m_nLineTypeBot = COLORIDX_DEFAULT;
+	m_cLayoutExInfoBot.SetColorInfo(NULL);
 
 	// EOFレイアウト位置記憶	//2006.10.07 Moca
 	m_nEOFLine = CLayoutInt(-1);
@@ -1104,3 +1105,37 @@ void CLayoutMgr::DUMP()
 
 
 
+
+CLaoyutMgrThreadLock::CLaoyutMgrThreadLock(CRITICAL_SECTION& cs, bool bLock)
+: m_cs(cs)
+{
+	m_nLock = 0;
+	if( bLock ){
+		Lock();
+	}
+}
+
+CLaoyutMgrThreadLock::~CLaoyutMgrThreadLock()
+{
+	if( 1 <= m_nLock ){
+		UnLock();
+	}
+}
+
+void CLaoyutMgrThreadLock::Lock()
+{
+	if( m_nLock == 0 ){
+		::EnterCriticalSection( &m_cs );
+	}
+	m_nLock++;
+	assert( 0 <= m_nLock );
+}
+
+void CLaoyutMgrThreadLock::UnLock()
+{
+	if( m_nLock <= 1 ){
+		::LeaveCriticalSection( &m_cs );
+	}
+	m_nLock--;
+	assert( 0 <= m_nLock );
+}

@@ -191,18 +191,39 @@ ELoadResult CLoadAgent::OnLoad(const SLoadInfo& sLoadInfo)
 		}
 	}
 
+	bool bUseThread = true;
+	bool bSetLayoutInfo = false;
+	if( bUseThread == false ){
+		bSetLayoutInfo = true;
+	}
+
 	//ファイルが存在する場合はファイルを読む
 	if(fexist(sLoadInfo.cFilePath)){
+		if( bUseThread ){
+			const STypeConfig& ref = pcDoc->m_cDocType.GetDocumentAttribute();
+			CKetaXInt nMaxLineKetas = ref.m_nMaxLineKetas;
+			if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH ){
+				nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
+			}
+			pcDoc->m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
+			pcDoc->m_pcEditWnd->ClearViewCaretPosInfo();
+		}
+
 		//CDocLineMgrの構成
 		CReadManager cReader;
 		CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&cReader);
 		EConvertResult eReadResult = cReader.ReadFile_To_CDocLineMgr(
 			&pcDoc->m_cDocLineMgr,
 			sLoadInfo,
-			&pcDoc->m_cDocFile.m_sFileInfo
+			&pcDoc->m_cDocFile.m_sFileInfo,
+			bUseThread,
+			&pcDoc->m_cLayoutMgr
 		);
 		if(eReadResult==RESULT_LOSESOME){
 			eRet = LOADED_LOSESOME;
+		}
+		if( eReadResult == RESULT_FAILURE ){
+			bSetLayoutInfo = true;
 		}
 		CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);
 	}
@@ -212,22 +233,25 @@ ELoadResult CLoadAgent::OnLoad(const SLoadInfo& sLoadInfo)
 		pcDoc->m_cDocFile.SetCodeSet( sLoadInfo.eCharCode, 
 			( sLoadInfo.eCharCode == types.m_encoding.m_eDefaultCodetype ) ?
 				types.m_encoding.m_bDefaultBom : CCodeTypeName( sLoadInfo.eCharCode ).IsBomDefOn() );
+		bSetLayoutInfo = true;
 	}
 
 	/* レイアウト情報の変更 */
 	// 2008.06.07 nasukoji	折り返し方法の追加に対応
 	// 「指定桁で折り返す」以外の時は折り返し幅をMAXLINEKETASで初期化する
 	// 「右端で折り返す」は、この後のOnSize()で再設定される
-	const STypeConfig& ref = pcDoc->m_cDocType.GetDocumentAttribute();
-	CKetaXInt nMaxLineKetas = ref.m_nMaxLineKetas;
-	if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH )
-		nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
+	if( bSetLayoutInfo ){
+		const STypeConfig& ref = pcDoc->m_cDocType.GetDocumentAttribute();
+		CKetaXInt nMaxLineKetas = ref.m_nMaxLineKetas;
+		if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH )
+			nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 
-	CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&pcDoc->m_cLayoutMgr);
-	pcDoc->m_cLayoutMgr.SetLayoutInfo( true, true, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
-	pcDoc->m_pcEditWnd->ClearViewCaretPosInfo();
-	
-	CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);
+		CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&pcDoc->m_cLayoutMgr);
+		pcDoc->m_cLayoutMgr.SetLayoutInfo( true, true, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
+		pcDoc->m_pcEditWnd->ClearViewCaretPosInfo();
+
+		CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);
+	}
 
 	return eRet;
 }

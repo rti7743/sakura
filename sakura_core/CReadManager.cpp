@@ -28,6 +28,7 @@
 #include "window/CEditWnd.h"
 #include "charset/CCodeMediator.h"
 #include "io/CFileLoad.h"
+#include "doc/layout/CLayoutMgr.h"
 #include "util/window.h"
 
 /*!
@@ -42,7 +43,9 @@
 EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 	CDocLineMgr*		pcDocLineMgr,	//!< [out]
 	const SLoadInfo&	sLoadInfo,		//!< [in]
-	SFileInfo*			pFileInfo		//!< [out]
+	SFileInfo*			pFileInfo,		//!< [out]
+	bool				bUseThread,		//!< [in]
+	CLayoutMgr*			pcLayoutMgr		//!< [in/out]
 )
 {
 	LPCTSTR pszPath = sLoadInfo.cFilePath.c_str();
@@ -76,6 +79,8 @@ EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 	}
 
 	EConvertResult eRet = RESULT_COMPLETE;
+	SLayoutMgrThread threadVal;
+	HANDLE hThread = NULL;
 
 	try{
 		CFileLoad cfl(type->m_encoding);
@@ -92,6 +97,10 @@ EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 			pFileInfo->SetFileTime( FileTime );
 		}
 
+		if( bUseThread ){
+			hThread = pcLayoutMgr->CreateThread(&threadVal);
+		}
+
 		// ReadLineはファイルから 文字コード変換された1行を読み出します
 		// エラー時はthrow CError_FileRead を投げます
 		int				nLineNum = 0;
@@ -102,10 +111,23 @@ EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 			if(eRead==RESULT_LOSESOME){
 				eRet = RESULT_LOSESOME;
 			}
-			const wchar_t*	pLine = cUnicodeBuffer.GetStringPtr();
-			int		nLineLen = cUnicodeBuffer.GetStringLength();
 			++nLineNum;
-			CDocEditAgent(pcDocLineMgr).AddLineStrX( pLine, nLineLen );
+			if( bUseThread ){
+				bool bEvent = false;
+				{
+					CLaoyutMgrThreadLock lock(threadVal.m_cs);
+					CDocEditAgent(pcDocLineMgr).AddLineStrXMove( cUnicodeBuffer );
+					if( threadVal.m_bWaitLayoutMgr ){
+						bEvent = true;
+						threadVal.m_bSetEvent = true;
+					}
+				}
+				if( bEvent ){
+					::SetEvent( threadVal.m_hEvnetWaitDocLine );
+				}
+			}else{
+				CDocEditAgent(pcDocLineMgr).AddLineStrXMove( cUnicodeBuffer );
+			}
 			//経過通知
 			if(nLineNum%512==0){
 				NotifyProgress(cfl.GetPercent());
@@ -121,6 +143,22 @@ EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 	}
 	catch(CAppExitException){
 		//WM_QUITが発生した
+		if( bUseThread ){
+			{
+				CLaoyutMgrThreadLock lock(threadVal.m_cs);
+				threadVal.m_bEndDocLineMgr = true;
+				threadVal.m_bException = true;
+				if( threadVal.m_bWaitLayoutMgr ){
+					threadVal.m_bSetEvent = true;
+					::SetEvent( threadVal.m_hEvnetWaitDocLine );
+				}
+			}
+			::WaitForSingleObject( hThread, INFINITE );
+			::CloseHandle( hThread );
+			::DeleteCriticalSection( &threadVal.m_cs );
+			::CloseHandle( threadVal.m_hEvnetWaitDocLine );
+			threadVal.m_hEvnetWaitDocLine = NULL;
+		}
 		return RESULT_FAILURE;
 	}
 	catch( CError_FileOpen ){
@@ -159,6 +197,51 @@ EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 		/* 既存データのクリア */
 		pcDocLineMgr->DeleteAllLine();
 	} // 例外処理終わり
+
+	if( bUseThread ){
+		bool bEvent = false;
+		{
+			CLaoyutMgrThreadLock lock(threadVal.m_cs);
+			threadVal.m_bEndDocLineMgr = true;
+			if( threadVal.m_bWaitLayoutMgr ){
+				bEvent = true;
+				threadVal.m_bSetEvent = true;
+			}
+		}
+		if( bEvent ){
+			::SetEvent( threadVal.m_hEvnetWaitDocLine );
+		}
+		bool bLoop = true;
+		int nAllLineNum = pcDocLineMgr->GetLineCount();
+		while(bLoop){
+			DWORD dwResult = ::MsgWaitForMultipleObjects( 1, &hThread, FALSE, 1000, QS_ALLEVENTS );
+			if(dwResult == WAIT_OBJECT_0){
+				break;
+			}else if(dwResult == WAIT_OBJECT_0+1 || dwResult == WAIT_TIMEOUT){
+				NotifyProgress( ::MulDiv( threadVal.m_nLayoutDocLineNum, 100, nAllLineNum ) );
+				// 処理中のユーザー操作を可能にする
+				if( !::BlockingHook( NULL ) ){
+					CLaoyutMgrThreadLock lock(threadVal.m_cs);
+					threadVal.m_bException = true;
+					eRet = RESULT_FAILURE;
+					break;
+				}
+			}else{
+				// Error
+				{
+					CLaoyutMgrThreadLock lock(threadVal.m_cs);
+					threadVal.m_bException = true;
+					eRet = RESULT_FAILURE;
+				}
+				::Sleep(100);
+				break;
+			}
+		}
+		::CloseHandle( hThread );
+		::DeleteCriticalSection( &threadVal.m_cs );
+		::CloseHandle( threadVal.m_hEvnetWaitDocLine );
+		threadVal.m_hEvnetWaitDocLine = NULL;
+	}
 
 	NotifyProgress(0);
 	/* 処理中のユーザー操作を可能にする */
