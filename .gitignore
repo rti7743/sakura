@@ -10,8 +10,10 @@
 tags
 /sakura/Debug_Ansi
 /sakura/Debug_Unicode
+/sakura/Debug_FixedFont_Unicode
 /sakura/Release_Ansi
 /sakura/Release_Unicode
+/sakura/Release_FixedFont_Unicode
 Debug
 Release
 svnrev.h
