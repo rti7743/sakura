@@ -106,6 +106,8 @@ const DWORD p_helpids[] = {	//12900
 	#define MY_WIN32_WINNT 0
 #endif
 
+#define SKR_PATCH_INFO "mocaskr_ver 001.20140610-r3730"
+
 //	From Here Nov. 7, 2000 genta
 /*!
 	標準以外のメッセージを捕捉する
