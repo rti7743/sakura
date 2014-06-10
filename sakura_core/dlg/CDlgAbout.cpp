@@ -106,7 +106,7 @@ const DWORD p_helpids[] = {	//12900
 	#define MY_WIN32_WINNT 0
 #endif
 
-#define SKR_PATCH_INFO "mocaskr_ver 001.20140610-r3730"
+#define SKR_PATCH_INFO "mocaskr_ver 002.20140611-r3730"
 
 //	From Here Nov. 7, 2000 genta
 /*!

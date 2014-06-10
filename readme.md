@@ -8,10 +8,10 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-http://github.com/mocaskr/sakura/releases/tag/v001.20140610-r3730
+http://github.com/mocaskr/sakura/releases/tag/v002.20140611-r3730
 
 ## 変更内容
-sakura 2.1.1.3 mocaskr_ver 001.20140610-r3730  
+sakura 2.1.1.3 mocaskr_ver 002.20140611-r3730  
  311	コードページ対応  
  636	DiffのSJIS以外に対応  
  637	Grep置換  
