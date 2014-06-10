@@ -839,7 +839,7 @@ void CSearchAgent::ReplaceData( DocLineReplaceArg* pArg )
 	bool bChangeOneLine = false;	// 行内の挿入
 	bool bInsOneLine = false;
 	bool bLastEOLReplace = false;	// 「最後改行」を「最後改行」で置換
-	if( pArg->pInsData ){
+	if( pArg->pInsData && 0 < pArg->pInsData->size() ){
 		const CNativeW& cmemLine = pArg->pInsData->back().cmemLine;
 		int nLen = cmemLine.GetStringLength();
 		const wchar_t* pInsLine = cmemLine.GetStringPtr();
