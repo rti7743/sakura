@@ -304,6 +304,8 @@ bool CShareData::InitShareData()
 		m_pShareData->m_Common.m_sHelper.m_szMigemoDll[0] = L'\0';			/* migemo dll */
 		m_pShareData->m_Common.m_sHelper.m_szMigemoDict[0] = L'\0';		/* migemo dict */
 
+		m_pShareData->m_Common.m_sHelper.m_szWebHelpURL = _T("http://mocaskr.web.fc2.com/sakurahelp2/");	// Web版ヘルプURL
+
 		m_pShareData->m_Common.m_sSearch.m_bNOTIFYNOTFOUND = TRUE;		/* 検索／置換  見つからないときメッセージを表示 */
 
 		m_pShareData->m_Common.m_sGeneral.m_bCloseAllConfirm = FALSE;		/* [すべて閉じる]で他に編集用のウィンドウがあれば確認する */	// 2006.12.25 ryoji

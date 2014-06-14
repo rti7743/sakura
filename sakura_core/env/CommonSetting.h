@@ -485,6 +485,8 @@ struct CommonSetting_Helper
 	LOGFONT		m_lf;							//!< キーワードヘルプのフォント情報		// ai 02/05/21 Add
 	INT			m_nPointSize;					//!< キーワードヘルプのフォントサイズ（1/10ポイント単位）	// 2009.10.01 ryoji
 
+	SFilePath	m_szWebHelpURL;					//!< Web版ヘルプのURL
+
 	//INI内設定のみ
 	int			m_bUseHokan;					//!< 入力補完機能を使用する
 };

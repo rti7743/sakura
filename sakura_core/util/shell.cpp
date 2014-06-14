@@ -591,8 +591,35 @@ BOOL MyWinHelp(HWND hwndCaller, UINT uCommand, DWORD_PTR dwData)
 		if( uCommandOrg != HELP_CONTEXT )
 			dwData = 1;	// 目次ページ
 
-		TCHAR buf[256];
-		_stprintf( buf, _T("http://sakura-editor.sourceforge.net/cgi-bin/hid2.cgi?%d"), dwData );
+		TCHAR buf[400];
+		TCHAR buf2[100];
+		const DLLSHAREDATA* pData = &GetDllShareData(false);
+		const TCHAR* pszWebHelpURL;
+		if( pData ){
+			pszWebHelpURL = pData->m_Common.m_sHelper.m_szWebHelpURL;
+		}else{
+			// プロファイルマネージャ等ではGetDllShareData()が無効
+			pszWebHelpURL = _T("http://mocaskr.web.fc2.com/sakurahelp2/");
+		}
+
+		auto_strcpy( buf, pszWebHelpURL );
+		int nLen = auto_strlen( buf );
+		if( 0 < nLen ){
+			if( buf[nLen-1] != _T('/') ){
+				CutLastYenFromDirectoryPath( buf );
+				if( nLen == 3 && buf[1] == _T(':') && (buf[2] == _T('\\') || buf[2] == _T('/')) ){
+					// 「C:\」  だった
+				}else{
+					if( auto_strchr( buf, _T('/') ) ){
+						auto_strcat(buf, _T("/"));
+					}else{
+						auto_strcat(buf, _T("\\"));
+					}
+				}
+			}
+		}
+		auto_sprintf( buf2, _T("HLP%06d.html"), static_cast<int>(dwData) );
+		auto_strcat( buf, buf2 );
 		ShellExecute( ::GetActiveWindow(), NULL, buf, NULL, NULL, SW_SHOWNORMAL );
 	}
 
