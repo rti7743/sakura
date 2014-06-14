@@ -198,6 +198,7 @@ extern CEditWnd* g_pcEditWnd;
 
 HINSTANCE G_AppInstance();
 
+extern const char* g_pszPatchInfo;
 
 ///////////////////////////////////////////////////////////////////////
 #endif /* _GLOBAL_H_ */

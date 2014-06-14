@@ -54,6 +54,7 @@ enum EExpParamName
 	EExpParamName_none = -1,
 	EExpParamName_begin = 0,
 	EExpParamName_profile = 0,
+	EExpParamName_patchinfo,
 	EExpParamName_end
 };
 
@@ -64,9 +65,10 @@ struct SExpParamName
 };
 static SExpParamName SExpParamNameTable[] = {
 	{L"profile", 7},
+	{L"patchinfo", 9},
 	{NULL, 0}
 };
-wchar_t* ExParam_LongName( wchar_t* q, wchar_t* q_max, EExpParamName eLongParam );
+static wchar_t* ExParam_LongName( wchar_t* q, wchar_t* q_max, EExpParamName eLongParam );
 
 /*!	$xÇÃìWäJ
 
@@ -682,7 +684,7 @@ int CSakuraEnvironment::_ExParam_Evaluate( const wchar_t* pCond )
 }
 
 /*! í∑Ç¢ñºëOÇÃê›íË */
-wchar_t* ExParam_LongName( wchar_t* q, wchar_t* q_max, EExpParamName eLongParam )
+static wchar_t* ExParam_LongName( wchar_t* q, wchar_t* q_max, EExpParamName eLongParam )
 {
 	switch( eLongParam ){
 	case EExpParamName_profile:
@@ -691,6 +693,11 @@ wchar_t* ExParam_LongName( wchar_t* q, wchar_t* q_max, EExpParamName eLongParam 
 			q = wcs_pushW( q, q_max - q, pszProf );
 		}
 		break;
+	case EExpParamName_patchinfo:
+		{
+			LPCWSTR pszInfo = to_wchar(g_pszPatchInfo);
+			q = wcs_pushW( q, q_max - q, pszInfo );
+		}
 	default:
 		assert( 0 );
 		break;

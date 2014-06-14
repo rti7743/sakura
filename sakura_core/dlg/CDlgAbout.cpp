@@ -108,6 +108,12 @@ const DWORD p_helpids[] = {	//12900
 
 #define SKR_PATCH_INFO "mocaskr_ver 002.20140611-r3730"
 
+#ifdef SKR_PATCH_INFO
+const char* g_pszPatchInfo = SKR_PATCH_INFO;
+#else
+const char* g_pszPatchInfo = "";
+#endif
+
 //	From Here Nov. 7, 2000 genta
 /*!
 	標準以外のメッセージを捕捉する
