@@ -706,6 +706,8 @@ int FuncID_To_HelpContextID( EFunctionCode nFuncID )
 	case F_1PageDown_Sel:	return HLP000241;	//(範囲選択)１ページダウン
 	case F_GOFILETOP_SEL:	return HLP000242;	//(範囲選択)ファイルの先頭に移動
 	case F_GOFILEEND_SEL:	return HLP000243;	//(範囲選択)ファイルの最後に移動
+	case F_MODIFYLINE_NEXT_SEL:	return HLP000369;	//(範囲選択)次の変更行へ移動
+	case F_MODIFYLINE_PREV_SEL:	return HLP000370;	//(範囲選択)前の変更行へ移動
 
 
 	/* 矩形選択系 */	//Oct. 17, 2000 JEPRO (矩形選択)が新設され次第ここにおく

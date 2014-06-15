@@ -976,6 +976,8 @@ BOOL CSMacroMgr::CanFuncIsKeyMacro( int nFuncID )
 	case F_JUMPHIST_PREV			://移動履歴: 前へ
 	case F_JUMPHIST_NEXT			://移動履歴: 次へ
 	case F_JUMPHIST_SET				://現在位置を移動履歴に登録
+	case F_MODIFYLINE_NEXT			://次の変更行へ移動
+	case F_MODIFYLINE_PREV			://前の変更行へ移動
 
 	/* 選択系 */	//Oct. 15, 2000 JEPRO 「カーソル移動系」が多くなったので独立化して(選択)を移動(サブメニュー化は構造上できないので)
 	case F_SELECTWORD				://現在位置の単語選択
@@ -1001,6 +1003,8 @@ BOOL CSMacroMgr::CanFuncIsKeyMacro( int nFuncID )
 	case F_1PageDown_Sel			://(範囲選択)１ページダウン	//Oct. 10, 2000 JEPRO 従来のページダウンを半ページダウンと名称変更し１ページダウンを追加
 	case F_GOFILETOP_SEL			://(範囲選択)ファイルの先頭に移動
 	case F_GOFILEEND_SEL			://(範囲選択)ファイルの最後に移動
+	case F_MODIFYLINE_NEXT_SEL		://(範囲選択)次の変更行へ移動
+	case F_MODIFYLINE_PREV_SEL		://(範囲選択)前の変更行へ移動
 
 	/* 矩形選択系 */	//Oct. 17, 2000 JEPRO (矩形選択)が新設され次第ここにおく
 //	case F_BOXSELALL				//矩形ですべて選択
