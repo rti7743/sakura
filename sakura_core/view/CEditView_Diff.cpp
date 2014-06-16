@@ -512,7 +512,13 @@ BOOL CEditView::MakeDiffTmpFile2( TCHAR* tmpName, const TCHAR* orgName, ECodeTyp
 	const STypeConfigMini* typeMini;
 	CDocTypeManager().GetTypeConfigMini( CDocTypeManager().GetDocumentTypeOfPath( orgName ), &typeMini );
 	CFileLoad	cfl( typeMini->m_encoding );
-	code = cfl.FileOpen( orgName, code, GetDllShareData().m_Common.m_sFile.GetAutoMIMEdecode(), &bBom );
+	bool bBigFile;
+#ifdef _WIN64
+	bBigFile = true;
+#else
+	bBigFile = false;
+#endif
+	code = cfl.FileOpen( orgName, bBigFile, code, GetDllShareData().m_Common.m_sFile.GetAutoMIMEdecode(), &bBom );
 	if( code == CODE_UNICODE || code == CODE_UNICODEBE ){
 		code = CODE_UTF8;
 	}

@@ -1536,7 +1536,7 @@ int CGrepAgent::DoGrepReplaceFile(
 	CNativeW&				cmemMessage
 )
 {
-	int		nLine = 0;
+	LONGLONG	nLine = 0;
 	int		nHitCount = 0;
 	ECodeType	nCharCode;
 	BOOL	bOutFileName = FALSE;
@@ -1558,7 +1558,7 @@ int CGrepAgent::DoGrepReplaceFile(
 	// ファイルを開く
 	// FileCloseで明示的に閉じるが、閉じていないときはデストラクタで閉じる
 	// 2003.06.10 Moca 文字コード判定処理もFileOpenで行う
-	nCharCode = cfl.FileOpen( pszFullPath, sGrepOption.nGrepCharSet, 0, &bBom );
+	nCharCode = cfl.FileOpen( pszFullPath, true, sGrepOption.nGrepCharSet, 0, &bBom );
 	CWriteData output(nHitCount, pszFullPath, nCharCode, bBom, sGrepOption.bGrepBackup, cmemMessage );
 	TCHAR szCpName[100];
 	{
