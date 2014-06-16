@@ -41,4 +41,5 @@ sakura 2.1.1.3 mocaskr_ver 002.20140611-r3730
  837	フォントスタイルに斜体(仮)と取り消し線を追加  
  829	ファイルパスを省略表示するオプションの追加  
  838	大きいファイルの暫定サポート  
+ 839	長い行の比較・DIFFのサポートと排他制御の追加  
 番号と詳細は http://sourceforge.net/p/sakura-editor/patchunicode/ 参照  
