@@ -106,7 +106,7 @@ const DWORD p_helpids[] = {	//12900
 	#define MY_WIN32_WINNT 0
 #endif
 
-#define SKR_PATCH_INFO "mocaskr_ver 002.20140611-r3730"
+#define SKR_PATCH_INFO "mocaskr_ver 003.20140617-r3730"
 
 #ifdef SKR_PATCH_INFO
 const char* g_pszPatchInfo = SKR_PATCH_INFO;
