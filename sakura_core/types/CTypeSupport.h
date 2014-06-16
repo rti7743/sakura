@@ -90,6 +90,17 @@ public:
 		return m_pColorInfoArr->m_sFontAttr.m_bUnderLine;
 	}
 
+	//!ŽÎ‘Ì‚©‚Ç‚¤‚©
+	bool IsItalic() const
+	{
+		return m_pColorInfoArr->m_sFontAttr.m_bItalic;
+	}
+
+	//!Žæ‚èÁ‚µü‚©‚Ç‚¤‚©
+	bool IsStrikeOut() const
+	{
+		return m_pColorInfoArr->m_sFontAttr.m_bStrikeOut;
+	}
 
 	const ColorInfo& GetColorInfo() const
 	{
@@ -140,7 +151,7 @@ public:
 	}
 
 private:
-	const CViewFont*		m_pFontset;
+	const CViewFont* const	m_pFontset;
 	const STypeConfig*		m_pTypes;
 	int						m_nColorIdx;
 	const ColorInfo*		m_pColorInfoArr;

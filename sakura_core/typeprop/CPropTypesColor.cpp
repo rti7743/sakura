@@ -43,6 +43,8 @@ static const DWORD p_helpids2[] = {	//11400
 	IDC_CHECK_DISP,					HIDC_CHECK_DISP,				//色分け表示
 	IDC_CHECK_BOLD,					HIDC_CHECK_BOLD,				//太字
 	IDC_CHECK_UNDERLINE,			HIDC_CHECK_UNDERLINE,			//下線
+	IDC_CHECK_ITALIC,				HIDC_CHECK_ITALIC,				//斜体
+	IDC_CHECK_STRIKEOUT,			HIDC_CHECK_STRIKEOUT,			//取り消し線
 	IDC_BUTTON_TEXTCOLOR,			HIDC_BUTTON_TEXTCOLOR,			//文字色
 	IDC_BUTTON_BACKCOLOR,			HIDC_BUTTON_BACKCOLOR,			//背景色
 	IDC_BUTTON_SAMETEXTCOLOR,		HIDC_BUTTON_SAMETEXTCOLOR,		//文字色統一
@@ -318,6 +320,8 @@ INT_PTR CPropTypesColor::DispatchEvent(
 					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_DISP ),			(0 == (fAttribute & COLOR_ATTRIB_FORCE_DISP))? TRUE: FALSE );
 					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_BOLD ),			(0 == (fAttribute & COLOR_ATTRIB_NO_BOLD))? TRUE: FALSE );
 					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_UNDERLINE ),		(0 == (fAttribute & COLOR_ATTRIB_NO_UNDERLINE))? TRUE: FALSE );
+					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_ITALIC ),			(0 == (fAttribute & COLOR_ATTRIB_NO_ITALIC))? TRUE: FALSE );
+					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_STRIKEOUT ),			(0 == (fAttribute & COLOR_ATTRIB_NO_STRIKEOUT))? TRUE: FALSE );
 					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_STATIC_MOZI ),			(0 == (fAttribute & COLOR_ATTRIB_NO_TEXT))? TRUE: FALSE );
 					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_BUTTON_TEXTCOLOR ),		(0 == (fAttribute & COLOR_ATTRIB_NO_TEXT))? TRUE: FALSE );
 					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_BUTTON_SAMETEXTCOLOR ),	(0 == (fAttribute & COLOR_ATTRIB_NO_TEXT))? TRUE: FALSE );
@@ -332,6 +336,10 @@ INT_PTR CPropTypesColor::DispatchEvent(
 				::CheckDlgButtonBool( hwndDlg, IDC_CHECK_BOLD, m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sFontAttr.m_bBoldFont );
 				/* 下線を表示 */
 				::CheckDlgButtonBool( hwndDlg, IDC_CHECK_UNDERLINE, m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sFontAttr.m_bUnderLine );
+				// 斜体を表示
+				::CheckDlgButtonBool( hwndDlg, IDC_CHECK_ITALIC, m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sFontAttr.m_bItalic );
+				// 取り消し線を表示
+				::CheckDlgButtonBool( hwndDlg, IDC_CHECK_STRIKEOUT, m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sFontAttr.m_bStrikeOut );
 
 				::InvalidateRect( ::GetDlgItem( hwndDlg, IDC_BUTTON_TEXTCOLOR ), NULL, TRUE );
 				::InvalidateRect( ::GetDlgItem( hwndDlg, IDC_BUTTON_BACKCOLOR ), NULL, TRUE );
@@ -392,6 +400,16 @@ INT_PTR CPropTypesColor::DispatchEvent(
 			case IDC_CHECK_UNDERLINE:	/* 下線を表示 */
 				m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sFontAttr.m_bUnderLine = ::IsDlgButtonCheckedBool( hwndDlg, IDC_CHECK_UNDERLINE );
 				/* 現在選択されている色タイプ */
+				List_SetCurSel( hwndListColor, m_nCurrentColorType );
+				return TRUE;
+			case IDC_CHECK_ITALIC:	// 斜体を表示
+				m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sFontAttr.m_bItalic = ::IsDlgButtonCheckedBool( hwndDlg, IDC_CHECK_ITALIC );
+				// 現在選択されている色タイプ
+				List_SetCurSel( hwndListColor, m_nCurrentColorType );
+				return TRUE;
+			case IDC_CHECK_STRIKEOUT:	// 取り消し線を表示
+				m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sFontAttr.m_bStrikeOut = ::IsDlgButtonCheckedBool( hwndDlg, IDC_CHECK_STRIKEOUT );
+				// 現在選択されている色タイプ
 				List_SetCurSel( hwndListColor, m_nCurrentColorType );
 				return TRUE;
 
@@ -563,7 +581,7 @@ INT_PTR CPropTypesColor::DispatchEvent(
 			DrawColorButton( pDis, m_Types.m_ColorInfoArr[m_nCurrentColorType].m_sColorAttr.m_cBACK );
 			return TRUE;
 		case IDC_LIST_COLORS:		/* 色種別リスト */
-			DrawColorListItem( pDis );
+			DrawColorListItem( GetDlgItem(hwndDlg, IDC_LIST_COLORS), pDis );
 			return TRUE;
 		}
 		break;
@@ -1056,7 +1074,7 @@ void CPropTypesColor::RearrangeKeywordSet( HWND hwndDlg )
 
 
 /* 色種別リスト オーナー描画 */
-void CPropTypesColor::DrawColorListItem( DRAWITEMSTRUCT* pDis )
+void CPropTypesColor::DrawColorListItem( HWND hwndList,  DRAWITEMSTRUCT* pDis )
 {
 	ColorInfo*	pColorInfo;
 //	RECT		rc0,rc1,rc2;
@@ -1096,6 +1114,16 @@ void CPropTypesColor::DrawColorListItem( DRAWITEMSTRUCT* pDis )
 	gr.FillMyRect(rc1);
 	/* テキスト */
 	::SetBkMode( gr, TRANSPARENT );
+	LOGFONT logfont;
+	HFONT hFontItalic = NULL;
+	HFONT hFontOld = NULL;
+	if( pColorInfo->m_sFontAttr.m_bItalic ){
+		HANDLE selectFont = (HANDLE)::SendMessage( hwndList, WM_GETFONT, 0, 0 );
+		::GetObject(selectFont, sizeof(LOGFONT), &logfont);
+		logfont.lfItalic = TRUE;
+		hFontItalic = CreateFontIndirect(&logfont);
+		hFontOld = (HFONT)SelectObject( gr, hFontItalic );
+	}
 	::TextOut( gr, rc1.left, rc1.top, pColorInfo->m_szName, _tcslen( pColorInfo->m_szName ) );
 	if( pColorInfo->m_sFontAttr.m_bBoldFont ){	/* 太字か */
 		::TextOut( gr, rc1.left + 1, rc1.top, pColorInfo->m_szName, _tcslen( pColorInfo->m_szName ) );
@@ -1107,6 +1135,16 @@ void CPropTypesColor::DrawColorListItem( DRAWITEMSTRUCT* pDis )
 		::LineTo( gr, rc1.left + sz.cx,	rc1.bottom - 2 );
 		::MoveToEx( gr, rc1.left,		rc1.bottom - 1, NULL );
 		::LineTo( gr, rc1.left + sz.cx,	rc1.bottom - 1 );
+	}
+	if( pColorInfo->m_sFontAttr.m_bStrikeOut ){	// 取り消し線
+		SIZE	sz;
+		::GetTextExtentPoint32( gr, pColorInfo->m_szName, _tcslen( pColorInfo->m_szName ), &sz );
+		::MoveToEx( gr, rc1.left,		rc1.top + (rc1.bottom - rc1.top) / 2, NULL );
+		::LineTo( gr, rc1.left + sz.cx,	rc1.top + (rc1.bottom - rc1.top) / 2 );
+	}
+	if( pColorInfo->m_sFontAttr.m_bItalic ){
+		(HFONT)::SelectObject( gr, hFontOld );
+		::DeleteObject( hFontItalic );
 	}
 
 	/* アイテムにフォーカスがある */	// 2006.05.01 ryoji 描画条件の不正を修正

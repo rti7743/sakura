@@ -187,7 +187,7 @@ protected:
 	bool Export( HWND );											//!< エクスポート
 
 protected:
-	void DrawColorListItem( DRAWITEMSTRUCT* );				//!< 色種別リスト オーナー描画
+	void DrawColorListItem( HWND hwndList, DRAWITEMSTRUCT* );				//!< 色種別リスト オーナー描画
 	void EnableTypesPropInput( HWND hwndDlg );				//!< タイプ別設定のカラー設定のON/OFF
 	void RearrangeKeywordSet( HWND );						//!< キーワードセット再配置  Jan. 23, 2005 genta
 	void DrawColorButton( DRAWITEMSTRUCT* , COLORREF );		//!< 色ボタンの描画

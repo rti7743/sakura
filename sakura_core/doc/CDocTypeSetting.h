@@ -32,6 +32,8 @@
 struct SFontAttr{
 	bool		m_bBoldFont;		//!< ‘¾Žš
 	bool		m_bUnderLine;		//!< ‰ºü
+	bool		m_bItalic;			//!< ŽÎ‘Ì
+	bool		m_bStrikeOut;			//!< Žæ‚èÁ‚µü
 };
 
 //! F‘®«

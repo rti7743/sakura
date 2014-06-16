@@ -35,6 +35,7 @@
 #include <Windows.h> // 2002/2/10 aroka
 #include "basis/SakuraBasis.h"
 #include "CPrint.h" // 2002/2/10 aroka
+#include "view/CViewFont.h"
 
 class CColorStrategy;
 class CColorStrategyPool;
@@ -186,6 +187,7 @@ public:
 protected:
 	void SetPreviewFontHan( const LOGFONT* lf );
 	void SetPreviewFontZen( const LOGFONT* lf );
+	HFONT GetFontHandle( int kind, const SFontAttr& attr );
 
 /* メンバ変数宣言 */
 public:
@@ -240,14 +242,8 @@ protected:
 	LOGFONT			m_lfPreviewHan;				/* プレビュー用フォント */
 	LOGFONT			m_lfPreviewZen;				/* プレビュー用フォント */
 
-	HFONT			m_hFontHan;					// 印刷用半角フォントハンドル
-	HFONT			m_hFontHan_b;				// 印刷用半角フォントハンドル 太字
-	HFONT			m_hFontHan_u;				// 印刷用半角フォントハンドル 下線
-	HFONT			m_hFontHan_bu;				// 印刷用半角フォントハンドル 太字、下線
-	HFONT			m_hFontZen;					// 印刷用全角フォントハンドル
-	HFONT			m_hFontZen_b;				// 印刷用全角フォントハンドル 太字
-	HFONT			m_hFontZen_u;				// 印刷用全角フォントハンドル 下線
-	HFONT			m_hFontZen_bu;				// 印刷用全角フォントハンドル 太字、下線
+	CViewFont		m_cFont;	 				// 印刷用半角フォントハンドル(fontNo=0半角, fontNo=1全角)
+	bool			m_bFontZenHan;				// 全角フォント有効
 	int				m_nAscentHan;				// 半角文字のアセント（文字高/基準ラインからの高さ）
 	int				m_nAscentZen;				// 全角文字のアセント（文字高/基準ラインからの高さ）
 

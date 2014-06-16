@@ -205,7 +205,7 @@ LRESULT CPrintPreview::OnPaint(
 	// フォント作成
 	CreateFonts( hdc );
 	// 印刷用半角フォントに設定し、以前のフォントを保持
-	HFONT	hFontOld = (HFONT)::SelectObject( hdc, m_hFontHan );
+	HFONT	hFontOld = (HFONT)::SelectObject( hdc, m_cFont.GetFontNormal(0) );
 
 
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
@@ -1128,7 +1128,7 @@ void CPrintPreview::OnPrint( void )
 	// 印刷用半角フォントと、印刷用全角フォントを作成
 	CreateFonts( hdc );
 	// 現在のフォントを印刷用半角フォントに設定＆以前のフォントを保持
-	hFontOld = (HFONT)::SelectObject( hdc, m_hFontHan );
+	hFontOld = (HFONT)::SelectObject( hdc, m_cFont.GetFontNormal(0) );
 
 	/* 紙の大きさをあらわすRECTを設定 */
 	RECT cRect;
@@ -1162,7 +1162,7 @@ void CPrintPreview::OnPrint( void )
 		::SetMapMode( hdc, MM_ANISOTROPIC );	//論理単位は、任意にスケーリングされた軸上の任意の単位にマップされます
 
 		// 現在のフォントを印刷用半角フォントに設定
-		::SelectObject( hdc, m_hFontHan );
+		::SelectObject( hdc, m_cFont.GetFontNormal(0) );
 		//	To Here Jun. 26, 2003 かろと / おきた
 
 		int nHeaderHeight = CPrint::CalcHeaderHeight( m_pPrintSetting );
@@ -1800,7 +1800,7 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 	}
 
 	//フォントを元 (半角) に戻す
-	::SelectObject( hdc, m_hFontHan );
+	::SelectObject( hdc, m_cFont.GetFontNormal(0) );
 
 	//色を元に戻す	2012-03-07 ossan
 	if (pcLayout) {
@@ -1838,22 +1838,17 @@ void CPrintPreview::Print_DrawBlock(
 		// TABはカラーで無ければ印字不要
 		return;
 	}
-	HFONT	hFont = (nKind == 1 ? m_hFontZen : m_hFontHan);
+	HFONT	hFont = ((nKind == 1 && m_bFontZenHan) ? m_cFont.GetFontNormal(1) : m_cFont.GetFontNormal(0));
 	// 色設定
 	if (pcLayout) {
 		int nColorIdx = ToColorInfoArrIndex( pStrategy ? pStrategy->GetStrategyColor() : COLORIDX_TEXT );
 		if (-1 != nColorIdx) {
 			const ColorInfo& info = m_pParentWnd->GetDocument()->m_cDocType.GetDocumentAttribute().m_ColorInfoArr[nColorIdx];
-			if (nKind == 2 && !info.m_sFontAttr.m_bUnderLine) {
+			if (nKind == 2 && !(info.m_sFontAttr.m_bUnderLine || info.m_sFontAttr.m_bStrikeOut)) {
 				// TABは下線が無ければ印字不要
 				return;
 			}
-			if (info.m_sFontAttr.m_bBoldFont)
-				if (info.m_sFontAttr.m_bUnderLine)	hFont = (nKind == 1 ? m_hFontZen_bu: m_hFontHan_bu);	// 太字、下線
-				else					hFont = (nKind == 1 ? m_hFontZen_b : m_hFontHan_b);		// 太字
-			else
-				if (info.m_sFontAttr.m_bUnderLine)	hFont = (nKind == 1 ? m_hFontZen_u : m_hFontHan_u);		// 下線
-			//	else					hFont = (nKind == 1 ? m_hFontZen   : m_hFontHan);		// 標準
+			hFont = GetFontHandle( nKind, info.m_sFontAttr );
 			::SetTextColor( hdc, info.m_sColorAttr.m_cTEXT);
 //			::SetBkColor( hdc, info.m_colBACK);
 		}
@@ -2232,10 +2227,9 @@ INT_PTR CPrintPreview::DispatchEvent_PPB(
 
 
 
-// 印刷用フォントを作成する
+// 印刷/印刷プレビュー用フォントを作成する
 void CPrintPreview::CreateFonts( HDC hdc )
 {
-	LOGFONT	lf;
 	TEXTMETRIC	tm;
 
 	// 印刷用半角フォントを作成 -> m_hFontHan
@@ -2246,22 +2240,9 @@ void CPrintPreview::CreateFonts( HDC hdc )
 	m_lfPreviewHan.lfWidth	= m_pPrintSetting->m_nPrintFontWidth;
 #endif
 	_tcscpy( m_lfPreviewHan.lfFaceName, m_pPrintSetting->m_szPrintFontFaceHan );
-	m_hFontHan	= CreateFontIndirect( &m_lfPreviewHan );
-	if (m_pPrintSetting->m_bColorPrint) {
-		lf = m_lfPreviewHan;	lf.lfWeight = FW_BOLD;
-		m_hFontHan_b	= CreateFontIndirect( &lf );		// 太字
-		lf = m_lfPreviewHan;							lf.lfUnderline = true;
-		m_hFontHan_u	= CreateFontIndirect( &lf );		// 下線
-		lf = m_lfPreviewHan;	lf.lfWeight = FW_BOLD;	lf.lfUnderline = true;
-		m_hFontHan_bu	= CreateFontIndirect( &lf );		// 太字、下線
-	}
-#ifdef _DEEBUG
-	else {
-		m_hFontHan_b  = m_hFontHan_u  = m_hFontHan_bu = NULL;
-	}
-#endif
+	m_cFont.UpdateFont( &m_lfPreviewHan, 0 );
 	// 半角文字のアセント（文字高）を取得
-	::SelectObject( hdc, m_hFontHan );
+	HFONT hfontOld = (HFONT)::SelectObject( hdc, m_cFont.GetFontNormal(0) );
 	::GetTextMetrics( hdc, &tm );
 	m_nAscentHan = tm.tmAscent;
 
@@ -2274,54 +2255,30 @@ void CPrintPreview::CreateFonts( HDC hdc )
 		m_lfPreviewZen.lfWidth	= m_pPrintSetting->m_nPrintFontWidth;
 #endif
 		_tcscpy( m_lfPreviewZen.lfFaceName, m_pPrintSetting->m_szPrintFontFaceZen );
-		m_hFontZen	= CreateFontIndirect( &m_lfPreviewZen );
-		if (m_pPrintSetting->m_bColorPrint) {
-			lf = m_lfPreviewZen;	lf.lfWeight = FW_BOLD;
-			m_hFontZen_b	= CreateFontIndirect( &lf );		// 太字
-			lf = m_lfPreviewZen;							lf.lfUnderline = true;
-			m_hFontZen_u	= CreateFontIndirect( &lf );		// 下線
-			lf = m_lfPreviewZen;	lf.lfWeight = FW_BOLD;	lf.lfUnderline = true;
-			m_hFontZen_bu	= CreateFontIndirect( &lf );		// 太字、下線
-		}
-#ifdef _DEEBUG
-		else {
-			m_hFontHan_b  = m_hFontHan_u  = m_hFontHan_bu = NULL;
-		}
-#endif
+		m_cFont.UpdateFont( &m_lfPreviewZen, 1 );
 		// 全角文字のアセント（文字高）を取得
-		::SelectObject( hdc, m_hFontZen );
+		::SelectObject( hdc, m_cFont.GetFontNormal(1) );
 		::GetTextMetrics( hdc, &tm );
 		m_nAscentZen = tm.tmAscent;
+		m_bFontZenHan = true;
 	}
 	else {
-		// 半角全角同じフォント
-		m_hFontZen		= m_hFontHan;
-		m_hFontZen_b	= m_hFontHan_b;		// 太字
-		m_hFontZen_u	= m_hFontHan_u;		// 下線
-		m_hFontZen_bu	= m_hFontHan_bu;	// 太字、下線
-		m_nAscentZen	= m_nAscentHan;		// 全角文字のアセント
+		m_bFontZenHan = false;
 	}
+	::SelectObject( hdc, hfontOld );
 }
 
 // 印刷用フォントを破棄する
 void CPrintPreview::DestroyFonts()
 {
-	if (m_hFontZen != m_hFontHan) {
-		::DeleteObject( m_hFontZen );
-		if (m_hFontZen_b) {
-			::DeleteObject( m_hFontZen_b );
-			::DeleteObject( m_hFontZen_u );
-			::DeleteObject( m_hFontZen_bu );
-		}
+	m_cFont.DeleteFont();
+}
+
+// フォントの用意
+HFONT CPrintPreview::GetFontHandle( int kind, const SFontAttr& attr )
+{
+	if( kind == 1 && m_bFontZenHan ){
+		return m_cFont.ChooseFontHandle(1, attr);
 	}
-	::DeleteObject( m_hFontHan );
-	if (m_hFontHan_b) {
-		::DeleteObject( m_hFontHan_b );
-		::DeleteObject( m_hFontHan_u );
-		::DeleteObject( m_hFontHan_bu );
-	}
-#ifdef _DEEBUG
-	m_hFontHan = m_hFontHan_b = m_hFontHan_u = m_hFontHan_bu =
-	m_hFontZen = m_hFontZen_b = m_hFontZen_u = m_hFontZen_bu = NULL;
-#endif
+	return m_cFont.ChooseFontHandle(0, attr);
 }

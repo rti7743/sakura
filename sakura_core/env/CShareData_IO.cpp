@@ -2146,17 +2146,25 @@ void CShareData_IO::IO_ColorSet( CDataProfile* pcProfile, const WCHAR* pszSecNam
 	WCHAR	szKeyData[1024];
 	int		j;
 	for( j = 0; j < COLORIDX_LAST; ++j ){
-		static const WCHAR* pszForm = LTEXT("%d,%d,%06x,%06x,%d");
+		static const WCHAR* pszForm = LTEXT("%d,%d,%06x,%06x,%d,%d,%d");
 		auto_sprintf( szKeyName, LTEXT("C[%ts]"), g_ColorAttributeArr[j].szName );	//Stonee, 2001/01/12, 2001/01/15
 		if( pcProfile->IsReadingMode() ){
 			if( pcProfile->IOProfileData( pszSecName, szKeyName, MakeStringBufferW(szKeyData) ) ){
-				int buf[5];
-				scan_ints( szKeyData, pszForm, buf);
+				int buf[7];
+				int ret = scan_ints( szKeyData, pszForm, buf);
 				pColorInfoArr[j].m_bDisp                  = (buf[0]!=0);
 				pColorInfoArr[j].m_sFontAttr.m_bBoldFont  = (buf[1]!=0);
 				pColorInfoArr[j].m_sColorAttr.m_cTEXT     = buf[2];
 				pColorInfoArr[j].m_sColorAttr.m_cBACK     = buf[3];
 				pColorInfoArr[j].m_sFontAttr.m_bUnderLine = (buf[4]!=0);
+				// 斜体・取り消し線サポート
+				if( ret <= 7 ){
+					pColorInfoArr[j].m_sFontAttr.m_bItalic  = (buf[5]!=0);
+					pColorInfoArr[j].m_sFontAttr.m_bStrikeOut = (buf[6]!=0);
+				}else{
+					pColorInfoArr[j].m_sFontAttr.m_bItalic  = false;
+					pColorInfoArr[j].m_sFontAttr.m_bStrikeOut = false;
+				}
 			}
 			else{
 				// 2006.12.07 ryoji
@@ -2174,6 +2182,10 @@ void CShareData_IO::IO_ColorSet( CDataProfile* pcProfile, const WCHAR* pszSecNam
 				pColorInfoArr[j].m_sFontAttr.m_bBoldFont = false;
 			if( 0 != (fAttribute & COLOR_ATTRIB_NO_UNDERLINE) )
 				pColorInfoArr[j].m_sFontAttr.m_bUnderLine = false;
+			if( 0 != (fAttribute & COLOR_ATTRIB_NO_ITALIC) )
+				pColorInfoArr[j].m_sFontAttr.m_bItalic = false;
+			if( 0 != (fAttribute & COLOR_ATTRIB_NO_STRIKEOUT) )
+				pColorInfoArr[j].m_sFontAttr.m_bStrikeOut = false;
 		}
 		else{
 			auto_sprintf( szKeyData, pszForm,
@@ -2181,7 +2193,9 @@ void CShareData_IO::IO_ColorSet( CDataProfile* pcProfile, const WCHAR* pszSecNam
 				pColorInfoArr[j].m_sFontAttr.m_bBoldFont?1:0,
 				pColorInfoArr[j].m_sColorAttr.m_cTEXT,
 				pColorInfoArr[j].m_sColorAttr.m_cBACK,
-				pColorInfoArr[j].m_sFontAttr.m_bUnderLine?1:0
+				pColorInfoArr[j].m_sFontAttr.m_bUnderLine?1:0,
+				pColorInfoArr[j].m_sFontAttr.m_bItalic?1:0,
+				pColorInfoArr[j].m_sFontAttr.m_bStrikeOut?1:0
 			);
 			pcProfile->IOProfileData( pszSecName, szKeyName, MakeStringBufferW(szKeyData) );
 		}

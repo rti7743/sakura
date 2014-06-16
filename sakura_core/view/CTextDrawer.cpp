@@ -466,13 +466,22 @@ void CTextDrawer::DispLineNumber(
 		SFONT sFont = cColorType.GetTypeFont();
 	 	// 2013.12.30 変更行の色・フォント属性をDIFFブックマーク行に継承するように
 		if( bGyouMod && nColorIndex != COLORIDX_GYOU_MOD ){
-			bool bChange = true;
+			bool bChange = false;
+			// cGyouTypeとcColorTypeが同じなら、変更行の値を優先
 			if( cGyouType.IsBoldFont() == cColorType.IsBoldFont() ){
 		 		sFont.m_sFontAttr.m_bBoldFont = cGyouModType.IsBoldFont();
 				bChange = true;
 			}
 			if( cGyouType.HasUnderLine() == cColorType.HasUnderLine() ){
 				sFont.m_sFontAttr.m_bUnderLine = cGyouModType.HasUnderLine();
+				bChange = true;
+			}
+			if( cGyouType.IsItalic() == cColorType.IsItalic() ){
+				sFont.m_sFontAttr.m_bItalic = cGyouModType.IsItalic();
+				bChange = true;
+			}
+			if( cGyouType.IsStrikeOut() == cColorType.IsStrikeOut() ){
+				sFont.m_sFontAttr.m_bStrikeOut = cGyouModType.IsStrikeOut();
 				bChange = true;
 			}
 			if( bChange ){

@@ -27,66 +27,86 @@
 
 /*! フォント作成
 */
-void CViewFont::CreateFont(const LOGFONT *plf)
+void CViewFont::CreateFont(const LOGFONT *plf, int fontNo)
 {
-	LOGFONT	lf;
+	assert( 0 <= fontNo && fontNo < _countof(m_hFont) );
+	m_logFont[fontNo] = *plf;
 
 	/* フォント作成 */
-	lf = *plf;
-	m_hFont_HAN = CreateFontIndirect( &lf );
-
-	/* 太字フォント作成 */
-	lf = *plf;
-	lf.lfWeight += 300;
-	if( 1000 < lf.lfWeight ){
-		lf.lfWeight = 1000;
-	}
-	m_hFont_HAN_BOLD = CreateFontIndirect( &lf );
-
-	/* 下線フォント作成 */
-	lf = *plf;
-	lf.lfUnderline = TRUE;
-	m_hFont_HAN_UL = CreateFontIndirect( &lf );
-
-	/* 太字下線フォント作成 */
-	lf = *plf;
-	lf.lfUnderline = TRUE;
-	lf.lfWeight += 300;
-	if( 1000 < lf.lfWeight ){
-		lf.lfWeight = 1000;
-	}
-	m_hFont_HAN_BOLD_UL = CreateFontIndirect( &lf );
+	m_hFont[fontNo][0] = CreateFontIndirect( &m_logFont[fontNo] );
 }
 
 /*! フォント削除
 */
 void CViewFont::DeleteFont()
 {
-	DeleteObject( m_hFont_HAN );
-	DeleteObject( m_hFont_HAN_BOLD );
-	DeleteObject( m_hFont_HAN_UL );
-	DeleteObject( m_hFont_HAN_BOLD_UL );
+	for( int k = 0; k < _countof(m_hFont); k++ ){
+		DeleteFont2(k);
+	}
+}
+
+void CViewFont::DeleteFont2( int fontNo )
+{
+	assert( 0 <= fontNo && fontNo < _countof(m_hFont) );
+
+	for( int i = 0; i < _countof(m_hFont[0]); i++ ){
+		if( m_hFont[fontNo][i] != NULL ){
+			::DeleteObject( m_hFont[fontNo][i] );
+			m_hFont[fontNo][i] = NULL;
+		}
+	}
+}
+
+void CViewFont::InitFont()
+{
+	for( int k = 0; k < _countof(m_hFont); k++ ){
+		for( int i = 0; i < _countof(m_hFont[0]); i++ ){
+			m_hFont[k][i] = NULL;
+		}
+	}
 }
 
 /*! フォントを選ぶ
 	@param m_bBoldFont trueで太字
 	@param m_bUnderLine trueで下線
 */
-HFONT CViewFont::ChooseFontHandle( int fontNo, SFontAttr sFontAttr ) const
+HFONT CViewFont::ChooseFontHandle( int fontNo, const SFontAttr& sFontAttr ) const
 {
-	assert( fontNo == 0 );
-	if( sFontAttr.m_bBoldFont ){	/* 太字か */
-		if( sFontAttr.m_bUnderLine ){	/* 下線か */
-			return m_hFont_HAN_BOLD_UL;
-		}else{
-			return m_hFont_HAN_BOLD;
-		}
-	}else{
-		if( sFontAttr.m_bUnderLine ){	/* 下線か */
-			return m_hFont_HAN_UL;
-		}else{
-			return m_hFont_HAN;
-		}
+	assert( 0 <= fontNo && fontNo < _countof(m_hFont) );
+
+	int index = 0;
+	if( sFontAttr.m_bBoldFont ){	// 太字か
+		index |= 0x01;
 	}
+	if( sFontAttr.m_bUnderLine ){	// 下線か
+		index |= 0x02;
+	}
+	if( sFontAttr.m_bItalic ){		// 斜体か
+		index |= 0x04;
+	}
+	if( sFontAttr.m_bStrikeOut ){	// 取り消し線か
+		index |= 0x08;
+	}
+	if( m_hFont[fontNo][index] == NULL ){
+		LOGFONT lf = m_logFont[fontNo];
+		if( sFontAttr.m_bBoldFont ){
+			lf.lfWeight += 300;
+		}
+		if( 1000 < lf.lfWeight ){
+			lf.lfWeight = 1000;
+		}
+		if( sFontAttr.m_bUnderLine ){
+			lf.lfUnderline = TRUE;
+		}
+		if( sFontAttr.m_bItalic ){
+			lf.lfItalic = TRUE;
+		}
+		if( sFontAttr.m_bStrikeOut ){	// 取り消し線か
+			lf.lfStrikeOut = TRUE;
+		}
+		CViewFont* this_ = const_cast<CViewFont*>(this);
+		this_->m_hFont[fontNo][index] = CreateFontIndirect( &lf );
+	}
+	return m_hFont[fontNo][index];
 }
 

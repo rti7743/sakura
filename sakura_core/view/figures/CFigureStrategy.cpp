@@ -123,18 +123,21 @@ bool CFigureSpace::DrawImp_StyleSelect(SColorStrategyInfo* pInfo)
 	COLORREF crBack;
 	bool blendColor = pInfo->GetCurrentColor() != pInfo->GetCurrentColor2() && cCurrentType.GetTextColor() == cCurrentType.GetBackColor(); // 選択混合色
 	bool bBold;
+	bool bItalic;
 	if( blendColor ){
 		CTypeSupport& cText = cSpaceType.GetTextColor() == cTextType.GetTextColor() ? cCurrentType2 : cSpaceType;
 		CTypeSupport& cBack = cSpaceType.GetBackColor() == cTextType.GetBackColor() ? cCurrentType3 : cSpaceType;
 		crText = pcView->GetTextColorByColorInfo2(cCurrentType.GetColorInfo(), cText.GetColorInfo());
 		crBack = pcView->GetBackColorByColorInfo2(cCurrentType.GetColorInfo(), cBack.GetColorInfo());
 		bBold = cCurrentType2.IsBoldFont();
+		bItalic = cCurrentType2.IsItalic();
 	}else{
 		CTypeSupport& cText = cSpaceType.GetTextColor() == cTextType.GetTextColor() ? cCurrentType : cSpaceType;
 		CTypeSupport& cBack = cSpaceType.GetBackColor() == cTextType.GetBackColor() ? cCurrentType1 : cSpaceType;
 		crText = cText.GetTextColor();
 		crBack = cBack.GetBackColor();
 		bBold = cCurrentType.IsBoldFont();
+		bItalic = cCurrentType.IsItalic();
 	}
 	//cSpaceType.SetGraphicsState_WhileThisObj(pInfo->gr);
 
@@ -144,6 +147,8 @@ bool CFigureSpace::DrawImp_StyleSelect(SColorStrategyInfo* pInfo)
 	SFONT sFont;
 	sFont.m_sFontAttr.m_bBoldFont = cSpaceType.IsBoldFont() || bBold;
 	sFont.m_sFontAttr.m_bUnderLine = cSpaceType.HasUnderLine();
+	sFont.m_sFontAttr.m_bItalic = cSpaceType.IsItalic() || bItalic;
+	sFont.m_sFontAttr.m_bStrikeOut = cSpaceType.IsStrikeOut();
 	sFont.m_hFont = pInfo->m_pcView->GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
 	pInfo->m_gr.PushMyFont(sFont);
 	bool bTrans = pcView->IsBkBitmap() && cTextType.GetBackColor() == crBack;
@@ -167,13 +172,17 @@ void CFigureSpace::DrawImp_DrawUnderline(SColorStrategyInfo* pInfo, DispPos& sPo
 	CTypeSupport colorStyle(pcView, blendColor ? pInfo->GetCurrentColor2() : pInfo->GetCurrentColor());	// 周辺の色
 	CTypeSupport cSpaceType(pcView, GetDispColorIdx());	// 空白の指定色
 
-	if( !cSpaceType.HasUnderLine() && colorStyle.HasUnderLine() )
+	if( (!cSpaceType.HasUnderLine() && colorStyle.HasUnderLine())
+	 || (!cSpaceType.IsStrikeOut() && colorStyle.IsStrikeOut())
+	)
 	{
 		int fontNo = WCODE::GetFontNo(' ');
 		// 下線を周辺の前景色で描画する
 		SFONT sFont;
 		sFont.m_sFontAttr.m_bBoldFont = false;
-		sFont.m_sFontAttr.m_bUnderLine = true;
+		sFont.m_sFontAttr.m_bUnderLine = colorStyle.HasUnderLine();
+		sFont.m_sFontAttr.m_bItalic = false;
+		sFont.m_sFontAttr.m_bStrikeOut = colorStyle.IsStrikeOut();
 		sFont.m_hFont = pInfo->m_pcView->GetFontset().ChooseFontHandle( fontNo, sFont.m_sFontAttr );
 		pInfo->m_gr.PushMyFont(sFont);
 

@@ -38,4 +38,5 @@ sakura 2.1.1.3 mocaskr_ver 002.20140611-r3730
  805	DLL,EXEの検索パスのセキュリティ設定変更  
  821	上書きモードでの矩形選択入力で選択範囲を削除するオプションを追加  
  826	コンパイルオプションに/NXCOMPAT /SAFESEH /DYNAMICBASEを追加  
+ 837	フォントスタイルに斜体(仮)と取り消し線を追加  
 番号と詳細は http://sourceforge.net/p/sakura-editor/patchunicode/ 参照  

@@ -753,6 +753,8 @@
 #define IDC_COMBO_TAB_POSITION          1684
 #define IDC_CHECK_TAB_MULTILINE         1685
 #define IDC_CHECK_bOverWriteBoxDelete   1686
+#define IDC_CHECK_ITALIC                1687
+#define IDC_CHECK_STRIKEOUT             1689
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -794,7 +796,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1687
+#define _APS_NEXT_CONTROL_VALUE         1690
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

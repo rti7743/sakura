@@ -106,6 +106,9 @@ bool CFigure_Eol::DrawImp(SColorStrategyInfo* pInfo)
 		SFONT sFont;
 		sFont.m_sFontAttr.m_bBoldFont = cSpaceType.IsBoldFont() || currentStyle.IsBoldFont();
 		sFont.m_sFontAttr.m_bUnderLine = cSpaceType.HasUnderLine();
+		sFont.m_sFontAttr.m_bItalic = cSpaceType.IsItalic() || currentStyle.IsItalic();
+		sFont.m_sFontAttr.m_bStrikeOut = cSpaceType.IsStrikeOut();
+		
 		sFont.m_hFont = pInfo->m_pcView->GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
 		pInfo->m_gr.PushMyFont(sFont);
 

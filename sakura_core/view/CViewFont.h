@@ -30,33 +30,46 @@ class CViewFont{
 public:
 	CViewFont(const LOGFONT *plf)
 	{
+		InitFont();
 		CreateFont(plf);
+	}
+	CViewFont()
+	{
+		InitFont();
 	}
 	virtual ~CViewFont()
 	{
 		DeleteFont();
 	}
 
-	void UpdateFont(const LOGFONT *plf)
+	void UpdateFont(const LOGFONT *plf, int fontNo = 0)
 	{
-		DeleteFont();
-		CreateFont(plf);
+		DeleteFont2(fontNo);
+		CreateFont(plf, fontNo);
 	}
 
-	HFONT ChooseFontHandle( int fontNo, SFontAttr sFontAttr ) const;		/* フォントを選ぶ */
+	HFONT ChooseFontHandle( const SFontAttr& sFontAttr ) const{
+		return ChooseFontHandle( 0, sFontAttr );
+	}
+	HFONT ChooseFontHandle( int fontNo, const SFontAttr& sFontAttr ) const;		/* フォントを選ぶ */
 
 	HFONT GetFontHan() const
 	{
-		return m_hFont_HAN;
+		return m_hFont[0][0];
 	}
-private:
-	void CreateFont(const LOGFONT *plf);
+	HFONT GetFontNormal(int fontNo = 0) const
+	{
+		return m_hFont[fontNo][0];
+	}
 	void DeleteFont();
+private:
+	void CreateFont( const LOGFONT *plf, int fontNo = 0 );
+	void DeleteFont2( int fontNo );
+	void InitFont();
 
-	HFONT	m_hFont_HAN;			/* 現在のフォントハンドル */
-	HFONT	m_hFont_HAN_BOLD;		/* 現在のフォントハンドル(太字) */
-	HFONT	m_hFont_HAN_UL;			/* 現在のフォントハンドル(下線) */
-	HFONT	m_hFont_HAN_BOLD_UL;	/* 現在のフォントハンドル(太字、下線) */
+
+	HFONT	m_hFont[2][32];			/* 現在のフォントハンドル */
+	LOGFONT m_logFont[2];
 };
 
 #endif /* SAKURA_CVIEWFONT_9E51373D_58BA_4A64_9930_5174F7BF9C929_H_ */
