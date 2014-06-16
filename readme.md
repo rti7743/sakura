@@ -10,6 +10,8 @@
 x86版 release tagのページからどうぞ  
 https://github.com/mocaskr/sakura/releases/tag/v003.20140617-r3730
 
+chm版ヘルプは release tagのページにあります  
+https://github.com/mocaskr/sakura_help/releases/tag/v003  
 v003からヘルプの参照先を変更しました  
 http://mocaskr.web.fc2.com/sakurahelp2/HLP000001.html  
 ヘルプのソース・変更履歴は以下にあります  
