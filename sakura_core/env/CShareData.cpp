@@ -182,6 +182,8 @@ bool CShareData::InitShareData()
 		_tcscpy( m_pShareData->m_Common.m_sMacro.m_szMACROFOLDER, szIniFolder );	/* マクロ用フォルダ */
 		_tcscpy( m_pShareData->m_sHistory.m_szIMPORTFOLDER, szIniFolder );	/* 設定インポート用フォルダ */
 
+		m_pShareData->m_Common.m_sFileName.m_bTransformShortPath = true;
+		m_pShareData->m_Common.m_sFileName.m_nTransformShortMaxWidth = 100; // 100'x'幅
 		for( int i = 0; i < MAX_TRANSFORM_FILENAME; ++i ){
 			_tcscpy( m_pShareData->m_Common.m_sFileName.m_szTransformFileNameFrom[i], _T("") );
 			_tcscpy( m_pShareData->m_Common.m_sFileName.m_szTransformFileNameTo[i], _T("") );
