@@ -36,6 +36,9 @@
 
 using namespace std;
 
+//! カスタムカラー用の識別文字列
+static const TCHAR* TSTR_PTRCUSTOMCOLORS = _T("ptrCustomColors");
+
 WNDPROC	m_wpColorListProc;
 
 static const DWORD p_helpids2[] = {	//11400
@@ -233,7 +236,7 @@ LRESULT APIENTRY ColorList_SubclassProc( HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		{
 			/* 色選択ダイアログ */
 			// 2005.11.30 Moca カスタム色保持
-			DWORD* pColors = (DWORD*)::GetProp( hwnd, _T("ptrCustomColors") );
+			DWORD* pColors = (DWORD*)::GetProp( hwnd, TSTR_PTRCUSTOMCOLORS );
 			if( CPropTypesColor::SelectColor( hwnd, &pColorInfo->m_sColorAttr.m_cTEXT, pColors ) ){
 				::InvalidateRect( hwnd, &rcItem, TRUE );
 				::InvalidateRect( ::GetDlgItem( ::GetParent( hwnd ), IDC_BUTTON_TEXTCOLOR ), NULL, TRUE );
@@ -246,7 +249,7 @@ LRESULT APIENTRY ColorList_SubclassProc( HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		{
 			/* 色選択ダイアログ */
 			// 2005.11.30 Moca カスタム色保持
-			DWORD* pColors = (DWORD*)::GetProp( hwnd, _T("ptrCustomColors") );
+			DWORD* pColors = (DWORD*)::GetProp( hwnd, TSTR_PTRCUSTOMCOLORS );
 			if( CPropTypesColor::SelectColor( hwnd, &pColorInfo->m_sColorAttr.m_cBACK, pColors ) ){
 				::InvalidateRect( hwnd, &rcItem, TRUE );
 				::InvalidateRect( ::GetDlgItem( ::GetParent( hwnd ), IDC_BUTTON_BACKCOLOR ), NULL, TRUE );
@@ -255,8 +258,8 @@ LRESULT APIENTRY ColorList_SubclassProc( HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		break;
 	// 2005.11.30 Moca カスタム色保持
 	case WM_DESTROY:
-		if( ::GetProp( hwnd, _T("ptrCustomColors") ) ){
-			::RemoveProp( hwnd, _T("ptrCustomColors") );
+		if( ::GetProp( hwnd, TSTR_PTRCUSTOMCOLORS ) ){
+			::RemoveProp( hwnd, TSTR_PTRCUSTOMCOLORS );
 		}
 		break;
 	}
@@ -300,7 +303,7 @@ INT_PTR CPropTypesColor::DispatchEvent(
 		// Modified by KEITA for WIN64 2003.9.6
 		m_wpColorListProc = (WNDPROC) ::SetWindowLongPtr( hwndListColor, GWLP_WNDPROC, (LONG_PTR)ColorList_SubclassProc );
 		// 2005.11.30 Moca カスタム色を保持
-		::SetProp( hwndListColor, _T("ptrCustomColors"), m_dwCustColors );
+		::SetProp( hwndListColor, TSTR_PTRCUSTOMCOLORS, m_dwCustColors );
 		
 		return TRUE;
 
