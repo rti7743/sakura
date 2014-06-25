@@ -516,7 +516,15 @@ int CCodePage::WideCharToMultiByte2( UINT codepage, int flags, const wchar_t* pS
 	}else if( codepage == 12001 ){
 		return S_UnicodeToUTF32BE(pSrc, nSrcLen, pDst, nDstLen);
 	}
-	return WideCharToMultiByte(codepage, flags, pSrc, nSrcLen, pDst, nDstLen, NULL, NULL);
+	int ret = ::WideCharToMultiByte(codepage, flags, pSrc, nSrcLen, pDst, nDstLen, NULL, NULL);
+	if( ret == 0 && nSrcLen != 0 ){
+		DWORD errorCd = GetLastError();
+		if( errorCd == ERROR_INVALID_FLAGS ){
+			// flagsÇ0Ç…ÇµÇƒçƒíßêÌ
+			ret = ::WideCharToMultiByte(codepage, 0, pSrc, nSrcLen, pDst, nDstLen, NULL, NULL);
+		}
+	}
+	return ret;
 }
 
 int CCodePage::S_UTF32LEToUnicode( const char* pSrc, int nSrcLen, wchar_t* pDst, int nDstLen )
