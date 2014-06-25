@@ -870,7 +870,7 @@ void CGrepAgent::SetGrepResult(
 	}
 	/* WZïó */
 	else if( 2 == sGrepOption.nGrepOutputStyle ){
-		::auto_sprintf( strWork, L"ÅE(%I64d,%-5d): ", nLine, nColumn );
+		::auto_sprintf( strWork, L"ÅE(%6I64d,%-5d): ", nLine, nColumn );
 		cmemBuf.AppendString( strWork );
 		nMaxOutStr = 2500; // 2003.06.10 Moca ç≈ëÂí∑ïœçX
 	}
