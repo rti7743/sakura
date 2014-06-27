@@ -521,7 +521,7 @@ BOOL CEditView::MakeDiffTmpFile( TCHAR* filename, HWND hWnd, ECodeType code, boo
 
 /*!	外部ファイルを指定でのファイルを表示
 */
-BOOL CEditView::MakeDiffTmpFile2( TCHAR* tmpName, const TCHAR* orgName, ECodeType code )
+BOOL CEditView::MakeDiffTmpFile2( TCHAR* tmpName, const TCHAR* orgName, ECodeType code, ECodeType saveCode )
 {
 	//一時
 	TCHAR* pszTmpName = _ttempnam( NULL, SAKURA_DIFF_TEMP_PREFIX );
@@ -543,28 +543,20 @@ BOOL CEditView::MakeDiffTmpFile2( TCHAR* tmpName, const TCHAR* orgName, ECodeTyp
 #else
 	bBigFile = false;
 #endif
-	code = cfl.FileOpen( orgName, bBigFile, code, GetDllShareData().m_Common.m_sFile.GetAutoMIMEdecode(), &bBom );
-	if( code == CODE_UNICODE || code == CODE_UNICODEBE ){
-		code = CODE_UTF8;
-	}
-	CTextOutputStream out(tmpName, code, true, false);
+	CTextOutputStream out(tmpName, saveCode, true, false);
 	if(!out){
 		WarningMessage( NULL, LS(STR_DIFF_FAILED_TEMP) );
 		return FALSE;
 	}
-
-
-	CNativeW cLine;
-	CEol cEol;
-	while( RESULT_FAILURE != cfl.ReadLine( &cLine, &cEol ) ) {
-		const wchar_t*	pLineData;
-		CLogicInt		nLineLen;
-
-		pLineData= cLine.GetStringPtr(&nLineLen);
-		
-		if( 0 == nLineLen || NULL == pLineData ) break;
-
-		try{
+	try{
+		cfl.FileOpen( orgName, bBigFile, code, GetDllShareData().m_Common.m_sFile.GetAutoMIMEdecode(), &bBom );
+		CNativeW cLine;
+		CEol cEol;
+		while( RESULT_FAILURE != cfl.ReadLine( &cLine, &cEol ) ) {
+			const wchar_t*	pLineData;
+			CLogicInt		nLineLen;
+			pLineData= cLine.GetStringPtr(&nLineLen);
+			if( 0 == nLineLen || NULL == pLineData ) break;
 			if( bBom ){
 				CNativeW cLine2(L"\ufeff");
 				cLine2.AppendString(pLineData, nLineLen);
@@ -574,15 +566,15 @@ BOOL CEditView::MakeDiffTmpFile2( TCHAR* tmpName, const TCHAR* orgName, ECodeTyp
 				out.WriteString(pLineData,nLineLen);
 			}
 		}
-		catch(...){
-			out.Close();
-			_tunlink( tmpName );	//関数の実行に失敗したとき、一時ファイルの削除は関数内で行う。2005.10.29
-			WarningMessage( NULL, LS(STR_DIFF_FAILED_TEMP) );
-			return FALSE;
+		if( bBom ){
+			out.WriteString(L"\ufeff", 1);
 		}
 	}
-	if( bBom ){
-		out.WriteString(L"\ufeff", 1);
+	catch(...){
+		out.Close();
+		_tunlink( tmpName );	//関数の実行に失敗したとき、一時ファイルの削除は関数内で行う。
+		WarningMessage( NULL, LS(STR_DIFF_FAILED_TEMP) );
+		return FALSE;
 	}
 
 	return TRUE;
