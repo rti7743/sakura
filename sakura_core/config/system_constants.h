@@ -489,7 +489,7 @@
 	Version 153:
 	インデント詳細設定 2013.12.20 Moca
 
-	Version 154:
+	Version 154/org151:
 	DLLSHAREDATAのサイズチェック 2014.01.08 Moca
 
 	Version 155:
@@ -513,7 +513,7 @@
 	Version 161:
 	MYWM_GETLINEDATA,MYWM_SETCARETPOS,MYWM_GETCARETPOS変更 2014.05.07 Moca
 
-	Version 162
+	Version 162/org150:
 	カスタムパレット 2014.05.01 novice
 
 	-- 統合されたので元に戻す（1000～1023が使用済み） 	2008.11.16 nasukoji
