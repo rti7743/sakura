@@ -26,6 +26,7 @@
 #include "dlg/CDlgDiff.h"
 #include "env/CShareData.h"
 #include "charset/CCodeMediator.h"
+#include "charset/CCodePage.h"
 #include "util/window.h"
 #include "util/os.h"
 #include "_main/CMutex.h"
@@ -238,7 +239,8 @@ static ECodeType GetFileCharCode( LPCTSTR pszFile )
 
 static ECodeType GetDiffCreateTempFileCode(ECodeType code)
 {
-	if( code == CODE_UNICODE || code == CODE_UNICODEBE ){
+	EEncodingTrait e = CCodePage::GetEncodingTrait(code);
+	if( e != ENCODING_TRAIT_ASCII ){
 		return CODE_UTF8;
 	}
 	return code;
