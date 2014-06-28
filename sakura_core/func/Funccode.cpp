@@ -340,6 +340,7 @@ const EFunctionCode pnFuncList_Search[] = {	//Oct. 16, 2000 JEPRO 変数名変更(Lis
 	F_JUMP_DIALOG		,	//指定行ヘジャンプ
 	F_OUTLINE			,	//アウトライン解析
 	F_OUTLINE_TOGGLE	,	//アウトライン解析(toggle) // 20060201 aroka
+	F_FILETREE			,	//ファイルツリー	// 2012.06.20 Moca
 	F_TAGJUMP			,	//タグジャンプ機能
 	F_TAGJUMP_CLOSE		,	//閉じてタグジャンプ(元ウィンドウを閉じる) // Apr. 03, 2003 genta
 	F_TAGJUMPBACK		,	//タグジャンプバック機能
@@ -833,6 +834,7 @@ int FuncID_To_HelpContextID( EFunctionCode nFuncID )
 	case F_ISEARCH_MIGEMO_PREV:	return HLP000309;	//MIGEMO後方インクリメンタルサーチ	// 2006.10.05 ryoji
 	case F_FUNCLIST_NEXT:		return HLP000364;	//次の関数リストマーク
 	case F_FUNCLIST_PREV:		return HLP000365;	//前の関数リストマーク
+	case F_FILETREE:			return HLP000368;	//ファイルツリー
 
 	/* モード切り替え系 */
 	case F_CHGMOD_INS:		return HLP000046;	//挿入／上書きモード切り替え

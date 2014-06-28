@@ -48,15 +48,21 @@
 */
 bool CEditView::TagJumpSub(
 	const TCHAR*	pszFileName,
-	CMyPoint		ptJumpTo,
+	CMyPoint		ptJumpTo,		//!< ジャンプ位置(1開始)
 	bool			bClose,			//!< [in] true: 元ウィンドウを閉じる / false: 元ウィンドウを閉じない
-	bool			bRelFromIni
+	bool			bRelFromIni,
+	bool			bSync,
+	bool*			pbJumpToSelf	//!< [out] オプションNULL可。自分にジャンプしたか
 )
 {
 	HWND	hwndOwner;
 	POINT	poCaret;
 	// 2004/06/21 novice タグジャンプ機能追加
 	TagJump	tagJump;
+
+	if( pbJumpToSelf ){
+		pbJumpToSelf = false;
+	}
 
 	// 参照元ウィンドウ保存
 	tagJump.hwndReferer = CEditWnd::getInstance()->GetHwnd();
@@ -114,6 +120,11 @@ bool CEditView::TagJumpSub(
 		}
 		/* アクティブにする */
 		ActivateFrameWindow( hwndOwner );
+		if( tagJump.hwndReferer == hwndOwner ){
+			if( pbJumpToSelf ){
+				*pbJumpToSelf = true;
+			}
+		}
 	}
 	else{
 		/* 新しく開く */
@@ -131,17 +142,20 @@ bool CEditView::TagJumpSub(
 			this->GetHwnd(),
 			&inf,
 			false,	/* ビューモードか */
-			true	//	同期モードで開く
+			bSync	//	同期モードで開く
 		);
 
 		if( ! bSuccess )	//	ファイルが開けなかった
 			return false;
 
-		//	Apr. 23, 2001 genta
-		//	hwndOwnerに値が入らなくなってしまったために
-		//	Tag Jump Backが動作しなくなっていたのを修正
-		if( !CShareData::getInstance()->IsPathOpened( szJumpToFile, &hwndOwner ) )
-			return false;
+		if( bSync ){
+			//	Apr. 23, 2001 genta
+			//	hwndOwnerに値が入らなくなってしまったために
+			//	Tag Jump Backが動作しなくなっていたのを修正
+			if( !CShareData::getInstance()->IsPathOpened( szJumpToFile, &hwndOwner ) ){
+				return false;
+			}
+		}
 	}
 
 	// 2006.12.30 ryoji 閉じる処理は最後に（処理位置移動）

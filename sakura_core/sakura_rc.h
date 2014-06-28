@@ -757,6 +757,29 @@
 #define IDC_CHECK_STRIKEOUT             1689
 #define IDC_CHECK_SHORTPATH             1690
 #define IDC_EDIT_SHORTMAXWIDTH          1691
+#define IDC_STATIC_SETTFING_FROM        1692
+#define IDC_CHECK_LOADINI               1693
+#define IDC_EDIT_DEFINI                 1694
+#define IDC_BUTTON_REF1                 1695
+#define IDC_BUTTON_LOAD                 1696
+#define IDC_RADIO_GREP                  1697
+#define IDC_RADIO_FILE                  1698
+#define IDC_RADIO_FOLDER                1699
+#define IDC_STATIC_PATH                 1700
+#define IDC_EDIT_PATH                   1701
+#define IDC_BUTTON_REF2                 1702
+#define IDC_BUTTON_PATH_MENU            1703
+#define IDC_EDIT_LABEL                  1704
+#define IDC_STATIC_FILE                 1705
+#define IDC_EDIT_FILE                   1706
+#define IDC_CHECK_HIDDEN                1707
+#define IDC_CHECK_READONLY              1708
+#define IDC_CHECK_SYSTEM                1709
+#define IDC_BUTTON_UPDATE               1710
+#define IDC_BUTTON_FILEADD              1711
+#define IDC_BUTTON_REPLACE              1712
+#define IDC_BUTTON_SETTING              1713
+#define IDC_STATIC_CHARCODE             1714
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -790,6 +813,7 @@
 #define IDD_WINPOSSIZE                  5220
 #define IDD_PLUGIN_OPTION               5221
 #define IDD_PROFILEMGR                  5222
+#define IDD_FILETREE                    5223
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -798,7 +822,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1692
+#define _APS_NEXT_CONTROL_VALUE         1715
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
