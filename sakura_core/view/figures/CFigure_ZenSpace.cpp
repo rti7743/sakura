@@ -9,7 +9,7 @@ void Draw_ZenSpace( CGraphics& gr, const CMyRect& rc );
 //                      CFigure_ZenSpace                         //
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 
-bool CFigure_ZenSpace::Match(const wchar_t* pText) const
+bool CFigure_ZenSpace::Match(const wchar_t* pText, int nTextLen) const
 {
 	if( pText[0] == L'Å@' ){
 		return true;

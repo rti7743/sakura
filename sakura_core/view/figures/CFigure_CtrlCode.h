@@ -30,7 +30,7 @@
 class CFigure_CtrlCode : public CFigureSpace{
 public:
 	//traits
-	bool Match(const wchar_t* pText) const;
+	bool Match(const wchar_t* pText, int nTextLen) const;
 
 	//action
 #ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
@@ -48,7 +48,7 @@ public:
 class CFigure_HanBinary : public CFigure_CtrlCode{
 public:
 	//traits
-	bool Match(const wchar_t* pText) const;
+	bool Match(const wchar_t* pText, int nTextLen) const;
 
 	//action
 #ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
@@ -63,7 +63,7 @@ public:
 class CFigure_ZenBinary : public CFigure_CtrlCode{
 public:
 	//traits
-	bool Match(const wchar_t* pText) const;
+	bool Match(const wchar_t* pText, int nTextLen) const;
 
 	//action
 #ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT

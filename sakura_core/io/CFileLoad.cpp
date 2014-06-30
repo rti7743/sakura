@@ -429,6 +429,7 @@ const char* CFileLoad::GetNextLineCharCode(
 		return NULL;
 	}
 
+ 	const unsigned char* pUData = (const unsigned char*)pData; // signedÇæÇ∆ïÑçÜägí£Ç≈NELÇ™Ç®Ç©ÇµÇ≠Ç»ÇÈÇÃÇ≈
 	int nLen = nDataLen;
 	int neollen = 0;
 	switch( m_encodingTrait ){
@@ -485,7 +486,7 @@ const char* CFileLoad::GetNextLineCharCode(
 	case ENCODING_TRAIT_UTF16LE:
 		nLen = nDataLen - 1;
 		for( i = nbgn; i < nLen; i += 2 ){
-			wchar_t c = static_cast<wchar_t>((pData[i + 1] << 8) | pData[i]);
+			wchar_t c = static_cast<wchar_t>((pUData[i + 1] << 8) | pUData[i]);
 			if( WCODE::IsLineDelimiter(c) ){
 				pcEol->SetTypeByStringForFile_uni( &pData[i], nDataLen - i );
 				neollen = (Int)pcEol->GetLen() * sizeof(wchar_t);
@@ -496,7 +497,7 @@ const char* CFileLoad::GetNextLineCharCode(
 	case ENCODING_TRAIT_UTF16BE:
 		nLen = nDataLen - 1;
 		for( i = nbgn; i < nLen; i += 2 ){
-			wchar_t c = static_cast<wchar_t>((pData[i] << 8) | pData[i + 1]);
+			wchar_t c = static_cast<wchar_t>((pUData[i] << 8) | pUData[i + 1]);
 			if( WCODE::IsLineDelimiter(c) ){
 				pcEol->SetTypeByStringForFile_unibe( &pData[i], nDataLen - i );
 				neollen = (Int)pcEol->GetLen() * sizeof(wchar_t);
@@ -507,12 +508,12 @@ const char* CFileLoad::GetNextLineCharCode(
 	case ENCODING_TRAIT_UTF32LE:
 		nLen = nDataLen - 3;
 		for( i = nbgn; i < nLen; i += 4 ){
-			wchar_t c = static_cast<wchar_t>((pData[i+1] << 8) | pData[i]);
-			if( pData[i+3] == 0x00 && pData[i+2] == 0x00 && WCODE::IsLineDelimiter(c) ){
+			wchar_t c = static_cast<wchar_t>((pUData[i+1] << 8) | pUData[i]);
+			if( pUData[i+3] == 0x00 && pUData[i+2] == 0x00 && WCODE::IsLineDelimiter(c) ){
 				wchar_t c2;
 				int eolTempLen;
-				if( i + 4 < nLen && pData[i+7] == 0x00 && pData[i+6] == 0x00 ){
-					c2 = static_cast<wchar_t>((pData[i+5] << 8) | pData[i+4]);
+				if( i + 4 < nLen && pUData[i+7] == 0x00 && pUData[i+6] == 0x00 ){
+					c2 = static_cast<wchar_t>((pUData[i+5] << 8) | pUData[i+4]);
 					eolTempLen = 2 * sizeof(wchar_t);
 				}else{
 					c2 = 0x0000;
@@ -528,12 +529,12 @@ const char* CFileLoad::GetNextLineCharCode(
 	case ENCODING_TRAIT_UTF32BE:
 		nLen = nDataLen - 3;
 		for( i = nbgn; i < nLen; i += 4 ){
-			wchar_t c = static_cast<wchar_t>((pData[i+2] << 8) | pData[i+3]);
-			if( pData[i] == 0x00 && pData[i+1] == 0x00 && WCODE::IsLineDelimiter(c) ){
+			wchar_t c = static_cast<wchar_t>((pUData[i+2] << 8) | pUData[i+3]);
+			if( pUData[i] == 0x00 && pUData[i+1] == 0x00 && WCODE::IsLineDelimiter(c) ){
 				wchar_t c2;
 				int eolTempLen;
-				if( i + 4 < nLen && pData[i+4] == 0x00 && pData[i+5] == 0x00 ){
-					c2 = static_cast<wchar_t>((pData[i+6] << 8) | pData[i+7]);
+				if( i + 4 < nLen && pUData[i+4] == 0x00 && pUData[i+5] == 0x00 ){
+					c2 = static_cast<wchar_t>((pUData[i+6] << 8) | pUData[i+7]);
 					eolTempLen = 2 * sizeof(wchar_t);
 				}else{
 					c2 = 0x0000;
