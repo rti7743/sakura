@@ -8,7 +8,7 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-https://github.com/mocaskr/sakura/releases/tag/v003.20140617-r3730
+https://github.com/mocaskr/sakura/releases/tag/v004.20140630-r3749  
 
 chm版ヘルプは release tagのページにあります  
 https://github.com/mocaskr/sakura_help/releases/tag/v003  
@@ -51,4 +51,9 @@ sakura 2.1.1.3 mocaskr_ver 003.20140617-r3730
  839	長い行の比較・DIFFのサポートと排他制御の追加  
  840	文字情報が失われる場所を表示してジャンプできるように  
  841	無題ウィンドウのカレントディレクトリをファイルダイアログの初期位置にする  
+ 710	ファイルツリー表示  
+ 851	ルールファイル拡張2(正規表現置換)  
+ 842	UnicodeファイルでNELが含まれているとNELが改行コードにならず描画で無限ループする  
+ 847	UTF-7のNEL,PS,LSを改行として読み込むように  
+ 854	改行コードNEL,PS,LSを有効にするオプション追加  
 番号と詳細は http://sourceforge.net/p/sakura-editor/patchunicode/ 参照  
