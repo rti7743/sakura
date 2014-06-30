@@ -100,7 +100,7 @@ static bool C_IsOperator( wchar_t* szStr, int nLen	)
 */
 static bool C_IsLineEsc(const wchar_t *s, int len)
 {
-	if ( len > 0 && WCODE::IsLineDelimiter(s[len-1]) ) len--;
+	if ( len > 0 && WCODE::IsLineDelimiter(s[len-1], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) ) len--;
 	if ( len > 0 && s[len-1] == L'\r' ) len--;
 
 	if ( len > 0 && s[len-1] == L'\\' ) {
@@ -200,9 +200,10 @@ CLogicInt CCppPreprocessMng::ScanLine( const wchar_t* str, CLogicInt _length )
 
 	const wchar_t* lastptr = str + length;	//	処理文字列末尾
 	const wchar_t* p;	//	処理中の位置
+	bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
 
 	//	skip whitespace
-	for( p = str; C_IsSpace( *p ) && p < lastptr ; ++p )
+	for( p = str; C_IsSpace( *p, bExtEol ) && p < lastptr ; ++p )
 		;
 	if( lastptr <= p )
 		return CLogicInt(length);	//	空行のため処理不要
@@ -222,7 +223,7 @@ CLogicInt CCppPreprocessMng::ScanLine( const wchar_t* str, CLogicInt _length )
 	++p; // #をスキップ
 	
 	//	skip whitespace
-	for( ; C_IsSpace( *p ) && p < lastptr ; ++p )
+	for( ; C_IsSpace( *p, bExtEol ) && p < lastptr ; ++p )
 		;
 
 	//	ここからPreprocessor directive解析
@@ -236,11 +237,11 @@ CLogicInt CCppPreprocessMng::ScanLine( const wchar_t* str, CLogicInt _length )
 		//	それ以外のif/ifdef/ifndefは最初が有効部分と見なす
 		//	最初の条件によってこの時点ではp < lastptrなので判定省略
 		// 2007/12/13 じゅうじ : #if(0)とスペースを空けない場合の対応
-		if( C_IsSpace( *p ) || *p == L'(' ){
+		if( C_IsSpace( *p, bExtEol ) || *p == L'(' ){
 			//	if 0 チェック
 			//	skip whitespace
 			//	2007.12.15 genta
-			for( ; ( C_IsSpace( *p ) || *p == L'(' ) && p < lastptr ; ++p )
+			for( ; ( C_IsSpace( *p, bExtEol ) || *p == L'(' ) && p < lastptr ; ++p )
 				;
 			if( *p == L'0' ){
 				enable = 1;
@@ -422,6 +423,7 @@ void CDocOutline::MakeFuncList_C( CFuncInfoArr* pcFuncInfoArr ,bool bVisibleMemb
 	
 	//	Aug. 10, 2004 genta プリプロセス処理クラス
 	CCppPreprocessMng cCppPMng;
+	bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
 	
 	CLogicInt		nLineCount;
 	for( nLineCount = CLogicInt(0); nLineCount <  m_pcDocRef->m_cDocLineMgr.GetLineCount(); ++nLineCount ){
@@ -615,7 +617,7 @@ void CDocOutline::MakeFuncList_C( CFuncInfoArr* pcFuncInfoArr ,bool bVisibleMemb
 			/* 記号列読み込み中 */
 			if( 2 == nMode ){
 				if( C_IsWordChar( pLine[i] ) ||
-					C_IsSpace( pLine[i] ) ||
+					C_IsSpace( pLine[i], bExtEol ) ||
 					 '{' == pLine[i] ||
 					 '}' == pLine[i] ||
 					 '(' == pLine[i] ||
@@ -685,7 +687,7 @@ void CDocOutline::MakeFuncList_C( CFuncInfoArr* pcFuncInfoArr ,bool bVisibleMemb
 			/* 長過ぎる単語無視中 */
 			if( 999 == nMode ){
 				/* 空白やタブ記号等を飛ばす */
-				if( C_IsSpace( pLine[i] ) ){
+				if( C_IsSpace( pLine[i], bExtEol ) ){
 					nMode = 0;
 					continue;
 				}
@@ -693,7 +695,7 @@ void CDocOutline::MakeFuncList_C( CFuncInfoArr* pcFuncInfoArr ,bool bVisibleMemb
 			/* ノーマルモード */
 			if( 0 == nMode ){
 				/* 空白やタブ記号等を飛ばす */
-				if( C_IsSpace( pLine[i] ) )
+				if( C_IsSpace( pLine[i], bExtEol ) )
 					continue;
 
 				if( i < nLineLen - 1 && '/' == pLine[i] &&  '/' == pLine[i + 1] ){
@@ -868,9 +870,9 @@ void CDocOutline::MakeFuncList_C( CFuncInfoArr* pcFuncInfoArr ,bool bVisibleMemb
 					bool bOperator = false;
 					if( nMode2 == M2_NORMAL && nNestLevel_fparam == 0 && C_IsOperator(szWordPrev, nLen) ){
 						int k;
-						for( k = i + 1; k < nLineLen && C_IsSpace(pLine[k]); k++){}
+						for( k = i + 1; k < nLineLen && C_IsSpace(pLine[k], bExtEol); k++){}
 						if( k < nLineLen && pLine[k] == L')' ){
-							for( k++; k < nLineLen && C_IsSpace(pLine[k]); k++){}
+							for( k++; k < nLineLen && C_IsSpace(pLine[k], bExtEol); k++){}
 							if( k < nLineLen && (pLine[k] == L'<' || pLine[k] == L'(' ) ){
 								// オペレータだった operator()( / operator()<;
 								if( nLen + 1 < _countof(szWordPrev) ){

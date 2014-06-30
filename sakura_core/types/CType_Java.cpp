@@ -69,6 +69,7 @@ void CDocOutline::MakeFuncList_Java( CFuncInfoArr* pcFuncInfoArr )
 	nClassNestArrNum = 0;
 	CLogicInt		nLineCount;
 	const wchar_t*	szJavaKigou = L"!\"#%&'()=-^|\\`@[{+;*}]<,>?/";	//識別子に使用できない半角記号。_:~.$は許可
+	bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
 
 	for( nLineCount = CLogicInt(0); nLineCount <  m_pcDocRef->m_cDocLineMgr.GetLineCount(); ++nLineCount ){
 		pLine = m_pcDocRef->m_cDocLineMgr.GetLine(nLineCount)->GetDocLineStrWithEOL(&nLineLen);
@@ -108,7 +109,7 @@ void CDocOutline::MakeFuncList_Java( CFuncInfoArr* pcFuncInfoArr )
 			else if( FL_JAVA_MODE_WORD == nMode ){
 				// 2011.09.16 syat アウトライン解析で日本語が含まれている部分が表示されない
 				if( ! WCODE::IsBlank(pLine[i]) &&
-					! WCODE::IsLineDelimiter(pLine[i]) &&
+					! WCODE::IsLineDelimiter(pLine[i], bExtEol) &&
 					! WCODE::IsControlCode(pLine[i]) &&
 					wcschr( szJavaKigou, pLine[i] ) == NULL
 					){
@@ -169,7 +170,7 @@ void CDocOutline::MakeFuncList_Java( CFuncInfoArr* pcFuncInfoArr )
 					(L'0' <= pLine[i] &&	pLine[i] <= L'9' )||
 					L'\t' == pLine[i] ||
 					L' ' == pLine[i] ||
-					WCODE::IsLineDelimiter(pLine[i]) ||
+					WCODE::IsLineDelimiter(pLine[i], bExtEol) ||
 					L'{' == pLine[i] ||
 					L'}' == pLine[i] ||
 					L'(' == pLine[i] ||
@@ -191,7 +192,7 @@ void CDocOutline::MakeFuncList_Java( CFuncInfoArr* pcFuncInfoArr )
 				/* 空白やタブ記号等を飛ばす */
 				if( L'\t' == pLine[i] ||
 					L' ' == pLine[i] ||
-					WCODE::IsLineDelimiter(pLine[i])
+					WCODE::IsLineDelimiter(pLine[i], bExtEol)
 				){
 					nMode = FL_JAVA_MODE_NORMAL;
 					continue;
@@ -202,7 +203,7 @@ void CDocOutline::MakeFuncList_Java( CFuncInfoArr* pcFuncInfoArr )
 				/* 空白やタブ記号等を飛ばす */
 				if( L'\t' == pLine[i] ||
 					L' ' == pLine[i] ||
-					WCODE::IsLineDelimiter(pLine[i])
+					WCODE::IsLineDelimiter(pLine[i], bExtEol)
 				){
 					continue;
 				}else
@@ -316,7 +317,7 @@ void CDocOutline::MakeFuncList_Java( CFuncInfoArr* pcFuncInfoArr )
 				loop_is_func:;
 					for( ; k < nLineLen2; ++k ){
 						if( !bCommentLoop ){
-							if( pLine2[k] != L' ' && pLine2[k] != WCODE::TAB && !WCODE::IsLineDelimiter(pLine2[k]) ){
+							if( pLine2[k] != L' ' && pLine2[k] != WCODE::TAB && !WCODE::IsLineDelimiter(pLine2[k], bExtEol) ){
 								if( k + 1 < nLineLen2 && pLine2[k] == L'/' && pLine2[k + 1] == L'*' ){
 									bCommentLoop = TRUE;
 									++k;
@@ -404,7 +405,7 @@ void CDocOutline::MakeFuncList_Java( CFuncInfoArr* pcFuncInfoArr )
 					continue;
 				}else{
 					if( ! WCODE::IsBlank(pLine[i]) &&
-						! WCODE::IsLineDelimiter(pLine[i]) &&
+						! WCODE::IsLineDelimiter(pLine[i], bExtEol) &&
 						! WCODE::IsControlCode(pLine[i]) &&
 						wcschr( szJavaKigou, pLine[i] ) == NULL
 						){

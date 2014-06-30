@@ -42,6 +42,7 @@ void CDocOutline::MakeFuncList_PLSQL( CFuncInfoArr* pcFuncInfoArr )
 	int			nFuncNum;
 	int			nFuncOrProc = 0;
 	int			nParseCnt = 0;
+	bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
 
 	szWordPrev[0] = L'\0';
 	szWord[nWordIdx] = L'\0';
@@ -223,7 +224,7 @@ void CDocOutline::MakeFuncList_PLSQL( CFuncInfoArr* pcFuncInfoArr )
 					(L'\u00a1' <= pLine[i] && !iswcntrl(pLine[i]) && !iswspace(pLine[i]))|| // 2013.05.08 日本語対応
 					L'\t' == pLine[i] ||
 					 L' ' == pLine[i] ||
-					 WCODE::IsLineDelimiter(pLine[i]) ||
+					 WCODE::IsLineDelimiter(pLine[i], bExtEol) ||
 					 L'{' == pLine[i] ||
 					 L'}' == pLine[i] ||
 					 L'(' == pLine[i] ||
@@ -259,7 +260,7 @@ void CDocOutline::MakeFuncList_PLSQL( CFuncInfoArr* pcFuncInfoArr )
 				/* 空白やタブ記号等を飛ばす */
 				if( L'\t' == pLine[i] ||
 					L' ' == pLine[i] ||
-					WCODE::IsLineDelimiter(pLine[i])
+					WCODE::IsLineDelimiter(pLine[i], bExtEol)
 				){
 					nMode = 0;
 					continue;
@@ -270,7 +271,7 @@ void CDocOutline::MakeFuncList_PLSQL( CFuncInfoArr* pcFuncInfoArr )
 				/* 空白やタブ記号等を飛ばす */
 				if( L'\t' == pLine[i] ||
 					L' ' == pLine[i] ||
-					WCODE::IsLineDelimiter(pLine[i])
+					WCODE::IsLineDelimiter(pLine[i], bExtEol)
 				){
 					continue;
 				}else

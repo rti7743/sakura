@@ -404,7 +404,7 @@ bool CSearchAgent::PrevOrNextWord(
 		}
 	}
 	/* 現在位置の文字の種類によっては選択不能 */
-	if( !bLEFT && WCODE::IsLineDelimiter(pLine[nIdx]) ){
+	if( !bLEFT && WCODE::IsLineDelimiter(pLine[nIdx], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) ){
 		return false;
 	}
 	/* 前の単語か？後ろの単語か？ */
@@ -843,7 +843,7 @@ void CSearchAgent::ReplaceData( DocLineReplaceArg* pArg )
 		const CNativeW& cmemLine = pArg->pInsData->back().cmemLine;
 		int nLen = cmemLine.GetStringLength();
 		const wchar_t* pInsLine = cmemLine.GetStringPtr();
-		if( 0 < nLen && WCODE::IsLineDelimiter(pInsLine[nLen - 1]) ){
+		if( 0 < nLen && WCODE::IsLineDelimiter(pInsLine[nLen - 1], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) ){
 			// 行挿入
 			bLastEOLReplace = true; // 仮。後で修正
 		}else{
@@ -1111,7 +1111,7 @@ prev_line:;
 		CNativeW& cmemLine = pArg->pInsData->back().cmemLine;
 		int nLen = cmemLine.GetStringLength();
 		const wchar_t* pInsLine = cmemLine.GetStringPtr();
-		if( 0 < nLen && WCODE::IsLineDelimiter(pInsLine[nLen - 1]) ){
+		if( 0 < nLen && WCODE::IsLineDelimiter(pInsLine[nLen - 1], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) ){
 			if( 0 == pArg->sDelRange.GetFrom().x ){
 				// 挿入データの最後が改行で行頭に挿入するとき、現在行を維持する
 				bInsertLineMode = true;
@@ -1152,7 +1152,7 @@ prev_line:;
 #ifdef _DEBUG
 		int nLen = cmemLine.GetStringLength();
 		const wchar_t* pInsLine = cmemLine.GetStringPtr();
-		assert( 0 < nLen && WCODE::IsLineDelimiter(pInsLine[nLen - 1]) );
+		assert( 0 < nLen && WCODE::IsLineDelimiter(pInsLine[nLen - 1], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) );
 #endif
 		{
 			if( NULL == pCDocLine ){
