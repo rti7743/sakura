@@ -2511,7 +2511,7 @@ BOOL CDlgFuncList::OnJump( bool bCheckAutoClose, bool bFileJump )	//2002.02.08 h
 					bFileJumpSelf = TagJump( m_lParam, m_sJumpFile.c_str(), poCaret );
 				}
 			}else
-			if( m_cFuncInfo != NULL && m_cFuncInfo->m_cmemFuncName.GetStringPtr() ){
+			if( m_cFuncInfo != NULL && 0 < m_cFuncInfo->m_cmemFileName.GetStringLength() ){
 				if( bFileJump ){
 					nLineTo = m_cFuncInfo->m_nFuncLineCRLF;
 					nColTo = m_cFuncInfo->m_nFuncColCRLF;
