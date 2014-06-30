@@ -122,7 +122,9 @@ EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 				bool bEvent = false;
 				{
 					CLaoyutMgrThreadLock lock(threadVal.m_cs);
-					CDocEditAgent(pcDocLineMgr).AddLineStrXMove( cUnicodeBuffer );
+					const wchar_t*	pLine = cUnicodeBuffer.GetStringPtr();
+					int		nLineLen = cUnicodeBuffer.GetStringLength();
+					CDocEditAgent(pcDocLineMgr).AddLineStrX( pLine, nLineLen );
 					if( threadVal.m_bWaitLayoutMgr ){
 						bEvent = true;
 						threadVal.m_bSetEvent = true;
@@ -132,7 +134,9 @@ EConvertResult CReadManager::ReadFile_To_CDocLineMgr(
 					::SetEvent( threadVal.m_hEvnetWaitDocLine );
 				}
 			}else{
-				CDocEditAgent(pcDocLineMgr).AddLineStrXMove( cUnicodeBuffer );
+				const wchar_t*	pLine = cUnicodeBuffer.GetStringPtr();
+				int		nLineLen = cUnicodeBuffer.GetStringLength();
+				CDocEditAgent(pcDocLineMgr).AddLineStrX( pLine, nLineLen );
 			}
 			//Œo‰ß’Ê’m
 			if(nLineNum%512==0){

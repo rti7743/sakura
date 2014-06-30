@@ -104,7 +104,8 @@ public:
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 	//                           ‘€ì                              //
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
-	void AddLineStrXMove( CNativeW& mem );	/* ––”ö‚És‚ğ’Ç‰Á Ver2.0 */
+	//	May 15, 2000 genta
+	void AddLineStrX( const wchar_t*, int );	/* ––”ö‚És‚ğ’Ç‰Á Ver1.5 */
 private:
 	CDocLineMgr* m_pcDocLineMgr;
 };
