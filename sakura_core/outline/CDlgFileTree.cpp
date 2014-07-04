@@ -547,11 +547,13 @@ BOOL CDlgFileTree::OnBnClicked( int wID )
 				CDlgOpenFile dlg;
 				TCHAR szDir[_MAX_PATH];
 				GetInidir(szDir);
-				dlg.Create( G_AppInstance(), hwndDlg, _T("*.ini"), szDir,
+				dlg.Create( G_AppInstance(), hwndDlg, _T("*.*"), szDir,
 					std::vector<LPCTSTR>(), std::vector<LPCTSTR>() );
 				TCHAR szFile[_MAX_PATH];
 				if( dlg.DoModal_GetOpenFileName(szFile) ){
-					DlgItem_SetText( GetHwnd(), IDC_EDIT_PATH, szFile );
+					CNativeT cmemFile = szFile;
+					cmemFile.ReplaceT(_T("%"), _T("%%"));
+					DlgItem_SetText( GetHwnd(), IDC_EDIT_PATH, cmemFile.GetStringPtr() );
 				}
 			}
 		}
@@ -749,9 +751,11 @@ BOOL CDlgFileTree::OnBnClicked( int wID )
 					}
 					HTREEITEM htiItemFirst = NULL;
 					for( int i = 0; i < (int)aFileNames.size(); i++ ){
+						CNativeT cmemFile = aFileNames[i].c_str();
+						cmemFile.ReplaceT(_T("%"), _T("%%"));
 						SFileTreeItem item;
 						item.m_eFileTreeItemType = EFileTreeItemType_File;
-						item.m_szTargetPath = aFileNames[i].c_str();
+						item.m_szTargetPath = cmemFile.GetStringPtr();
 						item.m_szLabelName = GetFileTitlePointer(aFileNames[i].c_str());
 						htiInsert = InsertTreeItem(item, htiParent, htiInsert);
 						if( htiItemFirst == NULL ){
