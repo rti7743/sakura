@@ -268,7 +268,7 @@ CHabaXInt CNativeW::GetHabaOfChar( const wchar_t* pData, int nDataLen, int nIdx 
 		return CHabaXInt(0);
 	}
 	// HACK:改行コードに対して1を返す
-	if( pData[nIdx] == '\r' || pData[nIdx] == '\n' ){
+	if( WCODE::IsLineDelimiter(pData[nIdx], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) ){
 		return CHabaXInt(1);
 	}
 
