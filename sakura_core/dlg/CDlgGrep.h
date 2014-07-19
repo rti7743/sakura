@@ -33,7 +33,7 @@ public:
 	/*
 	||  Attributes & Operations
 	*/
-	INT_PTR DispatchEvent( HWND hWnd, UINT wMsg, WPARAM wParam, LPARAM lParam ); // 標準以外のメッセージを捕捉する
+	BOOL OnCbnDropDown( HWND hwndCtl, int wID );
 	int DoModal( HINSTANCE, HWND, const TCHAR* );	/* モーダルダイアログの表示 */
 //	HWND DoModeless( HINSTANCE, HWND, const char* );	/* モードレスダイアログの表示 */
 
@@ -52,6 +52,7 @@ public:
 
 
 	std::wstring	m_strText;				/*!< 検索文字列 */
+	bool			m_bSetText;				//!< 検索文字列を設定したか
 	SFilePath	m_szFile;					/*!< 検索ファイル */
 	SFilePath	m_szFolder;					/*!< 検索フォルダ */
 	SFilePath	m_szCurrentFilePath;

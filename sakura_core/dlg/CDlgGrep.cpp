@@ -77,62 +77,46 @@ CDlgGrep::CDlgGrep()
 	m_bGrepOutputBaseFolder = false;
 	m_bGrepSeparateFolder = false;
 
+	m_bSetText = false;
 	m_szFile[0] = 0;
 	m_szFolder[0] = 0;
 	return;
 }
 
 /*!
-	標準以外のメッセージを捕捉する
+	コンボボックスのドロップダウンメッセージを捕捉する
 
 	@date 2013.03.24 novice 新規作成
 */
-INT_PTR CDlgGrep::DispatchEvent( HWND hWnd, UINT wMsg, WPARAM wParam, LPARAM lParam )
+BOOL CDlgGrep::OnCbnDropDown( HWND hwndCtl, int wID )
 {
-	INT_PTR result;
-	result = CDialog::DispatchEvent( hWnd, wMsg, wParam, lParam );
-	switch( wMsg ){
-	case WM_COMMAND:
-		WORD wID = LOWORD(wParam);
-		switch( wID ){
-		case IDC_COMBO_TEXT:
-			if ( HIWORD(wParam) == CBN_DROPDOWN ) {
-				HWND hwndCombo = ::GetDlgItem( GetHwnd(), IDC_COMBO_TEXT );
-				if ( ::SendMessage(hwndCombo, CB_GETCOUNT, 0L, 0L) == 0) {
-					int nSize = m_pShareData->m_sSearchKeywords.m_aSearchKeys.size();
-					for( int i = 0; i < nSize; ++i ){
-						Combo_AddString( hwndCombo, m_pShareData->m_sSearchKeywords.m_aSearchKeys[i] );
-					}
-				}
+	switch( wID ){
+	case IDC_COMBO_TEXT:
+		if ( ::SendMessage(hwndCtl, CB_GETCOUNT, 0L, 0L) == 0) {
+			int nSize = m_pShareData->m_sSearchKeywords.m_aSearchKeys.size();
+			for( int i = 0; i < nSize; ++i ){
+				Combo_AddString( hwndCtl, m_pShareData->m_sSearchKeywords.m_aSearchKeys[i] );
 			}
-			break;
-		case IDC_COMBO_FILE:
-			if ( HIWORD(wParam) == CBN_DROPDOWN ) {
-				HWND hwndCombo = ::GetDlgItem( GetHwnd(), IDC_COMBO_FILE );
-				if ( ::SendMessage(hwndCombo, CB_GETCOUNT, 0L, 0L) == 0) {
-					int nSize = m_pShareData->m_sSearchKeywords.m_aGrepFiles.size();
-					for( int i = 0; i < nSize; ++i ){
-						Combo_AddString( hwndCombo, m_pShareData->m_sSearchKeywords.m_aGrepFiles[i] );
-					}
-				}
+		}
+		break;
+	case IDC_COMBO_FILE:
+		if ( ::SendMessage(hwndCtl, CB_GETCOUNT, 0L, 0L) == 0) {
+			int nSize = m_pShareData->m_sSearchKeywords.m_aGrepFiles.size();
+			for( int i = 0; i < nSize; ++i ){
+				Combo_AddString( hwndCtl, m_pShareData->m_sSearchKeywords.m_aGrepFiles[i] );
 			}
-			break;
-		case IDC_COMBO_FOLDER:
-			if ( HIWORD(wParam) == CBN_DROPDOWN ) {
-				HWND hwndCombo = ::GetDlgItem( GetHwnd(), IDC_COMBO_FOLDER );
-				if ( ::SendMessage(hwndCombo, CB_GETCOUNT, 0L, 0L) == 0) {
-					hwndCombo = ::GetDlgItem( GetHwnd(), IDC_COMBO_FOLDER );
-					int nSize = m_pShareData->m_sSearchKeywords.m_aGrepFolders.size();
-					for( int i = 0; i < nSize; ++i ){
-						Combo_AddString( hwndCombo, m_pShareData->m_sSearchKeywords.m_aGrepFolders[i] );
-					}
-				}
+		}
+		break;
+	case IDC_COMBO_FOLDER:
+		if ( ::SendMessage(hwndCtl, CB_GETCOUNT, 0L, 0L) == 0) {
+			int nSize = m_pShareData->m_sSearchKeywords.m_aGrepFolders.size();
+			for( int i = 0; i < nSize; ++i ){
+				Combo_AddString( hwndCtl, m_pShareData->m_sSearchKeywords.m_aGrepFolders[i] );
 			}
-			break;
 		}
 		break;
 	}
-	return result;
+	return CDialog::OnCbnDropDown( hwndCtl, wID );
 }
 
 /* モーダルダイアログの表示 */
@@ -644,6 +628,7 @@ int CDlgGrep::GetData( void )
 	std::vector<TCHAR> vText(nBufferSize);
 	::DlgItem_GetText( GetHwnd(), IDC_COMBO_TEXT, &vText[0], nBufferSize);
 	m_strText = to_wchar(&vText[0]);
+	m_bSetText = true;
 	/* 検索ファイル */
 	::DlgItem_GetText( GetHwnd(), IDC_COMBO_FILE, m_szFile, _countof2(m_szFile) );
 	/* 検索フォルダ */
@@ -737,6 +722,9 @@ int CDlgGrep::GetData( void )
 			CSearchKeywordManager().AddToSearchKeyArr( m_strText.c_str() );
 			m_pShareData->m_Common.m_sSearch.m_sSearchOption = m_sSearchOption;		// 検索オプション
 		}
+	}else{
+		// 2014.07.01 空キーも登録する
+		CSearchKeywordManager().AddToSearchKeyArr( L"" );
 	}
 
 	// この編集中のテキストから検索する場合、履歴に残さない	Uchi 2008/5/23

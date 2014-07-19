@@ -477,8 +477,7 @@ const char* CFileLoad::GetNextLineCharCode(
 		*pnEolLen = 0;
 		return NULL;
 	}
-
- 	const unsigned char* pUData = (const unsigned char*)pData; // signed‚¾‚Æ•„†Šg’£‚ÅNEL‚ª‚¨‚©‚µ‚­‚È‚é‚Ì‚Å
+	const unsigned char* pUData = (const unsigned char*)pData; // signed‚¾‚Æ•„†Šg’£‚ÅNEL‚ª‚¨‚©‚µ‚­‚È‚é‚Ì‚Å
 	bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
 	int nLen = nDataLen;
 	int neollen = 0;
