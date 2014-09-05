@@ -15,11 +15,10 @@
 	Please contact the copyright holder to use this code for other purpose.
 */
 
-class CDocLine;
-
 #ifndef _CDOCLINE_H_
 #define _CDOCLINE_H_
 
+#include "util/design_template.h"
 #include "CEol.h"
 #include "mem/CMemory.h"
 
@@ -28,6 +27,7 @@ class CDocLine;
 #include "docplus/CModifyManager.h"
 #include "docplus/CFuncListManager.h"
 
+class CDocLine;
 class COpeBlk;
 
 //!	文書データ1行
@@ -109,6 +109,9 @@ public:
 		CLineDiffed		m_cDiffmarked;	//DIFF差分情報
 	};
 	MarkType m_sMark;
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(CDocLine);
 };
 
 

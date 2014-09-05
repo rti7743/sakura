@@ -186,7 +186,7 @@ BOOL CEditView::Create(
 
 	/* 共有データ構造体のアドレスを返す */
 	m_bCommandRunning = FALSE;	/* コマンドの実行中 */
-	m_bDoing_UndoRedo = FALSE;	/* アンドゥ・リドゥの実行中か */
+	m_bDoing_UndoRedo = false;	/* アンドゥ・リドゥの実行中か */
 	m_pcsbwVSplitBox = NULL;	/* 垂直分割ボックス */
 	m_pcsbwHSplitBox = NULL;	/* 水平分割ボックス */
 	m_hwndVScrollBar = NULL;
@@ -204,6 +204,7 @@ BOOL CEditView::Create(
 	GetSelectionInfo().m_bDrawSelectArea = false;	/* 選択範囲を描画したか */	// 02/12/13 ai
 
 	m_crBack = -1;				/* テキストの背景色 */			// 2006.12.16 ryoji
+	m_crBack2 = -1;
 	
 	m_szComposition[0] = _T('\0');
 
@@ -379,6 +380,10 @@ BOOL CEditView::Create(
 	if( (bUserPref[2] & 0x01) == 1 ){
 		m_bHideMouse = true;
 	}
+
+	CTypeSupport cTextType(this, COLORIDX_TEXT);
+	m_crBack = cTextType.GetBackColor();
+
 	return TRUE;
 }
 
@@ -1297,7 +1302,7 @@ VOID CEditView::OnTimer(
 	}
 	/* 範囲選択中でない場合 */
 	if(!GetSelectionInfo().IsMouseSelecting()){
-		if(TRUE == KeyWordHelpSearchDict( LID_SKH_ONTIMER, &po, &rc ) ){	// 2006.04.10 fon
+		if( FALSE != KeyWordHelpSearchDict( LID_SKH_ONTIMER, &po, &rc ) ){	// 2006.04.10 fon
 			/* 辞書Tipを表示 */
 			m_cTipWnd.Show( po.x, po.y + GetTextMetrics().GetHankakuHeight(), NULL );
 		}
@@ -1428,8 +1433,7 @@ void CEditView::ConvSelectedArea( EFunctionCode nFuncCode )
 			/* 操作の追加 */
 			m_cCommander.GetOpeBlk()->AppendOpe(
 				new CMoveCaretOpe(
-					GetCaret().GetCaretLogicPos(),	// 操作前のキャレット位置
-					GetCaret().GetCaretLogicPos()	// 操作後のキャレット位置
+					GetCaret().GetCaretLogicPos()	// 操作前後のキャレット位置
 				)
 			);
 		}
@@ -1467,8 +1471,7 @@ void CEditView::ConvSelectedArea( EFunctionCode nFuncCode )
 			/* 操作の追加 */
 			m_cCommander.GetOpeBlk()->AppendOpe(
 				new CMoveCaretOpe(
-					GetCaret().GetCaretLogicPos(),	// 操作前のキャレット位置
-					GetCaret().GetCaretLogicPos()	// 操作後のキャレット位置
+					GetCaret().GetCaretLogicPos()	// 操作前後のキャレット位置
 				)
 			);
 		}
@@ -1504,7 +1507,7 @@ int	CEditView::CreatePopUpMenu_R( void )
 
 	// 2010.07.24 Moca オーナードロー対応のために前に移動してCMenuDrawer経由で追加する
 	if( !GetSelectionInfo().IsMouseSelecting() ){
-		if( TRUE == KeyWordHelpSearchDict( LID_SKH_POPUPMENU_R, &po, &rc ) ){	// 2006.04.10 fon
+		if( FALSE != KeyWordHelpSearchDict( LID_SKH_POPUPMENU_R, &po, &rc ) ){	// 2006.04.10 fon
 			cMenuDrawer.MyAppendMenu( hMenu, 0, IDM_COPYDICINFO, LS(STR_MENU_KEYWORDINFO), _T("K") );	// 2006.04.10 fon ToolTip内容を直接表示するのをやめた
 			cMenuDrawer.MyAppendMenu( hMenu, 0, IDM_JUMPDICT, LS(STR_MENU_OPENKEYWORDDIC), _T("L") );	// 2006.04.10 fon
 			cMenuDrawer.MyAppendMenuSep( hMenu, MF_SEPARATOR, F_0, _T("") );
@@ -1697,6 +1700,8 @@ void CEditView::OnChangeSetting()
 	if( !m_pcEditWnd->m_pPrintPreview ){
 		::InvalidateRect( GetHwnd(), NULL, TRUE );
 	}
+	CTypeSupport cTextType(this, COLORIDX_TEXT);
+	m_crBack = cTextType.GetBackColor();
 }
 
 
@@ -1841,7 +1846,7 @@ bool CEditView::GetSelectedData(
 	}
 	if( bWithLineNumber ){	/* 行番号を付与する */
 		/* 行番号表示に必要な桁数を計算 */
-		nLineNumCols = GetTextArea().DetectWidthOfLineNumberArea_calculate();
+		nLineNumCols = GetTextArea().DetectWidthOfLineNumberArea_calculate(&m_pcEditDoc->m_cLayoutMgr);
 		nLineNumCols += 1;
 		pszLineNum = new wchar_t[nLineNumCols + 1];
 	}
@@ -2365,7 +2370,7 @@ void CEditView::CaretUnderLineON( bool bDraw, bool bDrawPaint, bool DisalbeUnder
 	 && bCursorLineBg
 	 && GetDrawSwitch()
 	 && GetCaret().GetCaretLayoutPos().GetY2() >= GetTextArea().GetViewTopLine()
-	 && m_bDoing_UndoRedo == FALSE	/* アンドゥ・リドゥの実行中か */
+	 && m_bDoing_UndoRedo == false	/* アンドゥ・リドゥの実行中か */
 		){
 		bCursorLineBgDraw = true;
 
@@ -2400,7 +2405,7 @@ void CEditView::CaretUnderLineON( bool bDraw, bool bDrawPaint, bool DisalbeUnder
 	if( bDraw
 	 && GetDrawSwitch()
 	 && IsDrawCursorVLinePos(nCursorVLineX)
-	 && m_bDoing_UndoRedo == FALSE
+	 && m_bDoing_UndoRedo == false
 	 && !GetSelectionInfo().IsTextSelecting()
 	 && !DisalbeUnderLine
 	){
@@ -2437,7 +2442,7 @@ void CEditView::CaretUnderLineON( bool bDraw, bool bDrawPaint, bool DisalbeUnder
 	if( bDraw
 	 && GetDrawSwitch()
 	 && nUnderLineY >= GetTextArea().GetAreaTop()
-	 && m_bDoing_UndoRedo == FALSE	/* アンドゥ・リドゥの実行中か */
+	 && m_bDoing_UndoRedo == false	/* アンドゥ・リドゥの実行中か */
 	 && !GetSelectionInfo().IsTextSelecting()
 	 && !DisalbeUnderLine
 	){
@@ -2543,7 +2548,7 @@ void CEditView::CaretUnderLineOFF( bool bDraw, bool bDrawPaint, bool bResetFlag,
 		if( bDraw
 		 && GetDrawSwitch()
 		 && IsDrawCursorVLinePos( m_nOldCursorLineX )
-		 && m_bDoing_UndoRedo == FALSE
+		 && m_bDoing_UndoRedo == false
 		 && !GetCaret().m_cUnderLine.GetVertLineDoNotOFF()	// カーソル位置縦線を消去するか
 		 && !DisalbeUnderLine
 		){

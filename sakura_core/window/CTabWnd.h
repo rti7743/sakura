@@ -39,6 +39,7 @@
 #define SAKURA_WINDOW_CTABWND_H_
 
 #include "CWnd.h"
+#include "util/design_template.h"
 
 class CGraphics;
 struct EditNode;
@@ -207,6 +208,9 @@ private:
 
 	HWND		m_hwndSizeBox;
 	bool		m_bSizeBox;
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(CTabWnd);
 };
 
 #endif /* SAKURA_WINDOW_CTABWND_H_ */

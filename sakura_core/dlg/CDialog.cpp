@@ -540,7 +540,7 @@ BOOL CDialog::OnCbnDropDown( HWND hwndCtl, int wID )
 	@param wID [in]			コンボボックスのID
 
 	@author ryoji
-	@date 2009.03.29
+	@date 2009.03.29 新規作成
 */
 BOOL CDialog::OnCbnDropDown( HWND hwndCtl, bool scrollBar )
 {
@@ -552,7 +552,7 @@ BOOL CDialog::OnCbnDropDown( HWND hwndCtl, bool scrollBar )
 	int nTextLen;
 	int iItem;
 	int nItem;
-	int nMargin = 8;
+	const int nMargin = 8;
 	int nScrollWidth = scrollBar ? ::GetSystemMetrics( SM_CXVSCROLL ) + 2 : 2;
 
 	hDC = ::GetDC( hwndCtl );

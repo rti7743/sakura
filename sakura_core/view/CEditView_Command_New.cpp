@@ -127,8 +127,7 @@ void CEditView::InsertData_CEditView(
 	CLayoutInt	nLineAllColLen;
 	CLogicInt	nIdxFrom = CLogicInt(0);
 	CLayoutInt	nColumnFrom = ptInsertPos.GetX2();
-	CNativeW	cMem;
-	cMem.SetString(L"");
+	CNativeW	cMem(L"");
 	COpeLineData insData;
 	if( pLine ){
 		// 更新が前行からになる可能性を調べる	// 2009.02.17 ryoji
@@ -336,12 +335,6 @@ void CEditView::InsertData_CEditView(
 		}
 	}
 
-	if( !m_bDoing_UndoRedo && pcOpe ){	/* アンドゥ・リドゥの実行中か */
-		pcOpe->m_pcmemData.clear();					/* 操作に関連するデータ */
-	}
-
-
-
 	//2007.10.18 kobake ここでCOpe処理をまとめる
 	if( !m_bDoing_UndoRedo ){
 		m_pcEditDoc->m_cLayoutMgr.LayoutToLogic(
@@ -437,7 +430,7 @@ void CEditView::DeleteData2(
 	}
 	//2007.10.18 kobake COpeの追加をここにまとめる
 	if( pcOpe ){
-		pcOpe->m_pcmemData.swap(memDeleted);
+		pcOpe->m_cOpeLineData.swap(memDeleted);
 		m_pcEditDoc->m_cLayoutMgr.LayoutToLogic(
 			_ptCaretPos,
 			&pcOpe->m_ptCaretPos_PHY_After
@@ -503,8 +496,7 @@ void CEditView::DeleteData(
 			/* 操作の追加 */
 			m_cCommander.GetOpeBlk()->AppendOpe(
 				new CMoveCaretOpe(
-					GetCaret().GetCaretLogicPos(),	// 操作前のキャレット位置
-					GetCaret().GetCaretLogicPos()	// 操作後のキャレット位置
+					GetCaret().GetCaretLogicPos()	// 操作前後のキャレット位置
 				)
 			);
 		}
@@ -817,8 +809,7 @@ void CEditView::ReplaceData_CEditView3(
 		if( sDelRangeLogic.GetFrom() != GetCaret().GetCaretLogicPos() ){
 			pcOpeBlk->AppendOpe(
 				new CMoveCaretOpe(
-					GetCaret().GetCaretLogicPos(),	// 操作前のキャレット位置
-					GetCaret().GetCaretLogicPos()	// 操作後のキャレット位置
+					GetCaret().GetCaretLogicPos()	// 操作前後のキャレット位置
 				)
 			);
 		}
@@ -1021,8 +1012,7 @@ void CEditView::RTrimPrevLine( void )
 						/* 操作の追加 */
 						m_cCommander.GetOpeBlk()->AppendOpe(
 							new CMoveCaretOpe(
-								GetCaret().GetCaretLogicPos(),	// 操作前のキャレット位置
-								GetCaret().GetCaretLogicPos()	// 操作後のキャレット位置
+								GetCaret().GetCaretLogicPos()	// 操作前後のキャレット位置
 							)
 						);
 					}

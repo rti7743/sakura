@@ -77,6 +77,9 @@ private:
 #ifdef SEARCH_STRING_SUNDAY_QUICK
 	int* m_pnUseCharSkipArr;
 #endif
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(CSearchStringPattern);
 };
 
 

@@ -66,13 +66,11 @@ int CDlgCompare::DoModal(
 	HWND			hwndParent,
 	LPARAM			lParam,
 	const TCHAR*	pszPath,
-	bool			bIsModified,
 	TCHAR*			pszCompareLabel,
 	HWND*			phwndCompareWnd
 )
 {
 	m_pszPath = pszPath;
-	m_bIsModified = bIsModified;
 	m_pszCompareLabel = pszCompareLabel;
 	m_phwndCompareWnd = phwndCompareWnd;
 	return CDialog::DoModal( hInstance, hwndParent, IDD_COMPARE, lParam );
@@ -190,7 +188,7 @@ void CDlgCompare::SetData( void )
 	/* 左右に並べて表示 */
 	//@@@ 2003.06.12 MIK
 	// TAB 1ウィンドウ表示のときは並べて比較できなくする
-	if( TRUE  == m_pShareData->m_Common.m_sTabBar.m_bDispTabWnd
+	if( FALSE != m_pShareData->m_Common.m_sTabBar.m_bDispTabWnd
 	 && !m_pShareData->m_Common.m_sTabBar.m_bDispTabWndMultiWin )
 	{
 		m_bCompareAndTileHorz = FALSE;

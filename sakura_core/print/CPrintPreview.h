@@ -34,6 +34,7 @@
 
 #include <Windows.h> // 2002/2/10 aroka
 #include "basis/SakuraBasis.h"
+#include "util/design_template.h"
 #include "CPrint.h" // 2002/2/10 aroka
 #include "view/CViewFont.h"
 
@@ -249,7 +250,9 @@ protected:
 
 	CColorStrategyPool*	m_pool;					// 色定義管理情報
 
+public:
 	class CLayoutMgr*	m_pLayoutMgr_Print;		/* 印刷用のレイアウト管理情報 */
+protected:
 	STypeConfig m_typePrint;
 
 	// プレビューから出ても現在のプリンタ情報を記憶しておけるようにstaticにする 2003.05.02 かろと 
@@ -257,6 +260,9 @@ protected:
 
 	bool			m_bLockSetting;				// 設定のロック
 	bool			m_bDemandUpdateSetting;		// 設定の更新要求
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(CPrintPreview);
 };
 
 #endif /* SAKURA_CPRINTPREVIEW_4FBD8BE8_4E93_4714_A3F2_F69081A2EDBDR_H_ */

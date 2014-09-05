@@ -65,7 +65,7 @@
 #include "doc/CDocListener.h"	// parent
 #include "basis/SakuraBasis.h"	// CLogicInt, CLayoutInt
 #include "util/container.h"		// vector_ex
-
+#include "util/design_template.h"
 
 class CViewFont;
 class CRuler;
@@ -637,6 +637,7 @@ public:
 	//描画
 	bool			m_bDrawSWITCH;
 	COLORREF		m_crBack;				/* テキストの背景色 */			// 2006.12.07 ryoji
+	COLORREF		m_crBack2;				// テキストの背景(キャレット用)
 	CLayoutInt		m_nOldUnderLineY;		// 前回作画したカーソルアンダーラインの位置 0未満=非表示
 	CLayoutInt		m_nOldUnderLineYBg;
 	int				m_nOldUnderLineYMargin;
@@ -741,6 +742,9 @@ public:
 	CRegexKeyword*	m_cRegexKeyword;	//@@@ 2001.11.17 add MIK
 	int				m_nMyIndex;	/* 分割状態 */
 	CMigemo*		m_pcmigemo;
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(CEditView);
 };
 
 

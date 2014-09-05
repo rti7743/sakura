@@ -19,6 +19,7 @@
 #include "window/CSplitBoxWnd.h"
 #include "window/CEditWnd.h"
 #include "view/CEditView.h"
+#include "outline/CDlgFuncList.h"
 #include "env/DLLSHAREDATA.h"
 
 
@@ -291,6 +292,13 @@ void CSplitterWnd::DoSplit( int nHorizontal, int nVertical )
 			bSizeBox = FALSE;
 		}
 	}
+	if( NULL != pCEditWnd->m_cDlgFuncList.GetHwnd() ){
+		EDockSide eDockSideFL = pCEditWnd->m_cDlgFuncList.GetDockSide();
+		if( eDockSideFL == DOCKSIDE_RIGHT || eDockSideFL == DOCKSIDE_BOTTOM ){
+			bSizeBox = FALSE;
+		}
+	}
+
 	/* メインウィンドウが最大化されている場合はサイズボックスを表示しない */
 	WINDOWPLACEMENT	wp;
 	wp.length = sizeof( wp );
@@ -856,6 +864,13 @@ LRESULT CSplitterWnd::OnSize( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			bSizeBox = FALSE;
 		}
 	}
+	if( NULL != pCEditWnd->m_cDlgFuncList.GetHwnd() ){
+		EDockSide eDockSideFL = pCEditWnd->m_cDlgFuncList.GetDockSide();
+		if( eDockSideFL == DOCKSIDE_RIGHT || eDockSideFL == DOCKSIDE_BOTTOM ){
+			bSizeBox = FALSE;
+		}
+	}
+
 	/* メインウィンドウが最大化されている場合はサイズボックスを表示しない */
 	WINDOWPLACEMENT	wp;
 	wp.length = sizeof( wp );

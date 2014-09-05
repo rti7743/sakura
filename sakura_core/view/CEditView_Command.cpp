@@ -80,7 +80,7 @@ bool CEditView::TagJumpSub(
 
 	/* ロングファイル名を取得する */
 	TCHAR	szWork[1024];
-	if( TRUE == ::GetLongFileName( szJumpToFile, szWork ) )
+	if( FALSE != ::GetLongFileName( szJumpToFile, szWork ) )
 	{
 		_tcscpy( szJumpToFile, szWork );
 	}
