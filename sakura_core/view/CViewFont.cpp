@@ -31,6 +31,10 @@ void CViewFont::CreateFont(const LOGFONT *plf, int fontNo)
 {
 	assert( 0 <= fontNo && fontNo < _countof(m_hFont) );
 	m_logFont[fontNo] = *plf;
+	if( m_bMiniMap ){
+		m_logFont[fontNo].lfHeight = GetDllShareData().m_Common.m_sWindow.m_nMiniMapFontSize;;
+		m_logFont[fontNo].lfQuality = GetDllShareData().m_Common.m_sWindow.m_nMiniMapQuality;
+	}
 
 	/* ƒtƒHƒ“ƒgì¬ */
 	m_hFont[fontNo][0] = CreateFontIndirect( &m_logFont[fontNo] );

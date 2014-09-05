@@ -50,8 +50,15 @@ void CFigure_Tab::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView,
 	CTypeSupport cTabType(pcView,COLORIDX_TAB);
 
 	// これから描画するタブ幅
-	const CLayoutXInt tabDispWidthLayout = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTabSpace(sPos.GetDrawCol());
-	const int tabDispWidth = (Int)tabDispWidthLayout;
+	CLayoutXInt tabDispWidthLayout = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTabSpace(sPos.GetDrawCol());
+	int tabDispWidth = (Int)tabDispWidthLayout;
+	if( pcView->m_bMiniMap ){
+		CLayoutMgr mgrTemp;
+		mgrTemp.SetTabSpaceInfo(pcView->m_pcEditDoc->m_cLayoutMgr.GetTabSpaceKetas(),
+			CLayoutXInt(pcView->GetTextMetrics().GetHankakuWidth()) );
+		tabDispWidthLayout = mgrTemp.GetActualTabSpace(sPos.GetDrawCol());
+		tabDispWidth = (Int)tabDispWidthLayout;
+	}
 
 	// タブ記号領域
 	RECT rcClip2;

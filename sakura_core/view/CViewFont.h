@@ -28,8 +28,9 @@
 
 class CViewFont{
 public:
-	CViewFont(const LOGFONT *plf)
+	CViewFont(const LOGFONT *plf, bool bMiniMap = false)
 	{
+		m_bMiniMap = bMiniMap;
 		InitFont();
 		CreateFont(plf);
 	}
@@ -62,6 +63,12 @@ public:
 		return m_hFont[fontNo][0];
 	}
 	void DeleteFont();
+
+	const LOGFONT& GetLogfont(int fontNo = 0) const
+	{
+		return m_logFont[fontNo];
+	}
+
 private:
 	void CreateFont( const LOGFONT *plf, int fontNo = 0 );
 	void DeleteFont2( int fontNo );
@@ -70,6 +77,7 @@ private:
 
 	HFONT	m_hFont[2][32];			/* 現在のフォントハンドル */
 	LOGFONT m_logFont[2];
+	bool	m_bMiniMap;
 };
 
 #endif /* SAKURA_CVIEWFONT_9E51373D_58BA_4A64_9930_5174F7BF9C929_H_ */

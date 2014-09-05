@@ -206,7 +206,7 @@ void CRuler::DispRuler( HDC hdc )
 	if( !m_pEditView->GetDrawSwitch() ){
 		return;
 	}
-	if( !cRulerType.IsDisp() ){
+	if( !cRulerType.IsDisp() || m_pEditView->m_bMiniMap ){
 		return;
 	}
 

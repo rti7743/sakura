@@ -96,6 +96,7 @@ static ColorInfoIni ColorInfo_DEFAULT[] = {
 	{ STR_COLOR_DIFF_CNG,					{ true,		{ false,	false,	false,	false },	{ RGB(   0, 111,   0 ),	RGB( 189, 253, 192 ) } } },	//@@@ 2002.06.01 MIK
 	{ STR_COLOR_DIFF_DEL,					{ true,		{ false,	false,	false,	false },	{ RGB( 213, 106,   0 ),	RGB( 255, 233, 172 ) } } },	//@@@ 2002.06.01 MIK
 	{ STR_COLOR_BOOKMARK,					{ true ,	{ false,	false,	false,	false },	{ RGB( 255, 251, 240 ),	RGB(   0, 128, 192 ) } } },	// 02/10/16 ai
+	{ STR_COLOR_PAGEVIEW,					{ true ,	{ false,	false,	false,	false },	{ RGB( 255, 251, 240 ),	RGB( 190, 230, 255 ) } } },
 };
 
 void GetDefaultColorInfo( ColorInfo* pColorInfo, int nIndex )

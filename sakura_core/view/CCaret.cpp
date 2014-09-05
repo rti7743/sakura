@@ -304,6 +304,9 @@ CLayoutInt CCaret::MoveCursor(
 			m_pEditView->GetTextArea().OffsetViewTopLine(-nScrollRowNum);
 			if( m_pEditView->GetDrawSwitch() ){
 				m_pEditView->InvalidateRect( NULL );
+				if( m_pEditView->m_pcEditWnd->GetMiniMap().GetHwnd() ){
+					m_pEditView->MiniMapRedraw(true);
+				}
 			}
 		}
 		else if( nScrollRowNum != 0 || nScrollColNum != 0 ){
@@ -336,6 +339,9 @@ CLayoutInt CCaret::MoveCursor(
 
 			if( m_pEditView->GetDrawSwitch() ){
 				m_pEditView->ScrollDraw(nScrollRowNum, nScrollColNum, rcScroll, rcClip, rcClip2);
+				if( m_pEditView->m_pcEditWnd->GetMiniMap().GetHwnd() ){
+					m_pEditView->MiniMapRedraw(false);
+				}
 			}
 		}
 
@@ -473,6 +479,9 @@ BOOL CCaret::GetAdjustCursorPos(
 /* キャレットの表示・更新 */
 void CCaret::ShowEditCaret()
 {
+	if( m_pEditView->m_bMiniMap ){
+		return;
+	}
 	//必要なインターフェース
 	const CLayoutMgr* pLayoutMgr=&m_pEditDoc->m_cLayoutMgr;
 	CommonSetting* pCommon=&GetDllShareData().m_Common;

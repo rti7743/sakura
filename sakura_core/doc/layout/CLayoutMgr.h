@@ -142,6 +142,12 @@ public:
 	CKetaXInt GetTabSpaceKetas() const { return m_nTabSpace; }
 #endif
 
+	void SetTabSpaceInfo( CKetaXInt nTabSpaceKeta, CLayoutXInt nCharLayoutXPerKeta ){
+		m_nTabSpace = nTabSpaceKeta;
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+		m_nCharLayoutXPerKeta = nCharLayoutXPerKeta;
+#endif
+	}
 
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 	//                          éQè∆ån                             //
