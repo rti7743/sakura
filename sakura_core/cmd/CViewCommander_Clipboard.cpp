@@ -23,8 +23,6 @@
 #include "view/colors/CColorStrategy.h"
 #include "view/colors/CColor_Found.h"
 #include "uiparts/CWaitCursor.h"
-#include "charset/CCodeFactory.h"
-#include "charset/CCodeBase.h"
 #include "util/os.h"
 
 
@@ -621,8 +619,7 @@ end_of_func:
 /* 最後にテキストを追加 */
 void CViewCommander::Command_ADDTAIL(
 	const wchar_t*	pszData,	//!< 追加するテキスト
-	int				nDataLen,	//!< 追加するテキストの長さ。文字単位。-1を指定すると、テキスト終端まで。
-	bool			bAddStdout	//!< 標準出力に出力する
+	int				nDataLen	//!< 追加するテキストの長さ。文字単位。-1を指定すると、テキスト終端まで。
 )
 {
 	//テキスト長自動計算
@@ -647,18 +644,6 @@ void CViewCommander::Command_ADDTAIL(
 	// Sep. 2, 2002 すなふき アンダーラインの表示が残ってしまう問題を修正
 	GetCaret().MoveCursor( ptLayoutNew, true );
 	GetCaret().m_nCaretPosX_Prev = GetCaret().GetCaretLayoutPos().GetX2();
-
-	if( bAddStdout ){
-		HANDLE out = ::GetStdHandle(STD_OUTPUT_HANDLE);
-		if( out && out != INVALID_HANDLE_VALUE ){
-			CNativeW cmem(pszData, nDataLen);
-			std::auto_ptr<CCodeBase> pcCodeBase( CCodeFactory::CreateCodeBase(
-					GetDocument()->GetDocumentEncoding(), 0) );
-			pcCodeBase->UnicodeToCode( cmem, cmem._GetMemory() );
-			DWORD dwWrite = 0;
-			::WriteFile(out, cmem._GetMemory()->GetRawPtr(), cmem._GetMemory()->GetRawLength(), &dwWrite, NULL);
-		}
-	}
 }
 
 

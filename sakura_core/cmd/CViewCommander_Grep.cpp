@@ -95,6 +95,7 @@ void CViewCommander::Command_GREP( void )
 			false,
 			GetEditWindow()->m_cDlgGrep.m_bSubFolder,
 			false,
+			true, // Header
 			GetEditWindow()->m_cDlgGrep.m_sSearchOption,
 			GetEditWindow()->m_cDlgGrep.m_nGrepCharSet,
 			GetEditWindow()->m_cDlgGrep.m_bGrepOutputLine,
@@ -189,6 +190,7 @@ void CViewCommander::Command_GREP_REPLACE( void )
 			false,
 			cDlgGrepRep.m_bSubFolder,
 			false,
+			true, // Header
 			cDlgGrepRep.m_sSearchOption,
 			cDlgGrepRep.m_nGrepCharSet,
 			cDlgGrepRep.m_bGrepOutputLine,

@@ -219,7 +219,7 @@ public:
 	void Command_INSBOXTEXT( const wchar_t *, int ); // 矩形貼り付け
 	void Command_INSTEXT( bool bRedraw, const wchar_t*, CLogicInt, bool bNoWaitCursor,
 		bool bLinePaste = false, bool bFastMode = false, const CLogicRange*	psDelRangeLogicFast = NULL ); // 2004.05.14 Moca テキストを貼り付け '\0'対応
-	void Command_ADDTAIL( const wchar_t* pszData, int nDataLen, bool = false);	/* 最後にテキストを追加 */
+	void Command_ADDTAIL( const wchar_t* pszData, int nDataLen);	/* 最後にテキストを追加 */
 	void Command_COPYFILENAME( void );				/* このファイル名をクリップボードにコピー */ //2002/2/3 aroka
 	void Command_COPYPATH( void );					/* このファイルのパス名をクリップボードにコピー */
 	void Command_COPYTAG( void );					/* このファイルのパス名とカーソル位置をコピー */

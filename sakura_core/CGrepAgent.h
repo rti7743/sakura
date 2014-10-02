@@ -36,6 +36,7 @@ struct SGrepOption{
 	bool		bGrepReplace;			//!< Grep置換
 	bool		bGrepSubFolder;			//!< サブフォルダからも検索する
 	bool		bGrepStdout;			//!< 標準出力モード
+	bool		bGrepHeader;			//!< ヘッダ・フッダ表示
 	ECodeType	nGrepCharSet;			//!< 文字コードセット選択
 	bool		bGrepOutputLine;		//!< true: ヒット行を出力 / false: ヒット部分を出力
 	int			nGrepOutputStyle;		//!< 出力形式 1: Normal, 2: WZ風(ファイル単位) 3: 結果のみ
@@ -48,6 +49,8 @@ struct SGrepOption{
 	SGrepOption() :
 		 bGrepReplace(false)
 		,bGrepSubFolder(true)
+		,bGrepStdout(false)
+		,bGrepHeader(true)
 		,nGrepCharSet(CODE_AUTODETECT)
 		,bGrepOutputLine(true)
 		,nGrepOutputStyle(true)
@@ -71,6 +74,7 @@ public:
 
 	static void CreateFolders( const TCHAR* pszPath, std::vector<std::tstring>& vPaths );
 	static std::tstring ChopYen( const std::tstring& str );
+	static void AddTail( CEditView* pcEditView, const CNativeW& cmem, bool bAddStdout );
 
 	// Grep実行
 	DWORD DoGrep(
@@ -83,6 +87,7 @@ public:
 		bool					bGrepCurFolder,
 		BOOL					bGrepSubFolder,
 		bool					bGrepStdout,
+		bool					bGrepHeader,
 		const SSearchOption&	sSearchOption,
 		ECodeType				nGrepCharSet,	// 2002/09/21 Moca 文字コードセット選択
 		BOOL					bGrepOutputLine,

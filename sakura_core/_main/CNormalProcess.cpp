@@ -212,6 +212,7 @@ bool CNormalProcess::InitializeProcess()
 				gi.bGrepCurFolder,
 				gi.bGrepSubFolder,
 				gi.bGrepStdout,
+				gi.bGrepHeader,
 				gi.sGrepSearchOption,
 				gi.nGrepCharSet,	//	2002/09/21 Moca
 				gi.bGrepOutputLine,
