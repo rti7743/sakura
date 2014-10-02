@@ -610,7 +610,9 @@ const char* CFileLoad::GetNextLineCharCode(
 			if( pData[i] == '\x0d' || pData[i] == '\x25' ){
 				char szEof[3] = {
 					(pData[i]  == '\x25' ? '\x0a' : '\x0d'),
-					(pData[i+1]== '\x25' ? '\x0a' : (i + 1 < nDataLen ? pData[i+1] : 0)),
+					(pData[i+1]== '\x25' ? '\x0a' : 
+						(pData[i+1] == '\x0a' ? 0 : // EBCDEC ‚Ì"\x0a‚ªLF‚É‚È‚ç‚È‚¢‚æ‚¤‚É×H‚·‚é
+							(i + 1 < nDataLen ? pData[i+1] : 0))),
 					0
 				};
 				pcEol->SetTypeByStringForFile( szEof, t_min(nDataLen - i,2) );
