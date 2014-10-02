@@ -8,7 +8,7 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-https://github.com/mocaskr/sakura/releases/tag/v005.20140720-r3772  
+https://github.com/mocaskr/sakura/releases/tag/v006.20141003-r3817  
 
 chm版ヘルプは release tagのページにあります  
 https://github.com/mocaskr/sakura_help/releases/tag/v004  
@@ -18,7 +18,7 @@ http://mocaskr.web.fc2.com/sakurahelp2/HLP000001.html
 https://github.com/mocaskr/sakura_help  
 
 ## 変更内容
-sakura 2.1.1.3 mocaskr_ver 005.20140720-r3772  
+sakura 2.1.1.3 mocaskr_ver 006.20141003-r3817  
  311	コードページ対応  
  636	DiffのSJIS以外に対応  
  637	Grep置換  
@@ -28,7 +28,6 @@ sakura 2.1.1.3 mocaskr_ver 005.20140720-r3772
  717	C/C++インデントの改良  
  726	エンコーディング名による文字コードの設定  
  735	ファイル読み込みでスレッドを使う  
- 744	DLLSHAREDATAのサイズチェック  
  738	関数リストマーク追加  
  739	変更行へ移動コマンド追加  
  743	改行置換時次の行を変更状態にしない  
@@ -55,4 +54,5 @@ sakura 2.1.1.3 mocaskr_ver 005.20140720-r3772
  851	ルールファイル拡張2(正規表現置換)  
  847	UTF-7のNEL,PS,LSを改行として読み込むように  
  854	改行コードNEL,PS,LSを有効にするオプション追加  
+ 864	ミニマップ  
 番号と詳細は http://sourceforge.net/p/sakura-editor/patchunicode/ 参照  
