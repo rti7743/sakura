@@ -1689,6 +1689,9 @@ LRESULT CEditWnd::DispatchEvent(
 			::DestroyWindow( hwnd );
 		}
 		return nRet;
+	case MYWM_ALLOWACTIVATE:
+		::AllowSetForegroundWindow(wParam);
+		return 0L;
 
 
 	case MYWM_GETFILEINFO:
@@ -2121,16 +2124,20 @@ LRESULT CEditWnd::DispatchEvent(
 
 	@retval TRUE: 終了して良い / FALSE: 終了しない
 */
-int	CEditWnd::OnClose(HWND hWndFrom, bool bGrepNoConfirm )
+int	CEditWnd::OnClose(HWND hWndActive, bool bGrepNoConfirm )
 {
 	/* ファイルを閉じるときのMRU登録 & 保存確認 & 保存実行 */
 	int nRet = GetDocument()->OnFileClose( bGrepNoConfirm );
 	if( !nRet ) return nRet;
+
 	// パラメータでハンドルを貰う様にしたので検索を削除	2013/4/9 Uchi
-	if (hWndFrom != 0 && IsSakuraMainWindow( hWndFrom )) {
-//		for (int iWait = 0; ::IsWindowVisible( hWndFrom ) && iWait < 100; iWait++)	// Waitを追加(パフォーマンスが低いマシンで間に合わない)	Uchi 2013/4/19 Uchi
-//			::Sleep(1);
-		ActivateFrameWindow( hWndFrom );
+	if( hWndActive ){
+		// アクティブ化制御ウィンドウをアクティブ化する
+		if( IsSakuraMainWindow(hWndActive) ){
+			ActivateFrameWindow(hWndActive);	// エディタ
+		}else{
+			::SetForegroundWindow(hWndActive);	// タスクトレイ
+		}
 	}
 
 #if 0
@@ -3830,12 +3837,12 @@ int	CEditWnd::CreateFileDropDownMenu( HWND hwnd )
 	if ( cMRUFolder.MenuLength() > 0 )
 	{
 		//	アクティブ
-		m_CMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hMenuPopUp, LS( STR_SPECIAL_FUNC_RECENT_FOLDER ),  _T("") );
+		m_CMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hMenuPopUp, LS(F_FOLDER_USED_RECENTLY), _T("") );
 	}
 	else 
 	{
 		//	非アクティブ
-		m_CMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING | MF_POPUP | MF_GRAYED, (UINT_PTR)hMenuPopUp, LS( STR_SPECIAL_FUNC_RECENT_FOLDER ),  _T("") );
+		m_CMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING | MF_POPUP | MF_GRAYED, (UINT_PTR)hMenuPopUp, LS(F_FOLDER_USED_RECENTLY), _T("") );
 	}
 
 	m_CMenuDrawer.MyAppendMenuSep( hMenu, MF_BYPOSITION | MF_SEPARATOR, 0, NULL, FALSE );
