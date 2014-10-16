@@ -519,7 +519,7 @@
 	Version 163:
 	ファイルツリー 2014.01.08 Moca
 
-	Version 164:
+	Version 164/org152:
 	NEL等の拡張改行コードオプション 2014.06.29 Moca
 
 	Version 165:

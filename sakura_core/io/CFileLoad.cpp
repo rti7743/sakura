@@ -273,8 +273,7 @@ EConvertResult CFileLoad::ReadLine( CNativeW* pUnicodeBuffer, CEol* pcEol )
 	int  nRetLineLen;
 	CEol cEolTemp;
 	const wchar_t* pRet = GetNextLineW( m_cLineTemp.GetStringPtr(), m_cLineTemp.GetStringLength(),
-				&nRetLineLen, &m_nReadOffset2, &cEolTemp, 
-				GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol );
+				&nRetLineLen, &m_nReadOffset2, &cEolTemp, GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol );
 	if( m_cLineTemp.GetStringLength() == m_nReadOffset2 && nOffsetTemp == 0 ){
 		// 途中に改行がない限りは、swapを使って中身のコピーを省略する
 		pUnicodeBuffer->swap(m_cLineTemp);

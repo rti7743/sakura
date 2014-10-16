@@ -10,9 +10,9 @@
 #include "window/CEditWnd.h"
 #include "charset/CCodeMediator.h"
 #include "view/colors/CColorStrategy.h"
+#include "charset/CCodeFactory.h"
 #include "charset/CCodeBase.h"
 #include "charset/CCodePage.h"
-#include "charset/CCodeFactory.h"
 #include "io/CFileLoad.h"
 #include "io/CBinaryStream.h"
 #include "util/window.h"
@@ -307,6 +307,7 @@ DWORD CGrepAgent::DoGrep(
 	// GrepƒIƒvƒVƒ‡ƒ“‚Ü‚Æ‚ß
 	sGrepOption.bGrepSubFolder = FALSE != bGrepSubFolder;
 	sGrepOption.bGrepStdout = bGrepStdout;
+	sGrepOption.bGrepHeader = bGrepHeader;
 	sGrepOption.nGrepCharSet = nGrepCharSet;
 	sGrepOption.bGrepOutputLine = FALSE != bGrepOutputLine;
 	sGrepOption.nGrepOutputStyle = nGrepOutputStyle;

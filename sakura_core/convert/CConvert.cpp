@@ -88,8 +88,8 @@ void CConvertMediator::ConvMemory( CNativeW* pCMemory, EFunctionCode nFuncCode, 
 	//文字種変換、整形
 	case F_TABTOSPACE:				CConvert_TabToSpace((Int)nTabWidth, nStartColumn, bExtEol).CallConvert(pCMemory);break;	// TAB→空白
 	case F_SPACETOTAB:				CConvert_SpaceToTab((Int)nTabWidth, nStartColumn, bExtEol).CallConvert(pCMemory);break;	// 空白→TAB
-	case F_LTRIM:					CConvert_Trim(true, bExtEol).CallConvert(pCMemory);			break;	// 2001.12.03 hor
-	case F_RTRIM:					CConvert_Trim(false, bExtEol).CallConvert(pCMemory);			break;	// 2001.12.03 hor
+	case F_LTRIM:					CConvert_Trim(true, bExtEol).CallConvert(pCMemory);		break;	// 2001.12.03 hor
+	case F_RTRIM:					CConvert_Trim(false, bExtEol).CallConvert(pCMemory);	break;	// 2001.12.03 hor
 	//コード変換(xxx2SJIS)
 	// 2014.02.10 Moca F_CODECNV_AUTO2SJIS追加。自動判別でSJIS, Latin1, CESU8になった場合をサポート
 	case F_CODECNV_AUTO2SJIS:

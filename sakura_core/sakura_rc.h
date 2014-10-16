@@ -738,7 +738,7 @@
 #define IDC_TextTabClose                1669
 #define IDC_TextTabCaption              1670
 #define IDC_CHECK_CP                    1671
-#define IDC_CHK_BACKUP                  1672
+#define IDC_CHECK_ENABLEEXTEOL          1672
 #define IDC_LIST_PROFILE                1673
 #define IDC_BUTTON_PROF_CREATE          1674
 #define IDC_BUTTON_PROF_RENAME          1675
@@ -780,7 +780,7 @@
 #define IDC_BUTTON_REPLACE              1712
 #define IDC_BUTTON_SETTING              1713
 #define IDC_STATIC_CHARCODE             1714
-#define IDC_CHECK_ENABLEEXTEOL          1715
+#define IDC_CHK_BACKUP                  1715
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -823,7 +823,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1715
+#define _APS_NEXT_CONTROL_VALUE         1716
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
