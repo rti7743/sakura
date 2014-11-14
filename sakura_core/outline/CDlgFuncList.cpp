@@ -212,6 +212,7 @@ CDlgFuncList::CDlgFuncList()
 	m_cFuncInfo = NULL;			/* 現在の関数情報 */
 	m_bEditWndReady = false;	/* エディタ画面の準備完了 */
 	m_bInChangeLayout = false;
+	m_pszTimerJumpFile = NULL;
 	m_ptDefaultSize.x = -1;
 	m_ptDefaultSize.y = -1;
 }
@@ -2460,9 +2461,9 @@ void  CDlgFuncList::SortTree(HWND hWndTree,HTREEITEM htiParent)
 
 
 
-static bool TagJump( LPARAM view, const TCHAR* pFile, CMyPoint point )
+bool CDlgFuncList::TagJumpTimer( const TCHAR* pFile, CMyPoint point, bool bCheckAutoClose )
 {
-	CEditView* pcView = (CEditView*)view;
+	CEditView* pcView = reinterpret_cast<CEditView*>(m_lParam);
 
 	// ファイルを開いていない場合は自分で開く
 	if( pcView->GetDocument()->IsAcceptLoad() ){
@@ -2479,11 +2480,13 @@ static bool TagJump( LPARAM view, const TCHAR* pFile, CMyPoint point )
 				pcView->GetCommander().Command_MOVECURSOR( pt, 0 );
 			}
 		}
-		return false;
+		return true;
 	}
-	bool bSelf = false;
-	pcView->TagJumpSub( pFile, point, false, false, false, &bSelf );
-	return bSelf;
+	m_pszTimerJumpFile = pFile;
+	m_pointTimerJump = point;
+	m_bTimerJumpAutoClose = bCheckAutoClose;
+	::SetTimer( GetHwnd(), 2, 200, NULL ); // id == 2
+	return false;
 }
 
 
@@ -2497,7 +2500,7 @@ BOOL CDlgFuncList::OnJump( bool bCheckAutoClose, bool bFileJump )	//2002.02.08 h
 			//モーダル表示する場合は、m_cFuncInfoを取得するアクセサを実装して結果取得すること。
 			::EndDialog( GetHwnd(), 1 );
 		}else{
-			bool bFileJumpSelf = false;
+			bool bFileJumpSelf = true;
 			if( 0 < m_sJumpFile.size() ){
 				if( bFileJump ){
 					// ファイルツリーの場合
@@ -2508,7 +2511,7 @@ BOOL CDlgFuncList::OnJump( bool bCheckAutoClose, bool bFileJump )	//2002.02.08 h
 					CMyPoint poCaret;
 					poCaret.x = -1;
 					poCaret.y = -1;
-					bFileJumpSelf = TagJump( m_lParam, m_sJumpFile.c_str(), poCaret );
+					bFileJumpSelf = TagJumpTimer(m_sJumpFile.c_str(), poCaret, bCheckAutoClose);
 				}
 			}else
 			if( m_cFuncInfo != NULL && 0 < m_cFuncInfo->m_cmemFileName.GetStringLength() ){
@@ -2519,7 +2522,7 @@ BOOL CDlgFuncList::OnJump( bool bCheckAutoClose, bool bFileJump )	//2002.02.08 h
 					CMyPoint poCaret; // TagJumpSubも1開始
 					poCaret.x = nColTo;
 					poCaret.y = nLineTo;
-					bFileJumpSelf = TagJump( m_lParam, m_cFuncInfo->m_cmemFileName.GetStringPtr(), poCaret );
+					bFileJumpSelf = TagJumpTimer(m_cFuncInfo->m_cmemFileName.GetStringPtr(), poCaret, bCheckAutoClose);
 				}
 			}else{
 				nLineTo = m_cFuncInfo->m_nFuncLineCRLF;
@@ -2535,7 +2538,7 @@ BOOL CDlgFuncList::OnJump( bool bCheckAutoClose, bool bFileJump )	//2002.02.08 h
 				::SendMessageAny( ((CEditView*)m_lParam)->m_pcEditWnd->GetHwnd(),
 					MYWM_SETCARETPOS, 0, PM_SETCARETPOS_KEEPSELECT );
 			}
-			if( bCheckAutoClose ){
+			if( bCheckAutoClose && bFileJumpSelf ){
 				/* アウトライン ダイアログを自動的に閉じる */
 				if( IsDocking() ){
 					::PostMessageAny( ((CEditView*)m_lParam)->GetHwnd(), MYWM_SETACTIVEPANE, 0, 0 );
@@ -2544,9 +2547,7 @@ BOOL CDlgFuncList::OnJump( bool bCheckAutoClose, bool bFileJump )	//2002.02.08 h
 					::DestroyWindow( GetHwnd() );
 				}
 				else if( m_pShareData->m_Common.m_sOutline.m_bFunclistSetFocusOnJump ){
-					if( !bFileJumpSelf ){
-						::SetFocus( ((CEditView*)m_lParam)->GetHwnd() );
-					}
+					::SetFocus( ((CEditView*)m_lParam)->GetHwnd() );
 				}
 			}
 		}
@@ -2831,6 +2832,32 @@ INT_PTR CDlgFuncList::OnNcHitTest( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 */
 INT_PTR CDlgFuncList::OnTimer( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
+	if( wParam == 2 ){
+		CEditView* pcView = reinterpret_cast<CEditView*>(m_lParam);
+		if( m_pszTimerJumpFile ){
+			const TCHAR* pszFile = m_pszTimerJumpFile;
+			m_pszTimerJumpFile = NULL;
+			bool bSelf = false;
+			pcView->TagJumpSub( pszFile, m_pointTimerJump, false, false, &bSelf );
+			if( m_bTimerJumpAutoClose ){
+				if( IsDocking() ){
+					if( bSelf ){
+						::PostMessageAny( pcView->GetHwnd(), MYWM_SETACTIVEPANE, 0, 0 );
+					}
+				}
+				else if( m_pShareData->m_Common.m_sOutline.m_bAutoCloseDlgFuncList ){
+					::DestroyWindow( GetHwnd() );
+				}
+				else if( m_pShareData->m_Common.m_sOutline.m_bFunclistSetFocusOnJump ){
+					if( bSelf ){
+						::SetFocus( pcView->GetHwnd() );
+					}
+				}
+			}
+		}
+		::KillTimer(hwnd, 2);
+		return 0L;
+	}
 	if( !IsDocking() )
 		return 0L;
 
@@ -3834,7 +3861,7 @@ void CDlgFuncList::LoadFileTreeSetting( CFileTreeSetting& data, SFilePath& IniDi
 			cProfile.SetReadingMode();
 			std::tstring strIniFileName;
 			strIniFileName += szPath;
-			strIniFileName += _T("_sakurafiletree.ini");
+			strIniFileName += CommonSet().m_sFileTreeDefIniName;
 			if( cProfile.ReadProfile(strIniFileName.c_str()) ){
 				CImpExpFileTree::IO_FileTreeIni(cProfile, data.m_aItems);
 				data.m_eFileTreeSettingLoadType = EFileTreeSettingFrom_File;

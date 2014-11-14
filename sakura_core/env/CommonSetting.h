@@ -599,6 +599,7 @@ struct CommonSetting_OutLine
 	BOOL		m_bMarkUpBlankLineEnable;	//!< 空行を無視する 2002.02.08 aroka,hor
 
 	SFileTree	m_sFileTree;				//!< ファイルツリー設定
+	SFilePath	m_sFileTreeDefIniName;		//!< ファイルツリー設定のデフォルトファイル名(GUIなし)
 };
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //

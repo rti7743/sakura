@@ -714,6 +714,7 @@ void CShareData_IO::ShareData_IO_Common( CDataProfile& cProfile )
 	}
 	cProfile.IOProfileData( pszSecName, LTEXT("nDockOutline"), common.m_sOutline.m_nDockOutline );
 	ShareData_IO_FileTree( cProfile, common.m_sOutline.m_sFileTree, pszSecName );
+	cProfile.IOProfileData( pszSecName, LTEXT("szFileTreeDefIniName"), common.m_sOutline.m_sFileTreeDefIniName );
 }
 
 

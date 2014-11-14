@@ -503,6 +503,7 @@ bool CShareData::InitShareData()
 		m_pShareData->m_Common.m_sOutline.m_bMarkUpBlankLineEnable	=	FALSE;	//アウトラインダイアログでブックマークの空行を無視			2002.02.08 aroka,hor
 		m_pShareData->m_Common.m_sOutline.m_bFunclistSetFocusOnJump	=	FALSE;	//アウトラインダイアログでジャンプしたらフォーカスを移す	2002.02.08 hor
 		InitFileTree( &m_pShareData->m_Common.m_sOutline.m_sFileTree );
+		m_pShareData->m_Common.m_sOutline.m_sFileTreeDefIniName = _T("_sakurafiletree.ini");
 
 		/*
 			書式指定子の意味はWindows SDKのGetDateFormat(), GetTimeFormat()を参照のこと

@@ -51,7 +51,6 @@ bool CEditView::TagJumpSub(
 	CMyPoint		ptJumpTo,		//!< ジャンプ位置(1開始)
 	bool			bClose,			//!< [in] true: 元ウィンドウを閉じる / false: 元ウィンドウを閉じない
 	bool			bRelFromIni,
-	bool			bSync,
 	bool*			pbJumpToSelf	//!< [out] オプションNULL可。自分にジャンプしたか
 )
 {
@@ -61,7 +60,7 @@ bool CEditView::TagJumpSub(
 	TagJump	tagJump;
 
 	if( pbJumpToSelf ){
-		pbJumpToSelf = false;
+		*pbJumpToSelf = false;
 	}
 
 	// 参照元ウィンドウ保存
@@ -142,20 +141,17 @@ bool CEditView::TagJumpSub(
 			this->GetHwnd(),
 			&inf,
 			false,	/* ビューモードか */
-			bSync	//	同期モードで開く
+			true	//	同期モードで開く
 		);
 
 		if( ! bSuccess )	//	ファイルが開けなかった
 			return false;
 
-		if( bSync ){
-			//	Apr. 23, 2001 genta
-			//	hwndOwnerに値が入らなくなってしまったために
-			//	Tag Jump Backが動作しなくなっていたのを修正
-			if( !CShareData::getInstance()->IsPathOpened( szJumpToFile, &hwndOwner ) ){
-				return false;
-			}
-		}
+		//	Apr. 23, 2001 genta
+		//	hwndOwnerに値が入らなくなってしまったために
+		//	Tag Jump Backが動作しなくなっていたのを修正
+		if( !CShareData::getInstance()->IsPathOpened( szJumpToFile, &hwndOwner ) )
+			return false;
 	}
 
 	// 2006.12.30 ryoji 閉じる処理は最後に（処理位置移動）

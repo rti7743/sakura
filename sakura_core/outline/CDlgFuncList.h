@@ -172,6 +172,7 @@ protected:
 	EDockSide GetDropRect( POINT ptDrag, POINT ptDrop, LPRECT pRect, bool bForceFloat );
 	BOOL Track( POINT ptDrag );
 	bool GetTreeFileFullName(HWND, HTREEITEM, std::tstring*, int*);
+	bool TagJumpTimer(const TCHAR*, CMyPoint, bool);
 
 private:
 	//	May 18, 2001 genta
@@ -195,6 +196,10 @@ private:
 	// 選択中の関数情報
 	CFuncInfo* m_cFuncInfo;
 	std::tstring m_sJumpFile;
+
+	const TCHAR* m_pszTimerJumpFile;
+	CMyPoint	m_pointTimerJump;
+	bool		m_bTimerJumpAutoClose;
 
 	EDockSide	m_eDockSide;	// 現在の画面の表示位置
 	HWND		m_hwndToolTip;	/*!< ツールチップ（ボタン用） */
