@@ -471,13 +471,6 @@ BOOL CEditView::MakeDiffTmpFile( TCHAR* filename, HWND hWnd, ECodeType code, boo
 	_tcscpy( filename, pszTmpName );
 	free( pszTmpName );
 
-	if( NULL == hWnd ){
-		code = m_pcEditDoc->GetDocumentEncoding();
-	}
-	if( code == CODE_UNICODE || code == CODE_UNICODEBE ){
-		code = CODE_UTF8;
-	}
-
 	//Ž©•ª‚©H
 	if( NULL == hWnd )
 	{
@@ -487,7 +480,7 @@ BOOL CEditView::MakeDiffTmpFile( TCHAR* filename, HWND hWnd, ECodeType code, boo
 				filename,
 				code,
 				EOL_NONE,
-				m_pcEditDoc->GetDocumentBomExist()
+				bBom
 			)
 		);
 		return RESULT_FAILURE != eWriteResult;
