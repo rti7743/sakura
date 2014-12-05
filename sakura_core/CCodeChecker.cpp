@@ -40,8 +40,10 @@ static bool _CheckSavingEolcode(const CDocLineMgr& pcDocLineMgr, CEol cEolType)
 static EConvertResult _CheckSavingCharcode(const CDocLineMgr& pcDocLineMgr, ECodeType eCodeType, CLogicPoint& point, CNativeW& wc)
 {
 	const CDocLine*	pcDocLine = pcDocLineMgr.GetDocLineTop();
+	const bool bCodePageMode = IsValidCodeOrCPType(eCodeType) && !IsValidCodeType(eCodeType);
 	CCodeBase* pCodeBase=CCodeFactory::CreateCodeBase(eCodeType,0);
 	CMemory cmemTmp;	// バッファを再利用
+	CNativeW cmemTmp2;
 	CLogicInt nLine = CLogicInt(0);
 	while( pcDocLine ){
 		// コード変換 pcDocLine -> cmemTmp
@@ -50,6 +52,38 @@ static EConvertResult _CheckSavingCharcode(const CDocLineMgr& pcDocLineMgr, ECod
 			&cmemTmp,
 			pCodeBase
 		);
+		if( bCodePageMode ){
+			// コードページはRESULT_LOSESOMEを返さないので、自分で文字列比較する
+			EConvertResult e2 = CIoBridge::FileToImpl(
+				cmemTmp,
+				&cmemTmp2,
+				pCodeBase,
+				0
+			);
+			const int nDocLineLen = (Int)pcDocLine->GetLengthWithEOL();
+			const int nConvertLen = (Int)cmemTmp2.GetStringLength();
+			const int nDataMinLen = t_min(nDocLineLen, nConvertLen);
+			const wchar_t* p = pcDocLine->GetPtr();
+			const wchar_t* r = cmemTmp2.GetStringPtr();
+			int nPos = -1;
+			for( int i = 0; i < nDataMinLen; i++ ){
+				if( p[i] != r[i] ){
+					nPos = i;
+					break;
+				}
+			}
+			if( nPos == -1 && nDocLineLen != nConvertLen ){
+				nPos = nDataMinLen;
+			}
+			if( nPos != -1 ){
+				point.y = nLine;
+				point.x = CLogicInt(nPos);
+				// 変換できなかった位置の1文字取得
+				wc.SetString( p + nPos, (Int)CNativeW::GetSizeOfChar( p, nDocLineLen, nPos ) );
+				delete pCodeBase;
+				return RESULT_LOSESOME;
+			}
+		}
 		if(e!=RESULT_COMPLETE){
 			if( e == RESULT_LOSESOME ){
 				// 行内の位置を特定
@@ -128,9 +162,9 @@ ECallbackResult CCodeChecker::OnCheckSave(SSaveInfo* pSaveInfo)
 	//ユーザ問い合わせ
 	if(nTmpResult==RESULT_LOSESOME){
 		TCHAR szCpName[100];
-		CCodePage::GetNameNormal(szCpName, pSaveInfo->eCharCode);
 		TCHAR  szLineNum[60];  // 123桁
 		TCHAR  szCharCode[12]; // U+12ab or 1234abcd
+		CCodePage::GetNameNormal(szCpName, pSaveInfo->eCharCode);
 		_tcscpy( szCharCode, _T("") );
 		_tcscpy( szLineNum, _T("") );
 		if( point.x == -1 ){

@@ -365,6 +365,7 @@ UINT_PTR CALLBACK OFNHookProc(
 				::ShowWindow( pData->m_hwndComboCODES, SW_HIDE );
 			}
 
+
 			/* ビューモードの初期値セット */
 			::CheckDlgButton( pData->m_hwndOpenDlg, chx1, pData->m_bViewMode );
 

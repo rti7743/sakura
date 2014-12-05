@@ -434,7 +434,7 @@ static bool MakeDiffTmpFile_core(CTextOutputStream& out, HWND hwnd, CEditView& v
 						out.WriteString(cLine2.GetStringPtr(), cLine2.GetStringLength());
 						bBom = false;
 					}else{
-						out.WriteString(pLineData,t_min(nLineLen, max_size));
+						out.WriteString(pLineData, t_min(nLineLen, max_size));
 					}
 				}
 				nLineOffset += max_size;
@@ -530,18 +530,18 @@ BOOL CEditView::MakeDiffTmpFile2( TCHAR* tmpName, const TCHAR* orgName, ECodeTyp
 	const STypeConfigMini* typeMini;
 	CDocTypeManager().GetTypeConfigMini( CDocTypeManager().GetDocumentTypeOfPath( orgName ), &typeMini );
 	CFileLoad	cfl( typeMini->m_encoding );
-	bool bBigFile;
-#ifdef _WIN64
-	bBigFile = true;
-#else
-	bBigFile = false;
-#endif
 	CTextOutputStream out(tmpName, saveCode, true, false);
 	if(!out){
 		WarningMessage( NULL, LS(STR_DIFF_FAILED_TEMP) );
 		return FALSE;
 	}
 	try{
+		bool bBigFile;
+#ifdef _WIN64
+		bBigFile = true;
+#else
+		bBigFile = false;
+#endif
 		cfl.FileOpen( orgName, bBigFile, code, GetDllShareData().m_Common.m_sFile.GetAutoMIMEdecode(), &bBom );
 		CNativeW cLine;
 		CEol cEol;

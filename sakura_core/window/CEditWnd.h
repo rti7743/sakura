@@ -141,6 +141,7 @@ public:
 	//各種イベント
 	LRESULT OnPaint( HWND, UINT, WPARAM, LPARAM );	/* 描画処理 */
 	LRESULT OnSize( WPARAM, LPARAM );	/* WM_SIZE 処理 */
+	LRESULT OnSize2( WPARAM, LPARAM, bool );
 	LRESULT OnLButtonUp( WPARAM, LPARAM );
 	LRESULT OnLButtonDown( WPARAM, LPARAM );
 	LRESULT OnMouseMove( WPARAM, LPARAM );
@@ -270,7 +271,7 @@ public:
 	//                       各種アクセサ                          //
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 	HWND			GetHwnd()		const	{ return m_hWnd; }
-	CMenuDrawer&	GetMenuDrawer()			{ return m_CMenuDrawer; }
+	CMenuDrawer&	GetMenuDrawer()			{ return m_cMenuDrawer; }
 	CEditDoc*		GetDocument()           { return m_pcEditDoc; }
 	const CEditDoc*	GetDocument() const     { return m_pcEditDoc; }
 
@@ -358,7 +359,7 @@ public:
 	//子ウィンドウ
 	CMainToolBar	m_cToolbar;			//!< ツールバー
 	CTabWnd			m_cTabWnd;			//!< タブウインドウ	//@@@ 2003.05.31 MIK
-	CFuncKeyWnd		m_CFuncKeyWnd;		//!< ファンクションバー
+	CFuncKeyWnd		m_cFuncKeyWnd;		//!< ファンクションバー
 	CMainStatusBar	m_cStatusBar;		//!< ステータスバー
 	CPrintPreview*	m_pPrintPreview;	//!< 印刷プレビュー表示情報。必要になったときのみインスタンスを生成する。
 
@@ -391,7 +392,7 @@ private:
 	DLLSHAREDATA*	m_pShareData;
 
 	//ヘルパ
-	CMenuDrawer		m_CMenuDrawer;
+	CMenuDrawer		m_cMenuDrawer;
 
 	//メッセージID
 	UINT			m_uMSIMEReconvertMsg;

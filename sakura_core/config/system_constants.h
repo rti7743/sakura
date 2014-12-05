@@ -477,60 +477,66 @@
 	Version 149:
 	偶数行の背景色 2013.12.30 Moca
 
-	Version 150:
+	Version 159/x150:
 	EditInfoにBOMを追加 2013.06.24 Moca
 
-	Version 151:
+	Version 160/x151:
 	Grep置換
 
-	Version 152:
+	Version x152:
 	プロポーショナルフォント
 
-	Version 153:
+	Version x153:
 	インデント詳細設定 2013.12.20 Moca
 
-	Version 154/org151:
+	Version 151/x154:
 	DLLSHAREDATAのサイズチェック 2014.01.08 Moca
 
-	Version 155:
+	Version 153/x155:
 	ノート線 2013.12.21 Moca
 
-	Version 156:
+	Version 154/x156:
 	タブ多段表示/タブ位置 2014.02.09 Moca
 
-	Version 157:
+	Version 155/x157:
 	上書きモードでの矩形入力で選択範囲を削除するオプション 2014.06.02 Moca
 
-	Version 158:
+	Version x158:
 	Webヘルプパス設定 2014.06.15 Moca
 
-	Version 159:
+	Version x159:
 	斜体・取り消し線 2014.06.13 Moca
 
-	Version 160:
+	Version 156/x160:
 	パスの省略表記 2014.06.11 Moca
 
-	Version 161:
+	Version 163/x161:
 	MYWM_GETLINEDATA,MYWM_SETCARETPOS,MYWM_GETCARETPOS変更 2014.05.07 Moca
 
-	Version 162/org150:
+	Version 150/x162:
 	カスタムパレット 2014.05.01 novice
 
-	Version 163:
+	Version 161/x163:
 	ファイルツリー 2014.01.08 Moca
 
-	Version 164/org152:
+	Version 152/x164:
 	NEL等の拡張改行コードオプション 2014.06.29 Moca
 
-	Version 165:
+	Version 162/x165:
 	ミニマップ 2014.07.14 Moca
+
+	Version 157/x166:
+	タグジャンプオプション 2014.07.10
+
+	Version 158/x166:
+	行番号の最小桁数 2014.08.02 katze
 
 	-- 統合されたので元に戻す（1000～1023が使用済み） 	2008.11.16 nasukoji
 	-- Version 1000:
 	-- バージョン1000以降を本家統合までの間、使わせてください。かなり頻繁に構成が変更されると思われるので。by kobake 2008.03.02
 
 */
-#define N_SHAREDATA_VERSION		165
+#define N_SHAREDATA_VERSION		166
 #define STR_SHAREDATA_VERSION	NUM_TO_STR(N_SHAREDATA_VERSION)
 #define	GSTR_SHAREDATA	(_T("SakuraShareData") _T(CON_SKR_MACHINE_SUFFIX_) _T(_CODE_SUFFIX_) _T(_DEBUG_SUFFIX_) _T(STR_SHAREDATA_VERSION))
 

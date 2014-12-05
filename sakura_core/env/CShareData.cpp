@@ -341,6 +341,8 @@ bool CShareData::InitShareData()
 		m_pShareData->m_Common.m_sSearch.m_szRegexpLib[0] =_T('\0');		/* 2007.08.12 genta 正規表現DLL */
 		m_pShareData->m_Common.m_sSearch.m_bGTJW_RETURN = TRUE;				/* エンターキーでタグジャンプ */
 		m_pShareData->m_Common.m_sSearch.m_bGTJW_LDBLCLK = TRUE;			/* ダブルクリックでタグジャンプ */
+		m_pShareData->m_Common.m_sSearch.m_nTagJumpMode = 1;				//タグジャンプモード
+		m_pShareData->m_Common.m_sSearch.m_nTagJumpModeKeyword = 3;			//タグジャンプモード
 
 //キーワード：ツールバー順序
 		//	Jan. 30, 2005 genta 関数として独立
@@ -536,10 +538,11 @@ bool CShareData::InitShareData()
 		// [メインメニュー]タブ
 		{
 			CDataProfile	cProfile;
+			std::vector<std::wstring> data;
 			cProfile.SetReadingMode();
-			cProfile.ReadProfileRes( MAKEINTRESOURCE(IDR_MENU1), MAKEINTRESOURCE(ID_RC_TYPE_INI) );
+			cProfile.ReadProfileRes( MAKEINTRESOURCE(IDR_MENU1), MAKEINTRESOURCE(ID_RC_TYPE_INI), &data );
 
-			CShareData_IO::IO_MainMenu( cProfile, m_pShareData->m_Common.m_sMainMenu, false );
+			CShareData_IO::IO_MainMenu( cProfile, &data, m_pShareData->m_Common.m_sMainMenu, false );
 		}
 
 		m_pShareData->m_sHistory.m_aCommands.clear();

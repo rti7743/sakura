@@ -24,9 +24,9 @@
 
 #include "dlg/CDlgCompare.h"
 #include "dlg/CDlgDiff.h"
-#include "env/CShareData.h"
 #include "charset/CCodeMediator.h"
 #include "charset/CCodePage.h"
+#include "env/CShareData.h"
 #include "util/window.h"
 #include "util/os.h"
 #include "_main/CMutex.h"
@@ -104,8 +104,6 @@ static bool Commander_COMPARE_core(CViewCommander& commander, bool& bDifferent, 
 	assert_warning(0);
 	return false;
 }
-
-
 
 /* ファイル内容比較 */
 void CViewCommander::Command_COMPARE( void )

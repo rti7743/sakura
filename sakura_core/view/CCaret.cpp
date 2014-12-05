@@ -508,6 +508,10 @@ void CCaret::ShowEditCaret()
 		m_sizeCaret.cx = 0;
 		return;
 	}
+	// 2014.07.02 GetDrawSwitch‚ğŒ©‚é
+	if( !m_pEditView->GetDrawSwitch() ){
+		return;
+	}
 
 	// CalcCaretDrawPos‚Ì‚½‚ß‚ÉCaretƒTƒCƒY‚ğ‰¼İ’è
 	int				nCaretWidth = 0;

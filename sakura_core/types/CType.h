@@ -246,6 +246,7 @@ struct STypeConfig{
 	{
 	}
 
+	int					m_nLineNumWidth;				//!< 行番号の最小桁数 2014.08.02 katze
 }; /* STypeConfig */
 
 // タイプ別設定(mini)

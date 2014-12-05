@@ -269,7 +269,11 @@ DWORD CGrepAgent::DoGrep(
 	//2014.06.13 別ウィンドウで検索したとき用にGrepダイアログの検索キーを設定
 	pcViewDst->m_pcEditWnd->m_cDlgGrep.m_strText = pcmGrepKey->GetStringPtr();
 	pcViewDst->m_pcEditWnd->m_cDlgGrep.m_bSetText = true;
-
+	pcViewDst->m_pcEditWnd->m_cDlgGrepReplace.m_strText = pcmGrepKey->GetStringPtr();
+	if( bGrepReplace ){
+		pcViewDst->m_pcEditWnd->m_cDlgGrepReplace.m_strText2 = pcmGrepReplace->GetStringPtr();
+	}
+	pcViewDst->m_pcEditWnd->m_cDlgGrepReplace.m_bSetText = true;
 	hwndCancel = cDlgCancel.DoModeless( G_AppInstance(), pcViewDst->m_hwndParent, IDD_GREPRUNNING );
 
 	::SetDlgItemInt( hwndCancel, IDC_STATIC_HITCOUNT, 0, FALSE );
@@ -1588,7 +1592,7 @@ int CGrepAgent::DoGrepReplaceFile(
 	// ファイルを開く
 	// FileCloseで明示的に閉じるが、閉じていないときはデストラクタで閉じる
 	// 2003.06.10 Moca 文字コード判定処理もFileOpenで行う
-	nCharCode = cfl.FileOpen( pszFullPath, true, sGrepOption.nGrepCharSet, 0, &bBom );
+	nCharCode = cfl.FileOpen( pszFullPath, true, sGrepOption.nGrepCharSet, GetDllShareData().m_Common.m_sFile.GetAutoMIMEdecode(), &bBom );
 	CWriteData output(nHitCount, pszFullPath, nCharCode, bBom, sGrepOption.bGrepBackup, cmemMessage );
 	TCHAR szCpName[100];
 	{

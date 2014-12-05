@@ -134,12 +134,16 @@ void CViewCommander::Command_GREP( void )
 void CViewCommander::Command_GREP_REPLACE_DLG( void )
 {
 	CNativeW	cmemCurText;
-
-	m_pCommanderView->GetCurrentTextForSearchDlg( cmemCurText );
-
 	CDlgGrepReplace& cDlgGrepRep = GetEditWindow()->m_cDlgGrepReplace;
+
+	// 複数Grepウィンドウを使い分けている場合などに影響しないように、未設定のときだけHistoryを見る
+	bool bGetHistory = cDlgGrepRep.m_bSetText == false;
+
+	m_pCommanderView->GetCurrentTextForSearchDlg( cmemCurText, bGetHistory );
+
 	if( 0 < cmemCurText.GetStringLength() ){
 		cDlgGrepRep.m_strText = cmemCurText.GetStringPtr();
+		cDlgGrepRep.m_bSetText = true;
 	}
 	if( 0 < GetDllShareData().m_sSearchKeywords.m_aReplaceKeys.size() ){
 		if( cDlgGrepRep.m_nReplaceKeySequence < GetDllShareData().m_Common.m_sSearch.m_nReplaceKeySequence ){
@@ -189,7 +193,7 @@ void CViewCommander::Command_GREP_REPLACE( void )
 			&cmWork3,
 			false,
 			cDlgGrepRep.m_bSubFolder,
-			false,
+			false, // Stdout
 			true, // Header
 			cDlgGrepRep.m_sSearchOption,
 			cDlgGrepRep.m_nGrepCharSet,

@@ -132,7 +132,7 @@ ECodeType CCodeMediator::CheckKanjiCode( CESI* pcesi )
 	if( pcesi == NULL ){
 		return CODE_DEFAULT;
 	}
-	if( pcesi->GetMetaName() != CODE_ERROR ){
+	if( pcesi->GetMetaName() != CODE_NONE ){
 		return pcesi->GetMetaName();
 	}
 	nret = DetectUnicode( pcesi );

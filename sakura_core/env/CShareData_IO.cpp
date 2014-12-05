@@ -485,6 +485,8 @@ void CShareData_IO::ShareData_IO_Common( CDataProfile& cProfile )
 	cProfile.IOProfileData( pszSecName, LTEXT("bGrepRealTime")			, common.m_sSearch.m_bGrepRealTimeView ); // 2003.06.16 Moca
 	cProfile.IOProfileData( pszSecName, LTEXT("bCaretTextForSearch")	, common.m_sSearch.m_bCaretTextForSearch );	// 2006.08.23 ryoji カーソル位置の文字列をデフォルトの検索文字列にする
 	cProfile.IOProfileData( pszSecName, LTEXT("m_bInheritKeyOtherView")	, common.m_sSearch.m_bInheritKeyOtherView );
+	cProfile.IOProfileData( pszSecName, LTEXT("nTagJumpMode")			, common.m_sSearch.m_nTagJumpMode );
+	cProfile.IOProfileData( pszSecName, LTEXT("nTagJumpModeKeyword")	, common.m_sSearch.m_nTagJumpModeKeyword );
 	
 	/* 正規表現DLL 2007.08.12 genta */
 	cProfile.IOProfileData( pszSecName, LTEXT("szRegexpLib")			, MakeStringBufferT(common.m_sSearch.m_szRegexpLib) );
@@ -1429,6 +1431,16 @@ void CShareData_IO::ShareData_IO_Type_One( CDataProfile& cProfile, STypeConfig& 
 		}
 	}
 
+	/* 行番号の最小桁数 */	// 加追 2014.08.02 katze
+	cProfile.IOProfileData( pszSecName, LTEXT("nLineNumWidth"), types.m_nLineNumWidth );
+	if( cProfile.IsReadingMode() ){
+		if( types.m_nLineSpace < LINENUMWIDTH_MIN ){
+			types.m_nLineSpace = LINENUMWIDTH_MIN;
+		}
+		if( types.m_nLineSpace > LINENUMWIDTH_MAX ){
+			types.m_nLineSpace = LINENUMWIDTH_MAX;
+		}
+	}
 
 	cProfile.IOProfileData( pszSecName, LTEXT("szTypeName"), MakeStringBufferT(types.m_szTypeName) );
 	cProfile.IOProfileData( pszSecName, LTEXT("szTypeExts"), MakeStringBufferT(types.m_szTypeExts) );
@@ -1930,8 +1942,9 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 	@param[in]		bOutCmdName	出力時、名前で出力
 
 	@date 2010/5/15 Uchi
+	@date 2014.11.21 Moca pData追加。データのみのタイプを追加
 */
-void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, CommonSetting_MainMenu& mainmenu, bool bOutCmdName)
+void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, std::vector<std::wstring>* pData, CommonSetting_MainMenu& mainmenu, bool bOutCmdName)
 {
 	const WCHAR*	pszSecName = LTEXT("MainMenu");
 	CMainMenu*		pcMenu;
@@ -1942,10 +1955,16 @@ void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, CommonSetting_MainMenu&
 	WCHAR	szLine[1024];
 	WCHAR*	p = NULL;
 	WCHAR*	pn;
+	std::vector<std::wstring>& data = *pData;
+	int dataNum = 0;
 
 	if (cProfile.IsReadingMode()) {
 		int menuNum = 0;
-		cProfile.IOProfileData( pszSecName, LTEXT("nMainMenuNum"), menuNum);
+		if( pData ){
+			menuNum = (int)data.size() - 1;
+		}else{
+			cProfile.IOProfileData( pszSecName, LTEXT("nMainMenuNum"), menuNum);
+		}
 		if (menuNum == 0) {
 			return;
 		}
@@ -1956,7 +1975,11 @@ void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, CommonSetting_MainMenu&
 		cProfile.IOProfileData( pszSecName, LTEXT("nMainMenuNum"), mainmenu.m_nMainMenuNum);
 	}
 	
-	cProfile.IOProfileData( pszSecName, LTEXT("bKeyParentheses"), mainmenu.m_bMainMenuKeyParentheses );
+	if( pData ){
+		mainmenu.m_bMainMenuKeyParentheses = (_wtoi(data[dataNum++].c_str()) != 0);
+	}else{
+		cProfile.IOProfileData( pszSecName, LTEXT("bKeyParentheses"), mainmenu.m_bMainMenuKeyParentheses );
+	}
 
 	if (cProfile.IsReadingMode()) {
 		// Top Level 初期化
@@ -1979,7 +2002,11 @@ void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, CommonSetting_MainMenu&
 			pcMenu->m_sKey[1]  = L'\0';
 
 			// 読み出し
-			cProfile.IOProfileData( pszSecName, szKeyName, MakeStringBufferW( szLine ) );
+			if( pData ){
+				wcscpy(szLine, data[dataNum++].c_str());
+			}else{
+				cProfile.IOProfileData( pszSecName, szKeyName, MakeStringBufferW( szLine ) );
+			}
 
 			// レベル
 			p = szLine;

@@ -802,7 +802,7 @@ void CESI::GuessUtf8OrCesu8( void )
 
 
 static const struct{
-	char* name;
+	const char* name;
 	int nLen;
 	int nCode;
 } encodingNameToCode[] = {
@@ -885,7 +885,7 @@ static const struct{
 	{"x-cp20949",          9, 20949},
 	{"koi8-u",             6, 21866},
 	{"iso-8859-2",        10, 28592},
-	{"latin2",             6, 28592},
+	{"latin2",             6, 28592} ,
 	{"iso-8859-3",        10, 28593},
 	{"latin3",             6, 28593},
 	{"iso-8859-4",        10, 28594},

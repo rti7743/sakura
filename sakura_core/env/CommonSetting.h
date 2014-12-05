@@ -179,7 +179,7 @@ struct CommonSetting_TabBar
 	BOOL		m_bTab_CloseOneWin;				//!< タブモードでもウィンドウの閉じるボタンで現在のファイルのみ閉じる
 	BOOL		m_bNewWindow;					//!< 外部から起動するときは新しいウインドウで開く
 	bool		m_bTabMultiLine;				//!< タブ多段
-	ETabPosition	m_eTabPosition;				//!< タブ位置
+	ETabPosition	m_eTabPosition;				//!<タブ位置
 
 	wchar_t		m_szTabWndCaption[MAX_CAPTION_CONF_LEN];	//!< タブウインドウキャプション	//@@@ 2003.06.13 MIK
 	BOOL		m_bSameTabWidth;				//!< タブを等幅にする			//@@@ 2006.01.28 ryoji
@@ -414,6 +414,9 @@ struct CommonSetting_Search
 	BOOL			m_bAutoCloseDlgFind;		//!< 検索ダイアログを自動的に閉じる
 	BOOL			m_bAutoCloseDlgReplace;		//!< 置換 ダイアログを自動的に閉じる
 	BOOL			m_bSearchAll;				//!< 先頭（末尾）から再検索 2002.01.26 hor
+
+	int				m_nTagJumpMode;				//!< タグジャンプモード(0-3)
+	int				m_nTagJumpModeKeyword;		//!< タグジャンプモード(0-3)
 
 	//INI内設定のみ
 	BOOL			m_bUseCaretKeyWord;			//!< キャレット位置の単語を辞書検索		// 2006.03.24 fon

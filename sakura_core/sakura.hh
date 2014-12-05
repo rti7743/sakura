@@ -493,6 +493,8 @@
 #define HIDC_CHECK_GREPREALTIME					10513 //リアルタイムで表示する	// 2006.08.08 ryoji
 #define HIDC_EDIT_REGEXPLIB						10514 //正規表現ライブラリ選択	// 2007.09.02 genta
 #define HIDC_LABEL_REGEXPVER					10515 //正規表現ライブラリ選択	// 2007.09.02 genta
+#define HIDC_COMBO_TAGJUMP						10516 //タグファイルの検索
+#define HIDC_COMBO_KEYWORD_TAGJUMP				10517 //タグファイルの検索
 //#define HIDC_BUTTON_HOKANFILE_REF				10600 //入力補完 単語ファイル参照			//Jul. 05, 2001 JEPRO タイプ別に移動
 //#define HIDC_BUTTON_KEYWORDHELPFILE_REF			10601 //キーワードヘルプファイル参照	//Jul. 05, 2001 JEPRO タイプ別に移動
 #define HIDC_BUTTON_OPENHELP1					10602 //外部ヘルプファイル参照
@@ -747,6 +749,7 @@
 #define HIDC_CHECK_KINSOKUHIDE		11766	//ぶら下げを隠す			// 2012.11.30 Uchi
 #define HIDC_PLUGIN_README			11767	//ReadMe表示					// 2011/11/2 Uchi
 #define HIDC_PLUGIN_INST_ZIP		11768	//Zipプラグインを追加			// 2011/11/2 Uchi
+#define HIDC_EDIT_LINENUMWIDTH		11769	//行番号の最小桁数				// 2014.08.02 katze
 
 //検索ダイアログ
 #define HIDC_FIND_BUTTON_SEARCHNEXT			11800	//次を検索

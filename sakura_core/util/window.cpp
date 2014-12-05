@@ -156,6 +156,10 @@ CTextWidthCalc::CTextWidthCalc(HWND hParent, int nID)
 	assert(hDC);
 	hFont = (HFONT)::SendMessageAny(hwnd, WM_GETFONT, 0, 0);
 	hFontOld = (HFONT)::SelectObject(hDC, hFont);
+	nCx = 0;
+	nExt = 0;
+	bHDCComp = false;
+	bFromDC = false;
 }
 
 CTextWidthCalc::CTextWidthCalc(HWND hwndThis)
@@ -178,6 +182,7 @@ CTextWidthCalc::CTextWidthCalc(HFONT font)
 	hwnd = 0;
 	HDC hDCTemp = ::GetDC( NULL ); // Desktop
 	hDC = ::CreateCompatibleDC( hDCTemp );
+	::ReleaseDC( NULL, hDCTemp );
 	assert(hDC);
 	hFont = font;
 	hFontOld = (HFONT)::SelectObject(hDC, hFont);
@@ -251,6 +256,13 @@ int CTextWidthCalc::GetTextWidth(LPCTSTR pszText) const
 		return size.cx;
 	}
 	return 0;
+}
+
+int CTextWidthCalc::GetTextHeight() const
+{
+	TEXTMETRIC tm;
+	::GetTextMetrics(hDC, &tm);
+	return tm.tmHeight;
 }
 
 CFontAutoDeleter::CFontAutoDeleter()
