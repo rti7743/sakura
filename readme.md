@@ -19,7 +19,7 @@ https://github.com/mocaskr/sakura_help
 
 ## 変更内容
 sakura 2.1.1.4 mocaskr_ver 007.20141206-r3885  
-baseリビジョンからの変更点一覧
+baseリビジョンからの変更点一覧  
  694	SearchNext等のマクロで検索設定を元に戻すオプション  
  713	プロポーショナルフォント  
  717	C/C++インデントの改良  
