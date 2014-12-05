@@ -36,5 +36,5 @@ baseリビジョンからの変更点一覧
  826	コンパイルオプションに/NXCOMPAT /SAFESEH /DYNAMICBASEを追加  
  837	フォントスタイルに斜体(仮)と取り消し線を追加  
  ---	Webヘルプでcgiをつかなわない/URL変更/URL設定追加(2d4a13ce)  
- ---	ExpandParameter("$<patchinfo>")の追加(13e8a713)  
+ ---	ExpandParameter("$\<patchinfo\>")の追加(13e8a713)  
 番号と詳細は http://sourceforge.net/p/sakura-editor/patchunicode/ 参照  
