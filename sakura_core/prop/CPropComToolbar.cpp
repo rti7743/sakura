@@ -18,6 +18,7 @@
 
 #include "StdAfx.h"
 #include "prop/CPropCommon.h"
+#include "env/CShareData.h"
 #include "uiparts/CMenuDrawer.h" // 2002/2/10 aroka
 #include "uiparts/CImageListMgr.h" // 2005/8/9 aroka
 #include "util/shell.h"
@@ -39,6 +40,7 @@ static const DWORD p_helpids[] = {	//11000
 	IDC_LIST_FUNC,					HIDC_LIST_FUNC_TOOLBAR,					//機能一覧
 	IDC_LIST_RES,					HIDC_LIST_RES_TOOLBAR,					//ツールバー一覧
 	IDC_BUTTON_INSERTWRAP,			HIDC_BUTTON_INSERTWRAP,					//ツールバー折返	// 2006.08.06 ryoji
+	IDC_BUTTON_INITIALIZE,			HIDC_BUTTON_INITIALIZE_TOOLBAR,			//初期状態に戻す
 	IDC_LABEL_MENUFUNCKIND,			(DWORD)-1,
 	IDC_LABEL_MENUFUNC,				(DWORD)-1,
 	IDC_LABEL_TOOLBAR,				(DWORD)-1,
@@ -46,6 +48,8 @@ static const DWORD p_helpids[] = {	//11000
 	0, 0
 };
 //@@@ 2001.02.04 End
+
+static void SetDataToolbarListItem( HWND hwndDlg, const CommonSetting& sCommonSet );
 
 //	From Here Jun. 2, 2001 genta
 /*!
@@ -394,6 +398,14 @@ INT_PTR CPropToolbar::DispatchEvent(
 					List_SetCurSel( hwndResList, nIndex1 );
 					//	To Here Apr. 13, 2002 genta
 					break;
+				// 2014.10.03 初期化
+				case IDC_BUTTON_INITIALIZE:
+					if( IDYES == ConfirmMessage( hwndDlg, LS(STR_PROPCOMTOOL_INIT) ) ){
+						CShareData::InitToolButtons( &m_Common );
+						List_ResetContent( hwndResList );
+						SetDataToolbarListItem( hwndDlg, m_Common );
+					}
+					break;
 				}
 
 				break;
@@ -463,22 +475,12 @@ INT_PTR CPropToolbar::DispatchEvent(
 
 
 
-/* ダイアログデータの設定 Toolbar */
-void CPropToolbar::SetData( HWND hwndDlg )
+static void SetDataToolbarListItem( HWND hwndDlg, const CommonSetting& sCommonSet )
 {
-	HWND		hwndCombo;
 	HWND		hwndResList;
 	int			i;
 	int			nListItemHeight;
 	LRESULT		lResult;
-
-	/* 機能種別一覧に文字列をセット(コンボボックス) */
-	hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_FUNCKIND );
-	m_cLookup.SetCategory2Combo( hwndCombo );	//	Oct. 15, 2001 genta
-	
-	/* 種別の先頭の項目を選択(コンボボックス) */
-	Combo_SetCurSel( hwndCombo, 0 );	//Oct. 14, 2000 JEPRO JEPRO 「--未定義--」を表示させないように大元 Funcode.cpp で変更してある
-	::PostMessageCmd( hwndCombo, WM_COMMAND, MAKELONG( IDC_COMBO_FUNCKIND, CBN_SELCHANGE ), (LPARAM)hwndCombo );
 
 	/* コントロールのハンドルを取得 */
 	hwndResList = ::GetDlgItem( hwndDlg, IDC_LIST_RES );
@@ -493,9 +495,9 @@ void CPropToolbar::SetData( HWND hwndDlg )
 //	nListItemHeight+=2;
 
 	/* ツールバーボタンの情報をセット(リストボックス)*/
-	for( i = 0; i < m_Common.m_sToolBar.m_nToolBarButtonNum; ++i ){
+	for( i = 0; i < sCommonSet.m_sToolBar.m_nToolBarButtonNum; ++i ){
 		//	From Here Apr. 13, 2002 genta
-		lResult = ::Listbox_ADDDATA( hwndResList, (LPARAM)m_Common.m_sToolBar.m_nToolBarButtonIdxArr[i] );
+		lResult = ::Listbox_ADDDATA( hwndResList, (LPARAM)sCommonSet.m_sToolBar.m_nToolBarButtonIdxArr[i] );
 		if( lResult == LB_ERR || lResult == LB_ERRSPACE ){
 			break;
 		}
@@ -504,6 +506,23 @@ void CPropToolbar::SetData( HWND hwndDlg )
 	}
 	/* ツールバーの先頭の項目を選択(リストボックス)*/
 	List_SetCurSel( hwndResList, 0 );	//Oct. 14, 2000 JEPRO ここをコメントアウトすると先頭項目が選択されなくなる
+}
+
+
+/* ダイアログデータの設定 Toolbar */
+void CPropToolbar::SetData( HWND hwndDlg )
+{
+	HWND		hwndCombo;
+
+	/* 機能種別一覧に文字列をセット(コンボボックス) */
+	hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_FUNCKIND );
+	m_cLookup.SetCategory2Combo( hwndCombo );	//	Oct. 15, 2001 genta
+	
+	/* 種別の先頭の項目を選択(コンボボックス) */
+	Combo_SetCurSel( hwndCombo, 0 );	//Oct. 14, 2000 JEPRO JEPRO 「--未定義--」を表示させないように大元 Funcode.cpp で変更してある
+	::PostMessageCmd( hwndCombo, WM_COMMAND, MAKELONG( IDC_COMBO_FUNCKIND, CBN_SELCHANGE ), (LPARAM)hwndCombo );
+
+	SetDataToolbarListItem( hwndDlg, m_Common );
 
 	/* フラットツールバーにする／しない  */
 	::CheckDlgButton( hwndDlg, IDC_CHECK_TOOLBARISFLAT, m_Common.m_sToolBar.m_bToolBarIsFlat );

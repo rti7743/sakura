@@ -442,6 +442,7 @@
 #define HIDC_LIST_FUNC							10150 //機能一覧
 #define HIDC_LIST_RES							10151 //メニュー一覧
 #define HIDC_CHECK_SUBMENU						10152 //サブメニューとして表示
+#define HIDC_BUTTON_INITIALIZE_CUSTMENU			10153 //初期化
 #define HIDC_CHECK_ADDCRLFWHENCOPY				10210 //折り返し行に改行を付けてコピー
 #define HIDC_CHECK_COPYnDISABLESELECTEDAREA		10211 //コピーしたら選択解除
 #define HIDC_CHECK_bEnableNoSelectCopy			10216 //選択なしでコピーを可能にする	// 2007.11.18 ryoji
@@ -529,6 +530,7 @@
 #define HIDC_LIST_FUNC_KEYBIND					10750 //機能一覧
 #define HIDC_LIST_KEY							10751 //キー一覧
 #define HIDC_LIST_ASSIGNEDKEYS					10752 //機能に割り当てられているキー
+#define HIDC_BUTTON_INITIALIZE_KEYBIND			10753 //初期化
 //#define HIDC_CHECK_ACCELTBL_EACHWIN				10760 //ウィンドウ毎にアクセラレータテーブルを作成する(Wine用)	// nasukoji 2009.08.11
 #define HIDC_BUTTON_ADDSET						10800 //キーワードセット追加
 #define HIDC_BUTTON_DELSET						10801 //キーワードセット削除
@@ -574,6 +576,7 @@
 #define HIDC_LIST_FUNC_TOOLBAR					11040 //機能一覧
 #define HIDC_LIST_RES_TOOLBAR					11041 //メニュー一覧
 #define HIDC_BUTTON_INSERTWRAP					11042 //ツールバー折返	// 2006.08.06 ryoji
+#define HIDC_BUTTON_INITIALIZE_TOOLBAR			11043 //初期化
 #define HIDC_CHECK_bSelectClickedURL			11110 //クリッカブルURL
 #define HIDC_CHECK_DispFUNCKEYWND				11210 //ファンクションキー
 #define HIDC_CHECK_DispSTATUSBAR				11211 //ステータスバー

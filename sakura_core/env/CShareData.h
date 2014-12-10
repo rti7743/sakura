@@ -102,14 +102,15 @@ protected:
 
 	//	Jan. 30, 2005 genta 初期化関数の分割
 	void InitKeyword(DLLSHAREDATA*);
-	bool InitKeyAssign(DLLSHAREDATA*); // 2007.11.04 genta 起動中止のため値を返す
 	void RefreshKeyAssignString(DLLSHAREDATA*);
-	void InitToolButtons(DLLSHAREDATA*);
 	void InitTypeConfigs(DLLSHAREDATA*, std::vector<STypeConfig*>&);
-	void InitPopupMenu(DLLSHAREDATA*);
 
 public:
 	static void InitFileTree(SFileTree*);
+	static void InitToolButtons(CommonSetting*);
+	static bool InitKeyAssign(CommonSetting*); // 2007.11.04 genta 起動中止のため値を返す
+	static void InitPopupMenu(CommonSetting*);
+
 
 private:
 	CSelectLang m_cSelectLang;			// メッセージリソースDLL読み込み用（プロセスに1個）		// 2011.04.10 nasukoji

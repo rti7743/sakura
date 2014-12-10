@@ -43,6 +43,7 @@ static const DWORD p_helpids[] = {	//10700
 	IDC_LIST_FUNC,					HIDC_LIST_FUNC_KEYBIND,			//機能一覧
 	IDC_LIST_KEY,					HIDC_LIST_KEY,					//キー一覧
 	IDC_LIST_ASSIGNEDKEYS,			HIDC_LIST_ASSIGNEDKEYS,			//機能に割り当てられているキー
+	IDC_BUTTON_INITIALIZE,			HIDC_BUTTON_INITIALIZE_KEYBIND,	//初期状態に戻す
 	IDC_LABEL_MENUFUNCKIND,			(DWORD)-1,
 	IDC_LABEL_MENUFUNC,				(DWORD)-1,
 	IDC_LABEL_KEYKIND,				(DWORD)-1,
@@ -243,6 +244,15 @@ INT_PTR CPropKeybind::DispatchEvent(
 				::SendMessageCmd( hwndDlg, WM_COMMAND, MAKELONG( IDC_LIST_KEY, LBN_SELCHANGE ), (LPARAM)hwndKeyList );
 				::SendMessageCmd( hwndDlg, WM_COMMAND, MAKELONG( IDC_LIST_FUNC, LBN_SELCHANGE ), (LPARAM)hwndFuncList );
 				return TRUE;
+			// 2014.10.03 初期化
+			case IDC_BUTTON_INITIALIZE:
+				if( IDYES == ConfirmMessage( hwndDlg, LS(STR_PROPCOMKEYBIND_INIT) ) ){
+					CShareData::InitKeyAssign( &m_Common );
+					ChangeKeyList( hwndDlg );
+					HWND			hwndCtrl;
+					hwndCtrl = ::GetDlgItem( hwndDlg, IDC_LIST_FUNC );
+					::SendMessageCmd( hwndDlg, WM_COMMAND, MAKELONG( IDC_LIST_FUNC, LBN_SELCHANGE ), (LPARAM)hwndCtrl );
+				}
 			}
 			break;	/* BN_CLICKED */
 		}

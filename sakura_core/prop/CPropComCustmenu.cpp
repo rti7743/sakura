@@ -47,6 +47,7 @@ static const DWORD p_helpids[] = {	//10100
 	IDC_LIST_FUNC,					HIDC_LIST_FUNC,					//機能一覧
 	IDC_LIST_RES,					HIDC_LIST_RES,					//メニュー一覧
 	IDC_CHECK_SUBMENU,				HIDC_CHECK_SUBMENU,				//サブメニューとして表示
+	IDC_BUTTON_INITIALIZE,			HIDC_BUTTON_INITIALIZE_CUSTMENU,	//初期状態に戻す
 //	IDC_LABEL_MENUFUNCKIND,			-1,
 //	IDC_LABEL_MENUCHOICE,			-1,
 //	IDC_LABEL_MENUFUNC,				-1,
@@ -189,6 +190,14 @@ INT_PTR CPropCustmenu::DispatchEvent(
 				// 削除すると選択が解除されるので，元に戻す
 				Combo_SetCurSel( hwndCOMBO_MENU, nIdx1 );
 				return TRUE;
+			// 2014.10.03 初期化
+			case IDC_BUTTON_INITIALIZE:
+				if( IDYES == ConfirmMessage( hwndDlg, LS(STR_PROPCOMCUSTMENU_INIT) ) ){
+					CShareData::InitPopupMenu( &m_Common );
+					// 画面更新
+					HWND	hwndCtrl = ::GetDlgItem( hwndDlg, IDC_COMBO_MENU );
+					::SendMessageCmd( hwndDlg, WM_COMMAND, MAKELONG( IDC_COMBO_MENU, CBN_SELCHANGE ), (LPARAM)hwndCtrl );
+				}
 			}
 			break;	/* BN_CLICKED */
 		}

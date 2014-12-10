@@ -1555,7 +1555,7 @@ BEGIN
     CONTROL         "Flat Button Style(&L)",IDC_CHECK_TOOLBARISFLAT,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,202,2,73,10
     LTEXT           "Toolbar(&T)",IDC_LABEL_TOOLBAR,164,15,46,8
-    LISTBOX         IDC_LIST_RES,164,25,123,199,LBS_OWNERDRAWFIXED | 
+    LISTBOX         IDC_LIST_RES,164,25,123,188,LBS_OWNERDRAWFIXED | 
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP
     PUSHBUTTON      "&Delete",IDC_BUTTON_DELETE,129,32,33,14,WS_GROUP
@@ -1565,6 +1565,7 @@ BEGIN
     PUSHBUTTON      "&Up",IDC_BUTTON_UP,129,105,33,14
     PUSHBUTTON      "&Down",IDC_BUTTON_DOWN,129,119,33,14
     PUSHBUTTON      "Ne&w Line",IDC_BUTTON_INSERTWRAP,129,151,33,14
+    PUSHBUTTON      "Init(&E)",IDC_BUTTON_INITIALIZE,243,218,44,14
 END
 
 IDD_PROP_TAB DIALOGEX 0, 0, 293, 240
@@ -1953,8 +1954,8 @@ STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 FONT 9, "Tahoma"
 BEGIN
-    RTEXT           "Category(&K)",IDC_LABEL_MENUFUNCKIND,4,4,51,8
-    COMBOBOX        IDC_COMBO_FUNCKIND,60,2,80,180,CBS_DROPDOWNLIST | 
+    RTEXT           "Category(&K)",IDC_LABEL_MENUFUNCKIND,4,4,42,8
+    COMBOBOX        IDC_COMBO_FUNCKIND,46,2,80,180,CBS_DROPDOWNLIST | 
                     CBS_AUTOHSCROLL | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "Function(&F)",IDC_LABEL_MENUFUNC,3,18,41,8
@@ -1965,9 +1966,10 @@ BEGIN
     LISTBOX         IDC_LIST_ASSIGNEDKEYS,3,184,124,33,LBS_SORT | 
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | 
                     WS_GROUP | WS_TABSTOP
-    PUSHBUTTON      "Import(&I)...",IDC_BUTTON_IMPORT,171,2,58,14,
+    PUSHBUTTON      "Import(&I)...",IDC_BUTTON_IMPORT,129,2,58,14,
                     WS_GROUP
-    PUSHBUTTON      "Export(&X)...",IDC_BUTTON_EXPORT,231,2,58,14
+    PUSHBUTTON      "Export(&X)...",IDC_BUTTON_EXPORT,189,2,58,14
+    PUSHBUTTON      "Init(&E)",IDC_BUTTON_INITIALIZE,249,2,42,14
     LTEXT           "Key(&Y)",IDC_LABEL_KEYKIND,164,18,25,8
     LISTBOX         IDC_LIST_KEY,165,28,124,164,LBS_NOINTEGRALHEIGHT | 
                     LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -2016,10 +2018,11 @@ BEGIN
     LTEXT           "Double click item to set hot-key",
                     IDC_LABEL_MENUKEYCHANGE,174,208,114,8
     CONTROL         "Display as Sub Menu(&S)",IDC_CHECK_SUBMENU,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,164,220,114,8
+                    WS_TABSTOP,174,220,114,8
     PUSHBUTTON      "Import(&I)...",IDC_BUTTON_IMPORT,3,208,58,14,
                     WS_GROUP
     PUSHBUTTON      "Export(&X)...",IDC_BUTTON_EXPORT,64,208,58,14
+    PUSHBUTTON      "Init(&E)",IDC_BUTTON_INITIALIZE,124,208,44,14
 END
 
 IDD_PROP_KEYWORD DIALOGEX 0, 0, 293, 240
@@ -4222,6 +4225,7 @@ BEGIN
 	STR_PROPCOMCUSTMENU_SEP		" --------------------------"
 	STR_PROPCOMCUSTMENU_AC1		"Menu Item Access Settings"
 	STR_PROPCOMCUSTMENU_AC2		"Please press a key."
+	STR_PROPCOMCUSTMENU_INIT	"Initialize custom menu.\nOK?"
 	// Has a HEADER #define, should we also fix this?
 
 	// CPropComEdit.cpp
@@ -4254,6 +4258,7 @@ BEGIN
 	// CPropComKeybind.cpp
 	// STR_KEYDATA_HEAD... 
 	STR_PROPCOMKEYBIND_UNASSIGN	"Unassigned"						// Is key assigned? (xxx or Unassigned)
+	STR_PROPCOMKEYBIND_INIT		"Initialize key assign.\nOK?"
 	
 	// CPropComKeyword.cpp
 	STR_PROPCOMKEYWORD_ERR_LEN	"Maximum Keyword length is %d bytes."
@@ -4364,6 +4369,7 @@ BEGIN
 	STR_PROPCOMTOOL_ITEM1		"---------------------"
 	STR_PROPCOMTOOL_ITEM2		"-- Tool Bar Break --"
 	STR_PROPCOMTOOL_ITEM3		"----- disabled -----"
+	STR_PROPCOMTOOL_INIT		"Initialize menu bar.\nOK?"
 
 	// CPropComWin.cpp
 

@@ -231,7 +231,7 @@ bool CShareData::InitShareData()
 
 		//	Jan. 30, 2005 genta 関数として独立
 		//	2007.11.04 genta 戻り値チェック．falseなら起動中断．
-		if( ! InitKeyAssign( m_pShareData )){
+		if( ! InitKeyAssign( &m_pShareData->m_Common )){
 			return false;
 		}
 
@@ -346,7 +346,7 @@ bool CShareData::InitShareData()
 
 //キーワード：ツールバー順序
 		//	Jan. 30, 2005 genta 関数として独立
-		InitToolButtons( m_pShareData );
+		InitToolButtons( &m_pShareData->m_Common );
 
 		m_pShareData->m_Common.m_sWindow.m_bDispTOOLBAR = TRUE;			/* 次回ウィンドウを開いたときツールバーを表示する */
 		m_pShareData->m_Common.m_sWindow.m_bDispSTATUSBAR = TRUE;			/* 次回ウィンドウを開いたときステータスバーを表示する */
@@ -550,7 +550,7 @@ bool CShareData::InitShareData()
 
 		InitKeyword( m_pShareData );
 		InitTypeConfigs( m_pShareData, *m_pvTypeSettings );
-		InitPopupMenu( m_pShareData );
+		InitPopupMenu( &m_pShareData->m_Common );
 
 		//	Apr. 05, 2003 genta ウィンドウキャプションの初期値
 		//	Aug. 16, 2003 genta $N(ファイル名省略表示)をデフォルトに変更
@@ -1127,7 +1127,7 @@ bool CShareData::BeReloadWhenExecuteMacro( int idx )
 	@date 2005.01.30 genta CShareData::Init()から分離．
 		一つずつ設定しないで一気にデータ転送するように．
 */
-void CShareData::InitToolButtons(DLLSHAREDATA* pShareData)
+void CShareData::InitToolButtons(CommonSetting* pCommon)
 {
 		/* ツールバーボタン構造体 */
 //Sept. 16, 2000 JEPRO
@@ -1170,14 +1170,14 @@ void CShareData::InitToolButtons(DLLSHAREDATA* pShareData)
 	dummy[0]=0;
 
 	memcpy_raw(
-		pShareData->m_Common.m_sToolBar.m_nToolBarButtonIdxArr,
+		pCommon->m_sToolBar.m_nToolBarButtonIdxArr,
 		DEFAULT_TOOL_BUTTONS,
 		sizeof(DEFAULT_TOOL_BUTTONS)
 	);
 
 	/* ツールバーボタンの数 */
-	pShareData->m_Common.m_sToolBar.m_nToolBarButtonNum = _countof(DEFAULT_TOOL_BUTTONS);
-	pShareData->m_Common.m_sToolBar.m_bToolBarIsFlat = !IsVisualStyle();			/* フラットツールバーにする／しない */	// 2006.06.23 ryoji ビジュアルスタイルでは初期値をノーマルにする
+	pCommon->m_sToolBar.m_nToolBarButtonNum = _countof(DEFAULT_TOOL_BUTTONS);
+	pCommon->m_sToolBar.m_bToolBarIsFlat = !IsVisualStyle();			/* フラットツールバーにする／しない */	// 2006.06.23 ryoji ビジュアルスタイルでは初期値をノーマルにする
 	
 }
 
@@ -1188,11 +1188,11 @@ void CShareData::InitToolButtons(DLLSHAREDATA* pShareData)
 
 	@date 2005.01.30 genta CShareData::Init()から分離．
 */
-void CShareData::InitPopupMenu(DLLSHAREDATA* pShareData)
+void CShareData::InitPopupMenu(CommonSetting* pCommon)
 {
 	/* カスタムメニュー 規定値 */
 	
-	CommonSetting_CustomMenu& rMenu = m_pShareData->m_Common.m_sCustomMenu;
+	CommonSetting_CustomMenu& rMenu = pCommon->m_sCustomMenu;
 
 	/* 右クリックメニュー */
 	int n = 0;
