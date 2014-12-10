@@ -2581,7 +2581,7 @@ void CDlgFuncList::Key2Command(WORD KeyCode)
 	switch( nFuncCode ){
 	case F_REDRAW:
 		nFuncCode=GetFuncCodeRedraw(m_nOutlineType);
-		/*FALLStrikeOut*/
+		/*FALLTHROUGH*/
 	case F_OUTLINE:
 	case F_OUTLINE_TOGGLE: // 20060201 aroka フォーカスがあるときはリロード
 	case F_BOOKMARK_VIEW:
