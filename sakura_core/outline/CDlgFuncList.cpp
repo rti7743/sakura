@@ -1753,9 +1753,10 @@ void CDlgFuncList::SetTreeFileSub( HTREEITEM hParent, const TCHAR* pszFile )
 	cGrepEnumOptions.m_bIgnoreReadOnly = m_fileTreeSetting.m_aItems[nItem].m_bIgnoreReadOnly;
 	cGrepEnumOptions.m_bIgnoreSystem   = m_fileTreeSetting.m_aItems[nItem].m_bIgnoreSystem;
 	CGrepEnumFiles cGrepExceptAbsFiles;
-	cGrepExceptAbsFiles.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFileKeys, cGrepEnumOptions);
+	cGrepExceptAbsFiles.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFileKeys, cGrepEnumKeys.m_vecRegexFileKeys, cGrepEnumOptions);
 	CGrepEnumFolders cGrepExceptAbsFolders;
-	cGrepExceptAbsFolders.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFolderKeys, cGrepEnumOptions);
+	VGrepEnumKeys keysNull;
+	cGrepExceptAbsFolders.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFolderKeys, keysNull, cGrepEnumOptions);
 
 	//ÉtÉHÉãÉ_àÍóóçÏê¨
 	CGrepEnumFilterFolders cGrepEnumFilterFolders;

@@ -35,6 +35,7 @@
 #include <windows.h>
 #include <string.h>
 #include <tchar.h>
+#include "extmodule/CBregexp.h"
 #include "util/string_ex.h"
 #include "util/file.h"
 
@@ -44,12 +45,18 @@ class CGrepEnumKeys {
 public:
 	VGrepEnumKeys m_vecSearchFileKeys;
 	VGrepEnumKeys m_vecSearchFolderKeys;
+	VGrepEnumKeys m_vecRegexFileKeys;
+	VGrepEnumKeys m_vecRegexFolderKeys;
+
 	VGrepEnumKeys m_vecExceptFileKeys;
 	VGrepEnumKeys m_vecExceptFolderKeys;
+	VGrepEnumKeys m_vecExceptRegexFileKeys;
+	VGrepEnumKeys m_vecExceptRegexFolderKeys;
 
 //	VGrepEnumKeys m_vecSearchAbsFileKeys;
 	VGrepEnumKeys m_vecExceptAbsFileKeys;
 	VGrepEnumKeys m_vecExceptAbsFolderKeys;
+
 
 public:
 	CGrepEnumKeys(){
@@ -78,14 +85,38 @@ public:
 				FILTER_SEARCH,
 				FILTER_EXCEPT_FILE,
 				FILTER_EXCEPT_FOLDER,
+				FILTER_SEARCH_REGEX,
+				FILTER_EXCEPT_REGEX,
+				FILTER_SEARCH_REGEX_FOLDER,
+				FILTER_EXCEPT_REGEX_FOLDER,
 			};
 			KeyFilterType keyType = FILTER_SEARCH;
 			if( token[0] == _T('!') ){
-				token++;
-				keyType = FILTER_EXCEPT_FILE;
+				if( token[0] == _T('/') ){
+					token++;
+					keyType = FILTER_EXCEPT_REGEX;
+				}else{
+					token++;
+					keyType = FILTER_EXCEPT_FILE;
+				}
 			}else if( token[0] == _T('#') ){
 				token++;
-				keyType = FILTER_EXCEPT_FOLDER;
+				if( token[0] == _T('!') ){
+					token++;
+					if( token[0] == _T('/') ){
+						keyType = FILTER_EXCEPT_REGEX_FOLDER;
+					}else{
+						// keyType = FILTER_SEARCH_FOLDER;
+					}
+				}else if( token[0] == _T('/') ){
+					token++;
+					keyType = FILTER_SEARCH_REGEX_FOLDER;
+				}else{
+					keyType = FILTER_EXCEPT_FOLDER;
+				}
+			}else if( token[0] == _T('/') ){
+				token++;
+				keyType = FILTER_SEARCH_REGEX;
 			}
 			// "ÇéÊÇËèúÇ¢Çƒç∂Ç…ãlÇﬂÇÈ
 			TCHAR* p;
@@ -103,10 +134,18 @@ public:
 			*q = _T('\0');
 			
 			bool bRelPath = _IS_REL_PATH( token );
-			int nValidStatus = ValidateKey( token );
-			if( 0 != nValidStatus ){
-				delete [] pWildCard;
-				return nValidStatus;
+			if( keyType < FILTER_SEARCH_REGEX ){
+				int nValidStatus = ValidateKey( token );
+				if( 0 != nValidStatus ){
+					delete [] pWildCard;
+					return nValidStatus;
+				}
+			}else{
+				// Regex
+				if( !CheckRegexpSyntax( token, NULL, true, 0, false ) ){
+					delete [] pWildCard;
+					return 3; // regex error
+				}
 			}
 			if( keyType == FILTER_SEARCH ){
 				if( bRelPath ){
@@ -129,6 +168,14 @@ public:
 				}else{
 					push_back_unique( m_vecExceptAbsFolderKeys, token );
 				}
+			}else if( keyType == FILTER_SEARCH_REGEX ){
+				push_back_unique( m_vecRegexFileKeys, token );
+			}else if( keyType == FILTER_EXCEPT_REGEX ){
+				push_back_unique( m_vecExceptRegexFileKeys, token );
+			}else if( keyType == FILTER_SEARCH_REGEX_FOLDER ){
+				push_back_unique( m_vecRegexFolderKeys, token );
+			}else if( keyType == FILTER_EXCEPT_REGEX_FOLDER ){
+				push_back_unique( m_vecExceptRegexFolderKeys, token );
 			}
 		}
 		if( m_vecSearchFileKeys.size() == 0 ){
@@ -136,6 +183,12 @@ public:
 		}
 		if( m_vecSearchFolderKeys.size() == 0 ){
 			push_back_unique( m_vecSearchFolderKeys, WILDCARD_ANY );
+		}
+		if( 0 < m_vecExceptRegexFileKeys.size() && m_vecExceptFileKeys.size() == 0 ){
+			push_back_unique( m_vecExceptFileKeys, WILDCARD_ANY );
+		}
+		if( 0 < m_vecExceptRegexFolderKeys.size() && m_vecExceptFolderKeys.size() == 0 ){
+			push_back_unique( m_vecExceptFolderKeys, WILDCARD_ANY );
 		}
 		delete [] pWildCard;
 		return 0;
@@ -148,6 +201,10 @@ private:
 		ClearEnumKeys(m_vecSearchFileKeys);
 		ClearEnumKeys(m_vecExceptFolderKeys);
 		ClearEnumKeys(m_vecSearchFolderKeys);
+		ClearEnumKeys(m_vecExceptRegexFileKeys);
+		ClearEnumKeys(m_vecRegexFileKeys);
+		ClearEnumKeys(m_vecExceptRegexFolderKeys);
+		ClearEnumKeys(m_vecRegexFolderKeys);
 		return;
 	}
 	void ClearEnumKeys( VGrepEnumKeys& keys ){

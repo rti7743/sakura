@@ -104,8 +104,20 @@ public:
 		return m_vpItems[ i ].second;
 	}
 
-	int Enumerates( LPCTSTR lpBaseFolder, VGrepEnumKeys& vecKeys, CGrepEnumOptions& option, CGrepEnumFileBase* pExceptItems = NULL ){
+	int Enumerates( LPCTSTR lpBaseFolder, VGrepEnumKeys& vecKeys,  VGrepEnumKeys& vecKeysRegex, CGrepEnumOptions& option, CGrepEnumFileBase* pExceptItems = NULL ){
 		int found = 0;
+		CBregexp* pRegex = NULL;
+		if( 0 < vecKeys.size() && 0 < vecKeysRegex.size() ){
+			pRegex = new CBregexp[vecKeysRegex.size()];
+			for( int i = 0; i < (int)vecKeysRegex.size(); i++ ){
+				if( !InitRegexp( NULL, pRegex[i], true ) ){
+					break; // error MSG表示済み
+				}
+				if( !pRegex[i].Compile(vecKeysRegex[i], CBregexp::optNothing) ){
+					break; // error
+				}
+			}
+		}
 
 		for( int i = 0; i < (int)vecKeys.size(); i++ ){
 			int baseLen = _tcslen( lpBaseFolder );
@@ -152,15 +164,28 @@ public:
 					if( IsValid( w32fd, lpName ) ){
 						if( pExceptItems && pExceptItems->IsExist( lpFullPath ) ){
 						}else{
-							m_vpItems.push_back( PairGrepEnumItem( lpName, w32fd.nFileSizeLow ) );
-							found++; // 2011.11.19
-							if( pExceptItems && nKeyDirLen ){
-								// フォルダを含んだパスなら検索済みとして除外指定に追加する
-								pExceptItems->m_vpItems.push_back( PairGrepEnumItem( lpFullPath, w32fd.nFileSizeLow ) );
+							bool bMatchRegex = false;
+							if( vecKeysRegex.size() == 0 ){
+								bMatchRegex = true;
 							}else{
-								delete [] lpFullPath;
+								for( int k = 0; k < (int)vecKeysRegex.size(); k++ ){
+									if( pRegex[k].Match( lpName, _tcslen(w32fd.cFileName), 0 ) ){
+										bMatchRegex = true;
+										break;
+									}
+								}
 							}
-							continue;
+							if( bMatchRegex ){
+								m_vpItems.push_back( PairGrepEnumItem( lpName, w32fd.nFileSizeLow ) );
+								found++; // 2011.11.19
+								if( pExceptItems && nKeyDirLen ){
+									// フォルダを含んだパスなら検索済みとして除外指定に追加する
+									pExceptItems->m_vpItems.push_back( PairGrepEnumItem( lpFullPath, w32fd.nFileSizeLow ) );
+								}else{
+									delete [] lpFullPath;
+								}
+								continue;
+							}
 						}
 					}
 					delete [] lpName;
@@ -169,6 +194,9 @@ public:
 				::FindClose( handle );
 			}
 			delete [] lpPath;
+		}
+		if( 0 < vecKeys.size() && 0 < vecKeysRegex.size() ){
+			delete [] pRegex;
 		}
 		return found;
 	}

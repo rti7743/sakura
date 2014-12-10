@@ -348,13 +348,19 @@ DWORD CGrepAgent::DoGrep(
 			pcViewDst->m_bDoing_UndoRedo = false;
 			pcViewDst->SetUndoBuffer();
 
-			const TCHAR* pszErrorMessage = LS(STR_GREP_ERR_ENUMKEYS0);
+			const TCHAR* pszErrorMessage = NULL;
 			if( nErrorNo == 1 ){
 				pszErrorMessage = LS(STR_GREP_ERR_ENUMKEYS1);
 			}else if( nErrorNo == 2 ){
 				pszErrorMessage = LS(STR_GREP_ERR_ENUMKEYS2);
+			}else if( nErrorNo == 3 ){
+				pszErrorMessage = NULL;// •\Ž¦Ï‚Ý
+			}else{
+				pszErrorMessage = LS(STR_GREP_ERR_ENUMKEYS0);
 			}
-			ErrorMessage( pcViewDst->m_hwndParent, _T("%ts"), pszErrorMessage );
+			if( pszErrorMessage ){
+				ErrorMessage( pcViewDst->m_hwndParent, _T("%ts"), pszErrorMessage );
+			}
 			return 0;
 		}
 	}
@@ -540,9 +546,10 @@ DWORD CGrepAgent::DoGrep(
 
 	CGrepEnumOptions cGrepEnumOptions;
 	CGrepEnumFiles cGrepExceptAbsFiles;
-	cGrepExceptAbsFiles.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFileKeys, cGrepEnumOptions);
+	cGrepExceptAbsFiles.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFileKeys, cGrepEnumKeys.m_vecRegexFileKeys, cGrepEnumOptions);
 	CGrepEnumFolders cGrepExceptAbsFolders;
-	cGrepExceptAbsFolders.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFolderKeys, cGrepEnumOptions);
+	VGrepEnumKeys keysNull;
+	cGrepExceptAbsFolders.Enumerates(_T(""), cGrepEnumKeys.m_vecExceptAbsFolderKeys, keysNull, cGrepEnumOptions);
 
 	int nGrepTreeResult = 0;
 

@@ -657,11 +657,19 @@ int CDlgGrep::GetData( void )
 	if( 0 != auto_strlen( m_szFile ) ){
 		CGrepEnumKeys enumKeys;
 		int nErrorNo = enumKeys.SetFileKeys( m_szFile );
-		if( 1 == nErrorNo ){
+		if( 0 == nErrorNo ){
+			// OK
+		}else if( 1 == nErrorNo ){
 			WarningMessage(	GetHwnd(), LS(STR_DLGGREP2) );
 			return FALSE;
 		}else if( nErrorNo == 2 ){
 			WarningMessage(	GetHwnd(), LS(STR_DLGGREP3) );
+			return FALSE;
+		}else if( 3 == nErrorNo ){
+			// Regex ERROR (ï\é¶çœÇ›)
+			return FALSE;
+		}else{
+			WarningMessage( GetHwnd(), LS(STR_GREP_ERR_ENUMKEYS0) );
 			return FALSE;
 		}
 	}
