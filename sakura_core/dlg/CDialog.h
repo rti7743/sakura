@@ -17,8 +17,8 @@
 */
 
 
-#ifndef _CDIALOG_H_
-#define _CDIALOG_H_
+#ifndef SAKURA_CDIALOG_H_
+#define SAKURA_CDIALOG_H_
 
 class CDialog;
 
@@ -130,6 +130,11 @@ public:
 	static BOOL SelectFile(HWND parent, HWND hwndCtl, const TCHAR* filter, bool resolvePath);
 	static bool DirectoryUp( TCHAR* );
 
+	static bool LoadDlgTemplate( HINSTANCE, int , LPDLGTEMPLATE&, DWORD& );
+	static LPDLGTEMPLATE SetDlgFont( const LPDLGTEMPLATE, DWORD, const std::wstring&, int, bool bNewMem = true );
+	static LPDLGTEMPLATE CustomFontTemplate( const DLLSHAREDATA*, HINSTANCE, int );
+	static DWORD GetDlgTemplateSize( const LPDLGTEMPLATE );
+
 public:
 	HWND GetHwnd() const{ return m_hWnd; }
 	//特殊インターフェース (使用は好ましくない)
@@ -138,6 +143,7 @@ public:
 public:
 	HINSTANCE		m_hInstance;	/* アプリケーションインスタンスのハンドル */
 	HWND			m_hwndParent;	/* オーナーウィンドウのハンドル */
+	
 private:
 	HWND			m_hWnd;			/* このダイアログのハンドル */
 public:
@@ -168,7 +174,7 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////
-#endif /* _CDIALOG_H_ */
+#endif /* SAKURA_CDIALOG_H_ */
 
 
 

@@ -24,6 +24,7 @@
 #include "StdAfx.h"
 #include "CPropTypes.h"
 #include "CEditApp.h"
+#include "dlg/CDialog.h"
 #include "view/colors/EColorIndexType.h"
 #include "util/shell.h"
 #include "sakura_rc.h"
@@ -151,6 +152,7 @@ INT_PTR CPropTypes::DoPropertySheet( int nPageNum )
 	std::tstring		sTabname[_countof(TypePropSheetInfoList)];
 	m_bChangeKeyWordSet = false;
 	PROPSHEETPAGE		psp[_countof(TypePropSheetInfoList)];
+	std::vector<void*>  m_vPropMem; // リソースのGlobalFree用アドレス
 	for( nIdx = 0; nIdx < _countof(TypePropSheetInfoList); nIdx++ ){
 		sTabname[nIdx] = LS(TypePropSheetInfoList[nIdx].m_nTabNameId);
 
@@ -165,6 +167,13 @@ INT_PTR CPropTypes::DoPropertySheet( int nPageNum )
 		p->pszTitle    = sTabname[nIdx].c_str();
 		p->lParam      = (LPARAM)this;
 		p->pfnCallback = NULL;
+		LPDLGTEMPLATE pCustomDlg = CDialog::CustomFontTemplate(
+			m_pShareData, p->hInstance, TypePropSheetInfoList[nIdx].resId);
+		if( pCustomDlg != NULL ){
+			p->dwFlags   |= PSP_DLGINDIRECT;
+			p->pResource  = pCustomDlg;
+			m_vPropMem.push_back(pCustomDlg);
+		}
 	}
 
 	PROPSHEETHEADER		psh;
@@ -200,6 +209,10 @@ INT_PTR CPropTypes::DoPropertySheet( int nPageNum )
 	psh.pfnCallback = NULL;
 
 	nRet = MyPropertySheet( &psh );	// 2007.05.24 ryoji 独自拡張プロパティシート
+
+	for( size_t i = 0; i < m_vPropMem.size(); i++ ){
+		GlobalFree(m_vPropMem[i]);
+	}
 
 	if( -1 == nRet ){
 		TCHAR*	pszMsgBuf;

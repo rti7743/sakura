@@ -36,6 +36,7 @@
 #include "env/CShareData.h"
 #include "env/DLLSHAREDATA.h"
 #include "extmodule/CHtmlHelp.h"
+#include "dlg/CDialog.h"
 
 int CALLBACK MYBrowseCallbackProc(
 	HWND hwnd,
@@ -249,6 +250,8 @@ static LRESULT CALLBACK PropSheetWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, L
 	return ::CallWindowProc( s_pOldPropSheetWndProc, hwnd, uMsg, wParam, lParam );
 }
 
+static bool s_bPropSheetPrivate;
+
 /*!	独自拡張プロパティシートのコールバック関数
 	@author ryoji
 	@date 2007.05.25 新規
@@ -258,10 +261,20 @@ static int CALLBACK PropSheetProc( HWND hwndDlg, UINT uMsg, LPARAM lParam )
 	// プロパティシートの初期化時にボタン追加、プロパティシートのサブクラス化を行う
 	if( uMsg == PSCB_INITIALIZED ){
 		s_pOldPropSheetWndProc = (WNDPROC)::SetWindowLongPtr( hwndDlg, GWLP_WNDPROC, (LONG_PTR)PropSheetWndProc );
-		HINSTANCE hInstance = (HINSTANCE)::GetModuleHandle( NULL );
-		HWND hwndBtn = ::CreateWindowEx( 0, _T("BUTTON"), LS(STR_SHELL_INIFOLDER), BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0, 0, 140, 20, hwndDlg, (HMENU)0x02000, hInstance, NULL );
-		::SendMessage( hwndBtn, WM_SETFONT, (WPARAM)::SendMessage( hwndDlg, WM_GETFONT, 0, 0 ), MAKELPARAM( FALSE, 0 ) );
-		::SetWindowPos( hwndBtn, ::GetDlgItem( hwndDlg, IDHELP), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
+		if( s_bPropSheetPrivate ){
+			HINSTANCE hInstance = (HINSTANCE)::GetModuleHandle( NULL );
+			HWND hwndBtn = ::CreateWindowEx( 0, _T("BUTTON"), LS(STR_SHELL_INIFOLDER), BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0, 0, 140, 20, hwndDlg, (HMENU)0x02000, hInstance, NULL );
+			::SendMessage( hwndBtn, WM_SETFONT, (WPARAM)::SendMessage( hwndDlg, WM_GETFONT, 0, 0 ), MAKELPARAM( FALSE, 0 ) );
+			::SetWindowPos( hwndBtn, ::GetDlgItem(hwndDlg, IDHELP), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
+		}
+	}else if( uMsg == PSCB_PRECREATE ){
+		CommonSetting_Window& setWin = GetDllShareData().m_Common.m_sWindow;
+		if( setWin.m_bCustomFont ){
+			// 2014.11.28 フォント変更対応。バッファに入りきるかどうか不明
+			LPDLGTEMPLATE pTemplate = (LPDLGTEMPLATE)lParam;
+			std::wstring strFont = setWin.m_szDialogFont;
+			CDialog::SetDlgFont(pTemplate, 0, setWin.m_szDialogFont, setWin.m_nDialogFontSize, false);
+		}
 	}
 	return 0;
 }
@@ -274,10 +287,9 @@ static int CALLBACK PropSheetProc( HWND hwndDlg, UINT uMsg, LPARAM lParam )
 INT_PTR MyPropertySheet( LPPROPSHEETHEADER lppsph )
 {
 	// 個人設定フォルダを使用するときは「設定フォルダ」ボタンを追加する
-	if( CShareData::getInstance()->IsPrivateSettings() ){
-		lppsph->dwFlags |= PSH_USECALLBACK;
-		lppsph->pfnCallback = PropSheetProc;
-	}
+	s_bPropSheetPrivate = CShareData::getInstance()->IsPrivateSettings() != FALSE;
+	lppsph->dwFlags |= PSH_USECALLBACK;
+	lppsph->pfnCallback = PropSheetProc;
 	return ::PropertySheet( lppsph );
 }
 

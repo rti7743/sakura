@@ -97,7 +97,7 @@ CDialog::~CDialog()
 
 	@date 2011.04.10 nasukoji	各国語メッセージリソース対応
 */
-INT_PTR CDialog::DoModal( HINSTANCE hInstance, HWND hwndParent, int nDlgTemplete, LPARAM lParam )
+INT_PTR CDialog::DoModal( HINSTANCE hInstance, HWND hwndParent, int nDlgTemplate, LPARAM lParam )
 {
 	m_bInited = FALSE;
 	m_bModal = TRUE;
@@ -105,13 +105,18 @@ INT_PTR CDialog::DoModal( HINSTANCE hInstance, HWND hwndParent, int nDlgTemplete
 	m_hwndParent = hwndParent;	/* オーナーウィンドウのハンドル */
 	m_lParam = lParam;
 	m_hLangRsrcInstance = CSelectLang::getLangRsrcInstance();		// メッセージリソースDLLのインスタンスハンドル
-	return ::DialogBoxParam(
-		m_hLangRsrcInstance,
-		MAKEINTRESOURCE( nDlgTemplete ),
-		m_hwndParent,
-		MyDialogProc,
-		(LPARAM)this
-	);
+	INT_PTR ret;
+	LPDLGTEMPLATE pDlgTemplate = CustomFontTemplate(m_pShareData, m_hLangRsrcInstance, nDlgTemplate);
+	if( pDlgTemplate != NULL ){
+		ret = ::DialogBoxIndirectParam(m_hLangRsrcInstance, pDlgTemplate, m_hwndParent,
+			MyDialogProc, (LPARAM)this);
+		::GlobalFree(pDlgTemplate);
+	}else{
+		ret = ::DialogBoxParam(
+			m_hLangRsrcInstance, MAKEINTRESOURCE(nDlgTemplate), m_hwndParent,
+			MyDialogProc, (LPARAM)this);
+	}
+	return ret;
 }
 
 //! モードレスダイアログの表示
@@ -121,7 +126,7 @@ INT_PTR CDialog::DoModal( HINSTANCE hInstance, HWND hwndParent, int nDlgTemplete
 
 	@date 2011.04.10 nasukoji	各国語メッセージリソース対応
 */
-HWND CDialog::DoModeless( HINSTANCE hInstance, HWND hwndParent, int nDlgTemplete, LPARAM lParam, int nCmdShow )
+HWND CDialog::DoModeless( HINSTANCE hInstance, HWND hwndParent, int nDlgTemplate, LPARAM lParam, int nCmdShow )
 {
 	m_bInited = FALSE;
 	m_bModal = FALSE;
@@ -129,13 +134,25 @@ HWND CDialog::DoModeless( HINSTANCE hInstance, HWND hwndParent, int nDlgTemplete
 	m_hwndParent = hwndParent;	/* オーナーウィンドウのハンドル */
 	m_lParam = lParam;
 	m_hLangRsrcInstance = CSelectLang::getLangRsrcInstance();		// メッセージリソースDLLのインスタンスハンドル
-	m_hWnd = ::CreateDialogParam(
-		m_hLangRsrcInstance,
-		MAKEINTRESOURCE( nDlgTemplete ),
-		m_hwndParent,
-		MyDialogProc,
-		(LPARAM)this
-	);
+	LPDLGTEMPLATE pDlgTemplate = CustomFontTemplate(m_pShareData, m_hLangRsrcInstance, nDlgTemplate);
+	if( pDlgTemplate != NULL ){
+		m_hWnd = ::CreateDialogIndirectParam(
+			m_hInstance,
+			pDlgTemplate,
+			m_hwndParent,
+			MyDialogProc,
+			(LPARAM)this
+		);
+		GlobalFree(pDlgTemplate);
+	}else{
+		m_hWnd = ::CreateDialogParam(
+			m_hLangRsrcInstance,
+			MAKEINTRESOURCE(nDlgTemplate),
+			m_hwndParent,
+			MyDialogProc,
+			(LPARAM)this
+		);
+	}
 	if( NULL != m_hWnd ){
 		::ShowWindow( m_hWnd, nCmdShow );
 	}
@@ -161,6 +178,42 @@ HWND CDialog::DoModeless( HINSTANCE hInstance, HWND hwndParent, LPCDLGTEMPLATE l
 	}
 	return m_hWnd;
 }
+
+
+/*
+	@return ユーザ定義フォント適用LPDLGTEMPLATE。GlobalFreeで解放すること。
+*/
+//static
+LPDLGTEMPLATE CDialog::CustomFontTemplate( const DLLSHAREDATA* pShareData, HINSTANCE hInstance, int nDlgTemplate )
+{
+	if( NULL == pShareData ){
+		return NULL;
+	}
+	if( pShareData->m_Common.m_sWindow.m_bCustomFont ){
+		LPDLGTEMPLATE pDlgTemplate;
+		DWORD nTemplateSize;
+		if( LoadDlgTemplate(hInstance, nDlgTemplate, pDlgTemplate, nTemplateSize) ){
+			std::wstring strFont = pShareData->m_Common.m_sWindow.m_szDialogFont;
+			int nFontSize = pShareData->m_Common.m_sWindow.m_nDialogFontSize;
+			return SetDlgFont(pDlgTemplate, nTemplateSize, strFont, nFontSize);
+		}
+	}
+	return NULL;
+}
+
+
+bool CDialog::LoadDlgTemplate( HINSTANCE hInstance, int nDlgTemplate, LPDLGTEMPLATE& pDlgTemplate, DWORD& size )
+{
+	HRSRC hResInfo = ::FindResource(hInstance, MAKEINTRESOURCE(nDlgTemplate), RT_DIALOG);
+	if( !hResInfo ) return false;
+	HGLOBAL hResData = ::LoadResource(hInstance, hResInfo);
+	if( !hResData ) return false;
+	pDlgTemplate = (LPDLGTEMPLATE)::LockResource(hResData);
+	if( !pDlgTemplate ) return false;
+	size = ::SizeofResource(hInstance, hResInfo);
+	return true;
+}
+
 
 void CDialog::CloseDialog( int nModalRetVal )
 {
@@ -879,3 +932,211 @@ void CDialog::SetComboBoxDeleter( HWND hwndCtl, SComboBoxItemDeleter* data )
 	::SetProp(hwndCtl, TSTR_SUBCOMBOBOXDATA, data);
 	::SetWindowLongPtr(hwndCtl, GWLP_WNDPROC, (LONG_PTR)SubComboBoxProc);
 }
+
+
+#pragma pack(push, 1)
+struct MY_DLGTEMPLATEEX {
+	WORD dlgVer;
+	WORD signature;
+	DWORD helpID;
+	DWORD exStyle;
+	DWORD style;
+	WORD cDlgItems;
+	short x;
+	short y;
+	short cx;
+	short cy;
+};
+
+struct MY_DLGITEMTEMPLATEEX {
+	DWORD helpID;
+	DWORD exStyle;
+	DWORD style;
+	short x;
+	short y;
+	short cx;
+	short cy;
+	DWORD id;
+	// sz_Or_Ord windowClass;
+	// sz_Or_Ord title;
+	// WORD      extraCount;
+};
+
+#pragma pack(pop)
+
+
+static bool CDialog_IsDialogEx( const LPDLGTEMPLATE pDlgTemplate )
+{
+	return ((MY_DLGTEMPLATEEX*)pDlgTemplate)->signature == 0xFFFF;
+}
+
+
+static WORD* CDialog_SeekFontValues( const LPDLGTEMPLATE pDlgTemplate )
+{
+	BOOL bDialogEx = CDialog_IsDialogEx(pDlgTemplate);
+	// メモリー構造
+	// DLGTEMPLATE/DLGTEMPLATEEX ヘッダ
+	// WORD wMenuId[2]; or WCHAR szMenuId[]; wMenuId[0]が-1ならwMenuId,違うならszMenuId
+	// WORD wWindowClassId[2]; or WCHAR szWindowClass[]; wWindowClassId[0]が-1ならwWIndowClass,違うならszWindowClass
+	// WCHAR wTitle[];
+	// DLGTEMPLATEの場合:
+	//   WORD wFontSize;
+	//   WCHAR szFontName[];
+	// DLGTEMPLATEEXの場合:
+	//   WORD wFontSize;
+	//   WORD wFontWeight;
+	//   BYTE cFontItalic;
+	//   BYTE cFontCharset;
+	//   WCHAR szfontName[];
+	// DLGITEMTEMPLATE(EX) controls[] ※DWORD境界
+	WORD* p;
+	// ヘッダ飛ばし
+	if( bDialogEx ){
+		p = (WORD*)((MY_DLGTEMPLATEEX*)pDlgTemplate + 1);
+	}else{
+		p = (WORD*)(pDlgTemplate + 1);
+	}
+	// メニュー飛ばし
+	if( *p == 0xffff ){
+		p += 2;
+	}else{
+		while( *p++ );
+	}
+	// クラス名飛ばし
+	if( *p == 0xffff ){
+		p += 2;
+	}else{
+		while( *p++ );
+	}
+	// タイトル飛ばし
+	while( *p++ ); 
+	return p; // p == &wFontSize;
+}
+
+
+static void CDialog_GetFontNameSize( const LPDLGTEMPLATE pDlgTemplate, std::wstring& sFontName, int& nFontSize )
+{
+	WORD* p = CDialog_SeekFontValues(pDlgTemplate);
+	nFontSize = *p;
+	if( CDialog_IsDialogEx(pDlgTemplate) ){
+		p+=3;
+	}else{
+		p++;
+	}
+	sFontName.assign((wchar_t*)p);
+}
+
+
+//static
+LPDLGTEMPLATE CDialog::SetDlgFont( const LPDLGTEMPLATE pDlgTemplate, DWORD nTemplateSize, const std::wstring& sFontName, int nFontSize, bool bNewMem )
+{
+	std::wstring sFontNameOld;
+	int nFontSizeOld;
+	CDialog_GetFontNameSize(pDlgTemplate, sFontNameOld, nFontSizeOld);
+	if( nFontSizeOld == nFontSize && sFontNameOld == sFontName ){
+		return NULL;
+	}
+	bool bIsDialogEx = CDialog_IsDialogEx(pDlgTemplate);
+	WORD* p = CDialog_SeekFontValues(pDlgTemplate);
+	if( bIsDialogEx ){
+		p+=3;
+	}else{
+		p++;
+	}
+	// コントロール類はDWORD境界でなければならない
+	BYTE* pAfterDataOld = (BYTE*)((((UINT_PTR)p + ((sFontNameOld.size() + 1) * sizeof(wchar_t))) + 3) & ~3);
+	BYTE* pAfterDataNew = (BYTE*)((((UINT_PTR)p + ((sFontName.size()    + 1) * sizeof(wchar_t))) + 3) & ~3);
+	int nDiffMem = pAfterDataNew - pAfterDataOld;
+	int nSize;
+	if( nTemplateSize == 0 ){
+		nSize = GetDlgTemplateSize(pDlgTemplate);
+	}else{
+		nSize = nTemplateSize;
+	}
+	int nTemplateSizeNew = nSize + nDiffMem;
+	LPDLGTEMPLATE pNew;
+	if( bNewMem ){
+		pNew = (LPDLGTEMPLATE)::GlobalAlloc(GMEM_FIXED, nTemplateSizeNew);
+		// フォント名の直前までヘッダ部分コピー
+		memcpy(pNew, pDlgTemplate, (BYTE*)p - (BYTE*)pDlgTemplate);
+	}else{
+		pNew = pDlgTemplate;
+	}
+	WORD* pFontNew = CDialog_SeekFontValues(pNew);
+	*pFontNew = (WORD)nFontSize; // Font Size pt
+	if( bIsDialogEx ){
+		pFontNew+=3;
+	}else{
+		pFontNew++;
+	}
+	// 後ろのcontrolsをコピー
+	int nOffsetNew = pAfterDataNew - (BYTE*)p;
+	void* p1 = (BYTE*)pFontNew + nOffsetNew;
+	size_t copySize = nSize - ((BYTE*)pAfterDataOld - (BYTE*)pDlgTemplate);
+	if( bNewMem ){
+		memcpy(p1, pAfterDataOld, copySize);
+	}else if( nDiffMem != 0 ){
+		memmove(p1, pAfterDataOld, copySize);
+	}
+	// フォント名コピー(フォント名が短くなる場合のため、最後にコピー)
+	wcscpy((wchar_t*)pFontNew, sFontName.c_str());
+	return pNew;
+}
+
+
+//static
+DWORD CDialog::GetDlgTemplateSize( const LPDLGTEMPLATE pDlgTemplate )
+{
+	const WORD* p = CDialog_SeekFontValues(pDlgTemplate);
+	bool bIsDialogEx = CDialog_IsDialogEx(pDlgTemplate);
+	if( bIsDialogEx ){
+		p+=3;
+	}else{
+		p++;
+	}
+	while( *p++ ); // フォント名
+	int nControlCount;
+	if( bIsDialogEx ){
+		nControlCount = ((MY_DLGTEMPLATEEX*)pDlgTemplate)->cDlgItems;
+	}else{
+		nControlCount = pDlgTemplate->cdit;
+	}
+	const BYTE* b = (const BYTE*)p;
+	p = NULL;
+	for( int i = 0; i < nControlCount; i++ ){
+		b = (const BYTE*)(((UINT_PTR)b + 3) & ~(UINT_PTR)3);
+		b += (bIsDialogEx ? sizeof(MY_DLGITEMTEMPLATEEX) : sizeof(DLGITEMTEMPLATE));
+		if( *(const WORD*)b == 0xffff ){
+			b += 2 * sizeof(WORD); // windowClassID
+		}else{
+			const WCHAR* pw = (const WCHAR*)b;
+			while( *pw++ ); // windowClass wstring
+			b = (const BYTE*)pw;
+		}
+		if( *(const WORD*)b == 0xffff ){
+			b += 2 * sizeof(WORD); // titleID
+		}else{
+			const WCHAR* pw = (const WCHAR*)b;
+			while( *pw++ ); // title wstring
+			b = (const BYTE*)pw;
+		}
+		WORD extraCount = *(WORD*)b;
+		b += sizeof(WORD);
+		// DLGITEMTEMPLATE:
+		// extraCountの値: スキップするByte数
+		//  0: 0Byte
+		//  1: 0Byte
+		//  2: 1Byte
+		// DLGITEMTEMPLATEEX:
+		//  0: 0Byte
+		//  1: 1Byte
+		//  2: 2Byte
+		if( !bIsDialogEx && extraCount != 0 ){
+			extraCount -= sizeof(WORD);
+		}
+		b += extraCount;
+	}
+	return b - (BYTE*)pDlgTemplate;
+}
+
+

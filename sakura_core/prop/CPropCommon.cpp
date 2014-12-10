@@ -43,6 +43,7 @@
 #include "env/DLLSHAREDATA.h"
 #include "env/CDocTypeManager.h"
 #include "CEditApp.h"
+#include "dlg/CDialog.h"
 #include "util/shell.h"
 #include "sakura_rc.h"
 
@@ -153,6 +154,8 @@ CPropCommon::CPropCommon()
 	m_hwndThis  = NULL;		/* このダイアログのハンドル */
 	m_nPageNum = ID_PROPCOM_PAGENUM_GENERAL;
 	m_nKeywordSet1 = -1;
+	m_hTabFont = NULL;
+	m_hDialogFont = NULL;
 
 	return;
 }
@@ -243,6 +246,7 @@ INT_PTR CPropCommon::DoPropertySheet( int nPageNum, bool bTrayProc )
 
 	std::tstring		sTabname[_countof(ComPropSheetInfoList)];
 	PROPSHEETPAGE		psp[_countof(ComPropSheetInfoList)];
+	std::vector<void*>  m_vPropMem; // リソースのGlobalFree用アドレス
 	for( nIdx = 0; nIdx < _countof(ComPropSheetInfoList); nIdx++ ){
 		sTabname[nIdx] = LS(ComPropSheetInfoList[nIdx].m_nTabNameId);
 
@@ -252,11 +256,19 @@ INT_PTR CPropCommon::DoPropertySheet( int nPageNum, bool bTrayProc )
 		p->dwFlags     = PSP_USETITLE | PSP_HASHELP;
 		p->hInstance   = CSelectLang::getLangRsrcInstance();
 		p->pszTemplate = MAKEINTRESOURCE( ComPropSheetInfoList[nIdx].resId );
+
 		p->pszIcon     = NULL;
 		p->pfnDlgProc  = ComPropSheetInfoList[nIdx].DProc;
 		p->pszTitle    = sTabname[nIdx].c_str();
 		p->lParam      = (LPARAM)this;
 		p->pfnCallback = NULL;
+		LPDLGTEMPLATE pCustomDlg = CDialog::CustomFontTemplate(
+			m_pShareData, p->hInstance, ComPropSheetInfoList[nIdx].resId);
+		if( pCustomDlg != NULL ){
+			p->dwFlags     |= PSP_DLGINDIRECT;
+			p->pResource   = pCustomDlg;
+			m_vPropMem.push_back(pCustomDlg);
+		}
 	}
 	//	To Here Jun. 2, 2001 genta
 
@@ -312,6 +324,9 @@ INT_PTR CPropCommon::DoPropertySheet( int nPageNum, bool bTrayProc )
 			pszMsgBuf
 		);
 		::LocalFree( pszMsgBuf );
+	}
+	for( size_t i = 0; i < m_vPropMem.size(); i++ ){
+		GlobalFree(m_vPropMem[i]);
 	}
 
 	return nRet;
@@ -470,8 +485,12 @@ HFONT CPropCommon::SetCtrlFont( HWND hwndDlg, int idc_ctrl, const LOGFONT& lf )
 /*!	フォントラベルにフォントとフォント名設定する
 	@date 2013.04.24 Uchi
 */
-HFONT CPropCommon::SetFontLabel( HWND hwndDlg, int idc_static, const LOGFONT& lf, int nps )
+HFONT CPropCommon::SetFontLabel( HWND hwndDlg, int idc_static, const LOGFONT& lf, int nps, bool bUse )
 {
+	if( !bUse ) {
+		::DlgItem_SetText( hwndDlg, idc_static, _T("") );
+		return NULL;
+	}
 	HFONT	hFont;
 	TCHAR	szFontName[80];
 	LOGFONT lfTemp;

@@ -21,6 +21,7 @@
 #include "prop/CPropCommon.h"
 #include "dlg/CDlgWinSize.h"	//	2004.05.13 Moca
 #include "util/shell.h"
+#include "util/window.h"
 #include "sakura_rc.h"
 #include "sakura.hh"
 #include "_main/CProcess.h"
@@ -44,10 +45,12 @@ static const DWORD p_helpids[] = {	//11200
 	IDC_SPIN_nRulerHeight,			HIDC_EDIT_nRulerHeight,
 	IDC_SPIN_nLineNumberRightSpace,	HIDC_EDIT_nLineNumberRightSpace,
 	IDC_SPIN_FUNCKEYWND_GROUPNUM,	HIDC_EDIT_FUNCKEYWND_GROUPNUM,
+	IDC_COMBO_LANGUAGE,				HIDC_COMBO_LANGUAGE,			//言語選択
+	IDC_CHECK_USE_FONT,				HIDC_CHECK_USE_FONT,
+	IDC_BUTTON_FONT,				HIDC_BUTTON_FONT,
 	IDC_WINCAPTION_ACTIVE,			HIDC_WINCAPTION_ACTIVE,			//アクティブ時	//@@@ 2003.06.15 MIK
 	IDC_WINCAPTION_INACTIVE,		HIDC_WINCAPTION_INACTIVE,		//非アクティブ時	//@@@ 2003.06.15 MIK
 	IDC_BUTTON_WINSIZE,				HIDC_BUTTON_WINSIZE,			//位置と大きさの設定	// 2006.08.06 ryoji
-	IDC_COMBO_LANGUAGE,				HIDC_COMBO_LANGUAGE,			//言語選択
 	IDC_BUTTON_ALLRESET,			HIDC_BUTTON_ALLRESET,			//全設定リセット
 	//	Feb. 11, 2007 genta TAB関連は「タブバー」シートへ移動
 //	IDC_STATIC,						-1,
@@ -233,6 +236,38 @@ INT_PTR CPropWin::DispatchEvent(
 				}
 				break;
 			// To Here 2004.05.13 Moca
+			case IDC_CHECK_USE_FONT:
+				if( !::IsDlgButtonChecked(hwndDlg, IDC_CHECK_USE_FONT) ){
+					::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), FALSE);
+					LOGFONT lfDummy;
+					HFONT hFont = SetFontLabel(hwndDlg, IDC_STATIC_FONT, lfDummy, 9, false);
+					if(m_hDialogFont != NULL){
+						::DeleteObject(m_hDialogFont);
+					}
+					m_hDialogFont = hFont;
+				}
+				break;
+			case IDC_BUTTON_FONT:
+				{
+					LOGFONT lf;
+					memset_raw(&lf, 0, sizeof_raw(lf));
+					auto_strcpy(lf.lfFaceName, to_tchar(m_Common.m_sWindow.m_szDialogFont));
+					INT nPointSize = m_Common.m_sWindow.m_nDialogFontSize * 10; // pt => 1/10pt
+					lf.lfHeight = -DpiPointsToPixels(nPointSize, 10); // 1/10pt => px
+					if( MySelectFont(&lf, &nPointSize, hwndDlg, false) ){
+						HFONT hFont = SetFontLabel(hwndDlg, IDC_STATIC_FONT, lf, nPointSize);
+						if (m_hDialogFont != NULL){
+							::DeleteObject(m_hDialogFont);
+						}
+						m_hDialogFont = hFont;
+						m_Common.m_sWindow.m_bCustomFont = true;
+						wcscpy(m_Common.m_sWindow.m_szDialogFont, to_wchar(lf.lfFaceName));
+						m_Common.m_sWindow.m_nDialogFontSize = nPointSize / 10;
+						::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), TRUE);
+						CheckDlgButtonBool(hwndDlg, IDC_CHECK_USE_FONT, true);
+					}
+				}
+				break;
 			case IDC_BUTTON_ALLRESET:
 				if( IDYES == ConfirmMessage( hwndDlg, LS(STR_PROPCOMWIN_ALLRESET) ) ){
 					m_Common.m_sOthers.m_bAllReset = true;
@@ -261,6 +296,12 @@ INT_PTR CPropWin::DispatchEvent(
 		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
 		return TRUE;
 //@@@ 2001.12.22 End
+	case WM_DESTROY:
+		if (m_hDialogFont != NULL) {
+			::DeleteObject(m_hDialogFont);
+			m_hDialogFont = NULL;
+		}
+		return TRUE;
 
 	}
 	return FALSE;
@@ -348,6 +389,18 @@ void CPropWin::SetData( HWND hwndDlg )
 		}
 	}
 	Combo_SetCurSel( hwndCombo, nSelPos );
+
+	LOGFONT lf;
+	memset_raw(&lf, 0, sizeof_raw(lf));
+	auto_strcpy(lf.lfFaceName, to_tchar(m_Common.m_sWindow.m_szDialogFont));
+	INT nPointSize = m_Common.m_sWindow.m_nDialogFontSize * 10; // pt => 1/10pt
+	lf.lfHeight = -DpiPointsToPixels(nPointSize, 10); // 1/10pt => px
+
+	CheckDlgButtonBool(hwndDlg, IDC_CHECK_USE_FONT, m_Common.m_sWindow.m_bCustomFont);
+	m_hDialogFont = SetFontLabel(hwndDlg, IDC_STATIC_FONT, lf, nPointSize, m_Common.m_sWindow.m_bCustomFont);
+	if( m_Common.m_sWindow.m_bCustomFont == false ){
+		::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), FALSE);
+	}
 
 	return;
 }
@@ -447,6 +500,8 @@ int CPropWin::GetData( HWND hwndDlg )
 	if ( _tcscmp( m_Common.m_sWindow.m_szLanguageDll, psLangInfo->szDllName ) != 0 ) {
 		_tcsncpy( m_Common.m_sWindow.m_szLanguageDll, psLangInfo->szDllName, _countof(m_Common.m_sWindow.m_szLanguageDll) );
 	}
+	
+	m_Common.m_sWindow.m_bCustomFont = IsDlgButtonCheckedBool(hwndDlg, IDC_CHECK_USE_FONT);
 
 	return TRUE;
 }

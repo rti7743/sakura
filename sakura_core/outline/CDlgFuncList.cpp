@@ -377,19 +377,21 @@ HWND CDlgFuncList::DoModeless(
 		// ドッキング用にダイアログテンプレートに手を加えてから表示する（WS_CHILD化）
 		HINSTANCE hInstance2 = CSelectLang::getLangRsrcInstance();
 		if( !m_pDlgTemplate || m_lastRcInstance != hInstance2 ){
-			HRSRC hResInfo = ::FindResource( hInstance2, MAKEINTRESOURCE(IDD_FUNCLIST), RT_DIALOG );
-			if( !hResInfo ) return NULL;
-			HGLOBAL hResData = ::LoadResource( hInstance2, hResInfo );
-			if( !hResData ) return NULL;
-			m_pDlgTemplate = (LPDLGTEMPLATE)::LockResource( hResData );
-			if( !m_pDlgTemplate ) return NULL;
-			m_dwDlgTmpSize = ::SizeofResource( hInstance2, hResInfo );
+			if( LoadDlgTemplate(hInstance2, IDD_FUNCLIST, m_pDlgTemplate, m_dwDlgTmpSize) == false ){
+				return NULL;
+			}
 			// 言語切り替えでリソースがアンロードされていないか確認するためインスタンスを記憶する
 			m_lastRcInstance = hInstance2;
 		}
-		LPDLGTEMPLATE pDlgTemplate = (LPDLGTEMPLATE)::GlobalAlloc( GMEM_FIXED, m_dwDlgTmpSize );
-		if( !pDlgTemplate ) return NULL;
-		::CopyMemory( pDlgTemplate, m_pDlgTemplate, m_dwDlgTmpSize );
+		LPDLGTEMPLATE pDlgTemplateFont = CustomFontTemplate(m_pShareData, hInstance2, IDD_FUNCLIST);
+		LPDLGTEMPLATE pDlgTemplate = NULL;
+		if( pDlgTemplateFont == NULL ){
+			pDlgTemplate = (LPDLGTEMPLATE)::GlobalAlloc( GMEM_FIXED, m_dwDlgTmpSize );
+			if( !pDlgTemplate ) return NULL;
+			::CopyMemory( pDlgTemplate, m_pDlgTemplate, m_dwDlgTmpSize );
+		}else{
+			pDlgTemplate = pDlgTemplateFont;
+		}
 		pDlgTemplate->style = (WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | DS_SETFONT);
 		hwndRet = CDialog::DoModeless( hInstance, MyGetAncestor(hwndParent, GA_ROOT), pDlgTemplate, lParam, SW_HIDE );
 		::GlobalFree( pDlgTemplate );
@@ -3680,13 +3682,9 @@ EDockSide CDlgFuncList::GetDropRect( POINT ptDrag, POINT ptDrop, LPRECT pRect, b
 		else{
 			HINSTANCE hInstance2 = CSelectLang::getLangRsrcInstance();
 			if ( m_lastRcInstance != hInstance2 ) {
-				HRSRC hResInfo = ::FindResource( hInstance2, MAKEINTRESOURCE(IDD_FUNCLIST), RT_DIALOG );
-				if( !hResInfo ) return eDockSide;
-				HGLOBAL hResData = ::LoadResource( hInstance2, hResInfo );
-				if( !hResData ) return eDockSide;
-				m_pDlgTemplate = (LPDLGTEMPLATE)::LockResource( hResData );
-				if( !m_pDlgTemplate ) return eDockSide;
-				m_dwDlgTmpSize = ::SizeofResource( hInstance2, hResInfo );
+				if( LoadDlgTemplate(hInstance2, IDD_FUNCLIST, m_pDlgTemplate, m_dwDlgTmpSize) == false ){
+					return eDockSide;
+				}
 				// 言語切り替えでリソースがアンロードされていないか確認するためインスタンスを記憶する
 				m_lastRcInstance = hInstance2;
 			}

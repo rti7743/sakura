@@ -599,6 +599,8 @@
 #define HIDC_RADIO_FUNCKEYWND_PLACE2			11261 //ファンクションキー表示位置（下）
 #define HIDC_EDIT_FUNCKEYWND_GROUPNUM			11262 //ファンクションキーのグループボタン数
 #define	HIDC_BUTTON_WINSIZE						11263 //位置と大きさの設定
+#define HIDC_CHECK_USE_FONT						11264 //ダイアログフォントを使用する
+#define HIDC_BUTTON_FONT						11265 //ダイアログフォント選択
 #define HIDC_CHECK_SameTabWidth					11270 //等幅	// 2006.08.06 ryoji
 #define HIDC_CHECK_DispTabIcon					11271 //アイコン表示	// 2006.08.06 ryoji
 #define HIDC_CHECK_SortTabList					11272 //タブ一覧ソート	// 2006.08.06 ryoji

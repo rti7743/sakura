@@ -151,6 +151,11 @@ struct CommonSetting_Window
 	int				m_nMiniMapFontSize;
 	int				m_nMiniMapQuality;
 	int				m_nMiniMapWidth;
+
+	//ダイアログフォント
+	bool			m_bCustomFont;					//!< ユーザ定義ダイアログフォントを使用する
+	WCHAR			m_szDialogFont[LF_FACESIZE];	//!< ダイアログフォント名
+	int				m_nDialogFontSize;				//!< ダイアログフォントサイズ
 };
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //

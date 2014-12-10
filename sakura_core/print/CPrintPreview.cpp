@@ -1979,13 +1979,26 @@ int CALLBACK CPrintPreview::MyEnumFontFamProc(
 void CPrintPreview::CreatePrintPreviewControls( void )
 {
 	/* 印刷プレビュー 操作バー */
-	m_hwndPrintPreviewBar = ::CreateDialogParam(
-		CSelectLang::getLangRsrcInstance(),					// handle to application instance
-		MAKEINTRESOURCE( IDD_PRINTPREVIEWBAR ),				// identifies dialog box template name
-		m_pParentWnd->GetHwnd(),							// handle to owner window
-		CPrintPreview::PrintPreviewBar_DlgProc,	// pointer to dialog box procedure
-		(LPARAM)this
-	);
+	LPDLGTEMPLATE pDlgTemplate = CDialog::CustomFontTemplate(&GetDllShareData(),
+		CSelectLang::getLangRsrcInstance(), IDD_PRINTPREVIEWBAR);
+	if( pDlgTemplate ){
+		m_hwndPrintPreviewBar = ::CreateDialogIndirectParam(
+			CSelectLang::getLangRsrcInstance(),
+			pDlgTemplate,
+			m_pParentWnd->GetHwnd(),
+			CPrintPreview::PrintPreviewBar_DlgProc,
+			(LPARAM)this
+		);
+		GlobalFree(pDlgTemplate);
+	}else{
+		m_hwndPrintPreviewBar = ::CreateDialogParam(
+			CSelectLang::getLangRsrcInstance(),					// handle to application instance
+			MAKEINTRESOURCE( IDD_PRINTPREVIEWBAR ),				// identifies dialog box template name
+			m_pParentWnd->GetHwnd(),							// handle to owner window
+			CPrintPreview::PrintPreviewBar_DlgProc,	// pointer to dialog box procedure
+			(LPARAM)this
+		);
+	}
 
 	/* 縦スクロールバーの作成 */
 	m_hwndVScrollBar = ::CreateWindowEx(
