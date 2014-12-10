@@ -590,6 +590,7 @@
 #define HIDC_WINCAPTION_ACTIVE					11220 //ウインドアクティブ時ウキャプション	//@@@ 2003.06.15 MIK
 #define HIDC_WINCAPTION_INACTIVE				11221 //ウインドア非クティブ時ウキャプション	//@@@ 2003.06.15 MIK
 #define HIDC_TABWND_CAPTION						11222 //タブウインドウキャプション	//@@@ 2003.06.15 MIK
+#define HIDC_BUTTON_ALLRESET					11223 //全設定リセット
 #define HIDC_EDIT_nRulerBottomSpace				11240 //ルーラー（テキストとの隙間）
 #define HIDC_EDIT_nRulerHeight					11241 //ルーラー（高さ）
 #define HIDC_EDIT_nLineNumberRightSpace			11242 //行番号とテキストの隙間

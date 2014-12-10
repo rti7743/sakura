@@ -153,6 +153,7 @@ bool CShareData::InitShareData()
 
 		m_pShareData->m_vStructureVersion = uShareDataVersion;
 		m_pShareData->m_nSize = sizeof(*m_pShareData);
+		m_pShareData->m_Common.m_sOthers.m_bAllReset = false;
 		m_pShareData->m_Common.m_sMacro.m_szKeyMacroFileName[0] = _T('\0');	/* キーワードマクロのファイル名 */ //@@@ 2002.1.24 YAZAKI
 		m_pShareData->m_sFlags.m_bRecordingKeyMacro = FALSE;		/* キーボードマクロの記録中 */
 		m_pShareData->m_sFlags.m_hwndRecordingKeyMacro = NULL;	/* キーボードマクロを記録中のウィンドウ */

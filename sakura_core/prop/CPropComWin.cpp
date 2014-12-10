@@ -48,6 +48,7 @@ static const DWORD p_helpids[] = {	//11200
 	IDC_WINCAPTION_INACTIVE,		HIDC_WINCAPTION_INACTIVE,		//非アクティブ時	//@@@ 2003.06.15 MIK
 	IDC_BUTTON_WINSIZE,				HIDC_BUTTON_WINSIZE,			//位置と大きさの設定	// 2006.08.06 ryoji
 	IDC_COMBO_LANGUAGE,				HIDC_COMBO_LANGUAGE,			//言語選択
+	IDC_BUTTON_ALLRESET,			HIDC_BUTTON_ALLRESET,			//全設定リセット
 	//	Feb. 11, 2007 genta TAB関連は「タブバー」シートへ移動
 //	IDC_STATIC,						-1,
 	0, 0
@@ -232,6 +233,11 @@ INT_PTR CPropWin::DispatchEvent(
 				}
 				break;
 			// To Here 2004.05.13 Moca
+			case IDC_BUTTON_ALLRESET:
+				if( IDYES == ConfirmMessage( hwndDlg, LS(STR_PROPCOMWIN_ALLRESET) ) ){
+					m_Common.m_sOthers.m_bAllReset = true;
+				}
+				break;
 			}
 			break;
 		}

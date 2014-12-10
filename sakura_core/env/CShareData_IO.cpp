@@ -117,6 +117,16 @@ bool CShareData_IO::ShareData_IO_2( bool bRead )
 	}
 //	MYTRACE( _T("Iniファイル処理 0 所要時間(ミリ秒) = %d\n"), cRunningTimer.Read() );
 
+	// 2014.10.03 全設定リセット
+	if( bRead ){
+		bool bAllReset = GetDllShareData().m_Common.m_sOthers.m_bAllReset;
+		cProfile.IOProfileData( L"Other", L"bAllReset", bAllReset );
+		if( bAllReset ){
+			// 設定ファイルを読み込まない
+			return true;
+		}
+	}
+
 	CMenuDrawer* pcMenuDrawer = new CMenuDrawer; // 2010/7/4 Uchi
 
 	if( bRead ){
@@ -2172,6 +2182,10 @@ void CShareData_IO::ShareData_IO_Other( CDataProfile& cProfile )
 		int		nStructureVersion;
 		nStructureVersion = int(pShare->m_vStructureVersion);
 		cProfile.IOProfileData( pszSecName, LTEXT("vStructureVersion"), nStructureVersion );
+
+		// 2014.12.08 全設定リセット
+		bool bAllReset = GetDllShareData().m_Common.m_sOthers.m_bAllReset;
+		cProfile.IOProfileData( pszSecName, L"bAllReset", bAllReset );
 	}
 }
 
