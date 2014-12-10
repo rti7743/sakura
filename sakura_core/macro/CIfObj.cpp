@@ -340,19 +340,13 @@ HRESULT STDMETHODCALLTYPE CIfObj::GetIDsOfNames(
 		//大量にメッセージが出るので注意。
 		//DEBUG_TRACE( _T("GetIDsOfNames: %ls\n"), rgszNames[i] );
 #endif
-		size_t nSize = m_Methods.size();
-		for(size_t j = 0; j < nSize; ++j)
-		{
-			//	Nov. 10, 2003 FILE Win9Xでは、[lstrcmpiW]が無効のため、[_wcsicmp]に修正
-			if(_wcsicmp(rgszNames[i], m_Methods[j].Name) == 0)
-			{
-				rgdispid[i] = j;
-				goto Found;
-			}
+		// 2014.11.06 Moca vectorのうえから随時比較からmapに変更
+		CMethodInfoNameMap::iterator it = m_MethodsNameMap.find(rgszNames[i]);
+		if( it != m_MethodsNameMap.end() ){
+			rgdispid[i] = it->second;
+		}else{
+			return DISP_E_UNKNOWNNAME;
 		}
-		return DISP_E_UNKNOWNNAME;
-		Found:
-		;
 	}
 	return S_OK;
 }
@@ -388,4 +382,5 @@ void CIfObj::AddMethod(
 	}
 	Info->Arguments[ArgumentCount].tdesc.vt = ResultType;
 	Info->Arguments[ArgumentCount].paramdesc.wParamFlags = PARAMFLAG_FRETVAL;
+	m_MethodsNameMap[Info->Name] = m_Methods.size() - 1;
 }

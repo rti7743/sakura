@@ -89,6 +89,13 @@ public:
 	};
 	typedef std::vector<CMethodInfo> CMethodInfoList;
 
+	struct SLessIgnorecase {
+		bool operator()(const std::wstring& a, const std::wstring& b) const {
+			return _wcsicmp(a.c_str(), b.c_str()) < 0;
+		}
+	};
+	typedef std::map<std::wstring, int, SLessIgnorecase> CMethodInfoNameMap;
+
 	// コンストラクタ・デストラクタ
 	CIfObj(const wchar_t* name, bool isGlobal);
 	virtual ~CIfObj();
@@ -136,6 +143,7 @@ public:
 private:
 	// メンバ変数
 	CMethodInfoList m_Methods;			//メソッド情報リスト
+	CMethodInfoNameMap m_MethodsNameMap;
 	ITypeInfo* m_TypeInfo;
 };
 
