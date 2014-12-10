@@ -1460,21 +1460,28 @@ void CShareData_IO::ShareData_IO_Type_One( CDataProfile& cProfile, STypeConfig& 
 	// From Here Sep. 28, 2002 genta / YAZAKI
 	if( cProfile.IsReadingMode() ){
 		//	Block Comment
-		wchar_t buffer[2][ BLOCKCOMMENT_BUFFERSIZE ];
 		//	2004.10.02 Moca 対になるコメント設定がともに読み込まれたときだけ有効な設定と見なす．
 		//	ブロックコメントの始まりと終わり．行コメントの記号と桁位置
 		bool bRet1, bRet2;
-		buffer[0][0] = buffer[1][0] = L'\0';
-		bRet1 = cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentFrom"), MakeStringBufferW(buffer[0]) );			
-		bRet2 = cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentTo"), MakeStringBufferW(buffer[1]) );
-		if( bRet1 && bRet2 ) types.m_cBlockComments[0].SetBlockCommentRule( buffer[0], buffer[1] );
+		for( int k = 0; k < _countof(types.m_cBlockComments); k++ ){
+			wchar_t buffer[2][ BLOCKCOMMENT_BUFFERSIZE ];
+			CBlockComment& block = types.m_cBlockComments[k];
+			wchar_t szItemName[10];
+			if( k == 0 ){
+				szItemName[0] = L'\0';
+			}else{
+				_itow( k, szItemName, 10 );
+			}
+			buffer[0][0] = buffer[1][0] = L'\0';
+			auto_sprintf( szKeyName, L"szBlockCommentFrom%ls", szItemName );
+			bRet1 = cProfile.IOProfileData( pszSecName, szKeyName, MakeStringBufferW(buffer[0]) );
+			auto_sprintf( szKeyName, L"szBlockCommentTo%ls", szItemName );
+			bRet2 = cProfile.IOProfileData( pszSecName, szKeyName, MakeStringBufferW(buffer[1]) );
+			if( bRet1 && bRet2 ) block.SetBlockCommentRule( buffer[0], buffer[1] );
+			auto_sprintf( szKeyName, L"bBlockCommentNest%ls", szItemName );
+			cProfile.IOProfileData( pszSecName, szKeyName, block.m_bCommentNest );
+		}
 
-		//@@@ 2001.03.10 by MIK
-		buffer[0][0] = buffer[1][0] = L'\0';
-		bRet1 = cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentFrom2"), MakeStringBufferW(buffer[0]) );
-		bRet2 = cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentTo2")	, MakeStringBufferW(buffer[1]) );
-		if( bRet1 && bRet2 ) types.m_cBlockComments[1].SetBlockCommentRule( buffer[0], buffer[1] );
-		
 		//	Line Comment
 		wchar_t lbuf[ COMMENT_DELIMITER_BUFFERSIZE ];
 		int  pos;
@@ -1496,24 +1503,23 @@ void CShareData_IO::ShareData_IO_Type_One( CDataProfile& cProfile, STypeConfig& 
 	}
 	else { // write
 		//	Block Comment
-		cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentFrom")	,
-			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cBlockComments[0].getBlockCommentFrom())) );
-		cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentTo")	,
-			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cBlockComments[0].getBlockCommentTo())) );
-
-		//@@@ 2001.03.10 by MIK
-		cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentFrom2"),
-			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cBlockComments[1].getBlockCommentFrom())) );
-		cProfile.IOProfileData( pszSecName, LTEXT("szBlockCommentTo2")	,
-			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cBlockComments[1].getBlockCommentTo())) );
-
-		//	Line Comment
-		cProfile.IOProfileData( pszSecName, LTEXT("szLineComment")		,
-			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cLineComment.getLineComment(0))) );
-		cProfile.IOProfileData( pszSecName, LTEXT("szLineComment2")		,
-			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cLineComment.getLineComment(1))) );
-		cProfile.IOProfileData( pszSecName, LTEXT("szLineComment3")		,
-			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cLineComment.getLineComment(2))) );	//Jun. 01, 2001 JEPRO 追加
+		for( int k = 0; k < _countof(types.m_cBlockComments); k++ ){
+			CBlockComment& block = types.m_cBlockComments[k];
+			wchar_t szItemName[10];
+			if( k == 0 ){
+				szItemName[0] = L'\0';
+			}else{
+				_itow( k, szItemName, 10 );
+			}
+			auto_sprintf( szKeyName, L"szBlockCommentFrom%ls", szItemName );
+			cProfile.IOProfileData( pszSecName, szKeyName,
+				MakeStringBufferW0(const_cast<wchar_t*>(block.getBlockCommentFrom())) );
+			auto_sprintf( szKeyName, L"szBlockCommentTo%ls", szItemName );
+			cProfile.IOProfileData( pszSecName, szKeyName,
+				MakeStringBufferW0(const_cast<wchar_t*>(block.getBlockCommentTo())) );
+			auto_sprintf( szKeyName, L"bBlockCommentNest%ls", szItemName );
+			cProfile.IOProfileData( pszSecName, szKeyName, block.m_bCommentNest );
+		}
 
 		//	From here May 12, 2001 genta
 		int pos;

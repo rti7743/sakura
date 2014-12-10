@@ -102,3 +102,33 @@ int CBlockComment::Match_CommentTo(
 	return cStr.GetLength();
 }
 
+/*!
+	ブロックコメントの終端位置を探す
+
+	@return 当てはまった位置を返すが、当てはまらなかったときは、nLineLenをそのまま返す。
+*/
+int CBlockComment::Match_CommentTo2(
+	int					nPos,			//!< [in] 探索開始位置
+	const CStringRef&	cStr,			//!< [in] 探索対象文字列 ※探索開始位置のポインタではないことに注意
+	int&				nNest			//!< [in,out] コメントのネストの深さ
+) const
+{
+	assert( m_bCommentNest == true );
+	int nEnd = cStr.GetLength() - t_min(m_nBlockToLen, m_nBlockFromLen);
+	const wchar_t *pStr = cStr.GetPtr();
+	for( int i = nPos; i <= nEnd; ++i ){
+		//ASCIIのみ大文字小文字を区別しない（高速）
+		if( 0 == wmemicmp_ascii( &pStr[i], m_szBlockCommentTo, m_nBlockToLen ) ){
+			if( 0 == nNest ){
+				return i + m_nBlockToLen;
+			}
+			nNest--;
+			i += m_nBlockToLen - 1;
+		}
+		if( 0 == wmemicmp_ascii( &pStr[i], m_szBlockCommentFrom, m_nBlockFromLen ) ){
+			nNest++;
+			i += m_nBlockFromLen - 1;
+		}
+	}
+	return cStr.GetLength();
+}

@@ -47,7 +47,7 @@ public:
 
 class CColor_BlockComment : public CColorStrategy{
 public:
-	CColor_BlockComment(EColorIndexType nType) : m_nType(nType), m_nCOMMENTEND(0){}
+	CColor_BlockComment(EColorIndexType nType) : m_nType(nType), m_nCOMMENTEND(0), m_nNest(0) {}
 	virtual void Update(void)
 	{
 		const CEditDoc* pCEditDoc = CEditDoc::GetInstance(0);
@@ -56,6 +56,8 @@ public:
 	}
 	virtual EColorIndexType GetStrategyColor() const{ return m_nType; }
 	virtual void InitStrategyStatus(){ m_nCOMMENTEND = 0; }
+	virtual CLayoutColorInfo* GetStrategyColorInfo() const;
+	virtual void SetStrategyColorInfo(const CLayoutColorInfo*);
 	virtual bool BeginColor(const CStringRef& cStr, int nPos);
 	virtual bool EndColor(const CStringRef& cStr, int nPos);
 	virtual bool Disp() const { return m_pTypeData->m_ColorInfoArr[COLORIDX_COMMENT].m_bDisp; }
@@ -63,6 +65,8 @@ private:
 	EColorIndexType m_nType;
 	const CBlockComment* m_pcBlockComment;
 	int m_nCOMMENTEND;
+
+	int m_nNest;
 };
 
 #endif /* SAKURA_CCOLOR_COMMENT_5CBF888D_32A3_4713_8967_D6D49F6E569F_H_ */
