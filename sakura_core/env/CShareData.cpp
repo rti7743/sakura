@@ -326,7 +326,7 @@ bool CShareData::InitShareData()
 
 		m_pShareData->m_Common.m_sEdit.m_bAddCRLFWhenCopy = false;			/* 折り返し行に改行を付けてコピー */
 		m_pShareData->m_Common.m_sSearch.m_bGrepSubFolder = TRUE;			/* Grep: サブフォルダも検索 */
-		m_pShareData->m_Common.m_sSearch.m_bGrepOutputLine = TRUE;			/* Grep: 行を出力するか該当部分だけ出力するか */
+		m_pShareData->m_Common.m_sSearch.m_nGrepOutputLineType = 1;			// Grep: 結果出力：行を出力/該当部分/否マッチ行
 		m_pShareData->m_Common.m_sSearch.m_nGrepOutputStyle = 1;			/* Grep: 出力形式 */
 		m_pShareData->m_Common.m_sSearch.m_bGrepOutputFileOnly = false;
 		m_pShareData->m_Common.m_sSearch.m_bGrepOutputBaseFolder = false;
