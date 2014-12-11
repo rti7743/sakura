@@ -122,7 +122,7 @@ EConvertResult CCodePage::CPToUnicode(const CMemory& cSrc, CNativeW* pDst, int c
 	// 変換先バッファサイズとその確保
 	wchar_t* pDstBuffer;
 	bool bMemDstPtr;
-	if( nDstCch <= pDst->capacity() && &cSrc != pDst->_GetMemory() ){
+	if( nDstCch <= pDst->capacity() && &cSrc != pDst->_GetMemory() && NULL != pDst->GetStringPtr() ){
 		bMemDstPtr = true;
 		pDstBuffer = pDst->GetStringPtr(); // unconst
 	}else{
