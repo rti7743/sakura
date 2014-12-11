@@ -119,22 +119,37 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 				switch( m_nFuncID ){
 				case F_HalfPageUp_BOX:
 				case F_HalfPageDown_BOX:
-					AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum / 2 );
+					if( lParam == 0 ){
+						AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum / 2 );
+					}else{
+						AddIntParam( lParam );
+					}
 					break;
 				case F_1PageUp_BOX:
 				case F_1PageDown_BOX:
-					AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum - 1 );
+					if( lParam == 0 ){
+						AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum - 1 );
+					}else{
+						AddIntParam( lParam );
+					}
 					break;
 				default:
-					AddIntParam( 0 );
+					AddIntParam( lParam );
 					break;
 				}
 			}
-			int nParamOption = 0;
-			if( GetDllShareData().m_Common.m_sEdit.m_bBoxSelectLock ){
-				nParamOption = 0x01;
+			int nParamOption;
+			if( nOption == 1 ){
+				nParamOption = lParams[1];
 			}else{
-				nParamOption = 0x02;
+				nParamOption = lParam;
+			}
+			if( nParamOption == 0 ){
+				if( GetDllShareData().m_Common.m_sEdit.m_bBoxSelectLock ){
+					nParamOption = 0x01;
+				}else{
+					nParamOption = 0x02;
+				}
 			}
 			AddIntParam( nParamOption );
 		}
@@ -280,16 +295,20 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 	case F_HalfPageUp_Sel:
 	case F_HalfPageDown:
 	case F_HalfPageDown_Sel:
-		{
+		if( lParam == 0 ){
 			AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum / 2 );
+		}else{
+			AddIntParam( lParam );
 		}
 		break;
 	case F_1PageUp:
 	case F_1PageUp_Sel:
 	case F_1PageDown:
 	case F_1PageDown_Sel:
-		{
+		if( lParam == 0 ){
 			AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum - 1 );
+		}else{
+			AddIntParam( lParam );
 		}
 		break;
 
