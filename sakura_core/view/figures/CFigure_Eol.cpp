@@ -137,18 +137,24 @@ bool CFigure_Eol::DrawImp(SColorStrategyInfo* pInfo)
 // 折り返し描画
 void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayoutYInt nLineNum )
 {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	CTypeSupport cWrapType(pcView,COLORIDX_WRAP);
-	if( cWrapType.IsDisp() ){
-		bool bTrans = pcView->IsBkBitmap() && cWrapType.GetBackColor() == CTypeSupport(pcView,COLORIDX_TEXT).GetBackColor();
-		cWrapType.SetGraphicsState_WhileThisObj(gr);
-		int fontNo = WCODE::GetFontNo('<');
-		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
-		pcView->GetTextDrawer().DispText(gr, pDispPos, nHeightMargin, L"<", 1, bTrans );
+	const wchar_t* szText;
+	if (cWrapType.IsDisp()) {
+		szText = L"<";
+	}else{
+		szText = L" ";
 	}
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	CLayoutXInt width = CLayoutXInt(pcView->GetTextMetrics().CalcTextWidth3(szText, 1));
 #else
+	CLayoutXInt width = CLayoutXInt(1);
+#endif
 	RECT rcClip2;
-	if(pcView->GetTextArea().GenerateClipRect(&rcClip2,*pDispPos,CLayoutXInt(1)))
+	if(pcView->GetTextArea().GenerateClipRect(&rcClip2, *pDispPos, width)
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+		&& cWrapType.IsDisp()
+#endif
+	)
 	{
 		//サポートクラス
 		CTypeSupport cWrapType(pcView,COLORIDX_WRAP);
@@ -179,22 +185,17 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 		bool bChangeColor = false;
 
 		//描画文字列と色の決定
-		const wchar_t* szText;
 		if( cWrapType.IsDisp() )
 		{
-			szText = L"<";
 			cWrapType.SetGraphicsState_WhileThisObj(gr);
 			if( eBgcolorOverwrite != COLORIDX_WRAP ){
 				bChangeColor = true;
 				gr.PushTextBackColor( CTypeSupport(pcView, eBgcolorOverwrite).GetBackColor() );
 			}
 		}
-		else
-		{
-			szText = L" ";
-		}
 		int fontNo = WCODE::GetFontNo(*szText);
 		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
+		int nDx[1] = {width};
 
 		//描画
 		::ExtTextOutW_AnyBuild(
@@ -205,14 +206,13 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 			&rcClip2,
 			szText,
 			wcslen(szText),
-			pcView->GetTextMetrics().GetDxArray_AllHankaku()
+			nDx
 		);
 		if( bChangeColor ){
 			gr.PopTextBackColor();
 		}
 	}
-	pDispPos->ForwardDrawCol(CLayoutXInt(1));
-#endif
+	pDispPos->ForwardDrawCol(width);
 }
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 //                       EOF描画実装                           //
@@ -313,8 +313,8 @@ void _DispEOL(CGraphics& gr, DispPos* pDispPos, CEol cEol, const CEditView* pcVi
 		::ExtTextOutW_AnyBuild(
 			gr,
 			pDispPos->GetDrawPos().x,
-			pDispPos->GetDrawPos().y,
-			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0) + nHeightMargin,
+			pDispPos->GetDrawPos().y + nHeightMargin,
+			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0),
 			&rcClip2,
 			L"  ",
 			2,

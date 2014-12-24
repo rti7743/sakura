@@ -289,6 +289,14 @@ namespace WCODE
 		int CalcPxWidthByFont(wchar_t c)
 		{
 			SIZE size={m_han_size.cx*2,0}; //関数が失敗したときのことを考え、全角幅で初期化しておく
+			// 2014.12.21 コントロールコードの表示・NULが1px幅になるのをスペース幅にする
+			if (WCODE::IsControlCode(c) || L'\0' == c) {
+				GetTextExtentPoint32W_AnyBuild(SelectHDC(c),&c,1,&size);
+				const int nCx = size.cx;
+				const wchar_t proxyChar = ((L'\0' == c) ? ' ' : L'･');
+				GetTextExtentPoint32W_AnyBuild(SelectHDC(proxyChar),&proxyChar,1,&size);
+				return t_max<int>(nCx, size.cx);
+			}
 			GetTextExtentPoint32W_AnyBuild(SelectHDC(c),&c,1,&size);
 			return t_max<int>(1,size.cx);
 		}

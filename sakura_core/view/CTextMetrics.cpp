@@ -307,7 +307,7 @@ int CTextMetrics::CalcTextWidth2(
 int CTextMetrics::CalcTextWidth3(
 	const wchar_t* pText, //!< •¶Žš—ñ
 	int nLength          //!< •¶Žš—ñ’·
-)
+) const
 {
 	return CalcTextWidth2(pText, nLength, GetCharPxWidth(), GetCharSpacing());
 }

@@ -133,7 +133,7 @@ public:
 	int CalcTextWidth3(
 		const wchar_t* pText, //!< 文字列
 		int nLength           //!< 文字列長
-	);
+	) const;
 
 private:
 //	HDC m_hdc; //!< 計算に用いるデバイスコンテキスト
