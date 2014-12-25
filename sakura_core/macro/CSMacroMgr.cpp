@@ -192,8 +192,8 @@ MacroFuncInfo CSMacroMgr::m_MacroFuncInfoCommandArr[] =
 	{F_GOLOGICALLINETOP_BOX,LTEXT("GoLogicalLineTop_BoxSel"),{VT_I4,   VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)行頭に移動(改行単位)
 	{F_GOLINETOP_BOX,		LTEXT("GoLineTop_BoxSel"),		{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)行頭に移動(折り返し単位/改行単位)
 	{F_GOLINEEND_BOX,		LTEXT("GoLineEnd_BoxSel"),		{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)行末に移動(折り返し単位)
-	{F_HalfPageUp_BOX,		LTEXT("HalfPageUp_BoxSel"),		{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)半ページアップ
-	{F_HalfPageDown_BOX,	LTEXT("HalfPageDown_BoxSel"),	{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)半ページダウン
+	{F_HalfPageUp_BOX,		LTEXT("HalfPageUp_BoxSel"),		{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)半ページアップ
+	{F_HalfPageDown_BOX,	LTEXT("HalfPageDown_BoxSel"),	{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)半ページダウン
 	{F_1PageUp_BOX,			LTEXT("PageUp_BoxSel"),			{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)１ページアップ
 	{F_1PageUp_BOX,			LTEXT("1PageUp_BoxSel"),		{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)１ページアップ
 	{F_1PageDown_BOX,		LTEXT("PageDown_BoxSel"),		{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //(矩形選択)１ページダウン
