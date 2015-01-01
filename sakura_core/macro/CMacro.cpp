@@ -517,7 +517,8 @@ void CMacro::Save( HINSTANCE hInstance, CTextOutputStream& out ) const
 				cmemWork.Replace( L"\n", L"\\\n" );
 				cmemWork.Replace( L"\t", L"\\\t" );
 				cmemWork.Replace( L"\0", 1, L"\\u0000", 6 );
-				cmemWork.Replace( L"\u85", L"\\u0085" );
+				const wchar_t u0085[] = {0x85, 0};
+				cmemWork.Replace( u0085, L"\\u0085" );
 				cmemWork.Replace( L"\u2028", L"\\u2028" );
 				cmemWork.Replace( L"\u2029", L"\\u2029" );
 				for( int c = 0; c < 0x20; c++ ){
@@ -535,7 +536,8 @@ void CMacro::Save( HINSTANCE hInstance, CTextOutputStream& out ) const
 						}
 					}
 				}
-				cmemWork.Replace( L"\u7f", L"\\u007f" );
+				const wchar_t u007f[] = {0x7f, 0};
+				cmemWork.Replace( u007f, L"\\u007f" );
 				out.WriteString( L"'" );
 				out.WriteString( cmemWork.GetStringPtr(), cmemWork.GetStringLength() );
 				out.WriteString( L"'" );
@@ -2337,12 +2339,12 @@ bool CMacro::HandleFunction(CEditView *View, EFunctionCode ID, const VARIANT *Ar
 		{
 			if( View->GetSelectionInfo().m_bSelectingLock ) {
 				if( View->GetSelectionInfo().IsBoxSelecting() ) {
-					Wrap( &Result )->Receive( 2 );	//矩形選択中
+					Wrap( &Result )->Receive( 2 );	//選択ロック+矩形選択中
 				}else{
-					Wrap( &Result )->Receive( 1 );	//選択中
+					Wrap( &Result )->Receive( 1 );	//選択ロック中
 				}
 			}else{
-				Wrap( &Result )->Receive( 0 );		//非選択中
+				Wrap( &Result )->Receive( 0 );		//非ロック中
 			}
 		}
 		return true;
