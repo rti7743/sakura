@@ -788,11 +788,9 @@
 #define IDC_CHECK_INDENTCPPUNDO         1719
 #define IDC_CHECK_ITALIC                1720
 #define IDC_CHECK_STRIKEOUT             1721
-#define IDC_RADIO_NOHIT                 1722
-#define IDC_RADIO_LINEDELETE            1723
-#define IDC_BUTTON_ALLRESET             1724
-#define IDC_CHECK_BOXSELECTLOCK         1725
-#define IDC_CHECK_USE_FONT              1726
+#define IDC_BUTTON_ALLRESET             1722
+#define IDC_CHECK_BOXSELECTLOCK         1723
+#define IDC_CHECK_USE_FONT              1724
 #define IDC_STATIC_FONT                 1727
 #define IDC_BUTTON_FONT                 1728
 #define IDS_AUTHOR_PAGE                 4054
