@@ -51,24 +51,25 @@ protected:
 	static void ShareData_IO_Folders( CDataProfile& );
 	static void ShareData_IO_Cmd( CDataProfile& );
 	static void ShareData_IO_Nickname( CDataProfile& );
-	static void ShareData_IO_Common( CDataProfile& );
+	static void ShareData_IO_Common( CDataProfile&, CDataProfile& );
 	static void ShareData_IO_Toolbar( CDataProfile&, CMenuDrawer* );
 	static void ShareData_IO_CustMenu( CDataProfile& );
 	static void ShareData_IO_Font( CDataProfile& );
 	static void ShareData_IO_KeyBind( CDataProfile& );
 	static void ShareData_IO_Print( CDataProfile& );
-	static void ShareData_IO_Types( CDataProfile& );
+	static void ShareData_IO_Types( CDataProfile&, CDataProfile& );
 	static void ShareData_IO_KeyWords( CDataProfile& );
 	static void ShareData_IO_Macro( CDataProfile& );
 	static void ShareData_IO_Statusbar( CDataProfile& );	// 2008/6/21 Uchi
 	static void ShareData_IO_Plugin( CDataProfile&, CMenuDrawer* );		// 2009/11/30 syat
 	static void ShareData_IO_MainMenu( CDataProfile& );		// 2010/5/15 Uchi
-	static void ShareData_IO_Other( CDataProfile& );
+	static void ShareData_IO_Other( CDataProfile&, CDataProfile& );
 
 public:
 	static void ShareData_IO_FileTree( CDataProfile&, SFileTree&, const WCHAR* );
 	static void ShareData_IO_FileTreeItem( CDataProfile&, SFileTreeItem&, const WCHAR*, int i );
 	static void ShareData_IO_Type_One( CDataProfile&, STypeConfig& , const WCHAR* );	// 2010/04/12 Uchi •ª—£
+	static void ShareData_IO_Type_One( CDataProfile&, CDataProfile&, STypeConfig& , const WCHAR* );
 
 public:
 	static void IO_CustMenu( CDataProfile&, CommonSetting_CustomMenu&, bool );

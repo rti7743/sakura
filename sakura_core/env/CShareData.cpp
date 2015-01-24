@@ -625,6 +625,7 @@ bool CShareData::InitShareData()
 
 			sOthers.m_bAllReset = false;
 			sOthers.m_bIniReadOnly = false;
+			sOthers.m_eHistoryMode = EHistorySave_OneFile;
 		}
 
 		// [ステータスバー]タブ

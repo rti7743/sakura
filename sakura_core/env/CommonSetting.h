@@ -634,6 +634,12 @@ struct CommonSetting_View
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 //                          その他                             //
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
+enum EHistorySave{
+	EHistorySave_OneFile,		//!< sakura.iniに記録・読み込み
+	EHistorySave_Separation,	//!< sakura_history.iniに記録・読み込み
+	EHistorySave_NoneSave		//!< 記録しない/読み込まない
+};
+
 struct CommonSetting_Others
 {
 	//INI内設定のみ
@@ -645,6 +651,7 @@ struct CommonSetting_Others
 
 	bool		m_bAllReset;					//!< 全設定リセット
 	bool		m_bIniReadOnly;				//!< sakura.iniの読み取り専用
+	EHistorySave	m_eHistoryMode;			//!< 履歴の保存方法
 };
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
