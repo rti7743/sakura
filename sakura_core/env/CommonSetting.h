@@ -644,6 +644,7 @@ struct CommonSetting_Others
 	RECT		m_rcTagJumpDialog;			//!< 「ダイレクトタグジャンプ候補一覧」ダイアログボックスのサイズと位置
 
 	bool		m_bAllReset;					//!< 全設定リセット
+	bool		m_bIniReadOnly;				//!< sakura.iniの読み取り専用
 };
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
