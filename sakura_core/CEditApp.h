@@ -57,6 +57,12 @@ public:
 
 	CEditDoc*		GetDocument(){ return m_pcEditDoc; }
 	CImageListMgr&	GetIcons(){ return m_cIcons; }
+	CImageListMgr&	GetBigIcons(){
+		if( m_bBigIcons ){
+			return m_cBigIcons;
+		}
+		return m_cIcons;
+	}
 
 	bool OpenPropertySheet( int nPageNum );
 	bool OpenPropertySheetTypes( int nPageNum, CTypeConfig nSettingType );
@@ -86,6 +92,8 @@ public:
 
 	//GUIオブジェクト
 	CImageListMgr		m_cIcons;					//!< Image List
+	CImageListMgr		m_cBigIcons;				//!< Image List
+	bool m_bBigIcons;
 };
 
 

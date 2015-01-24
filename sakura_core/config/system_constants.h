@@ -614,6 +614,7 @@
 #define FN_APP_ICON  _T("my_appicon.ico")
 #define FN_GREP_ICON _T("my_grepicon.ico")
 #define FN_TOOL_BMP  _T("my_icons.bmp")
+#define FN_TOOL_BMP2  _T("my_icons%d.bmp")
 
 //	標準アプリケーションアイコンリソース名
 #define ICON_DEFAULT_APP IDI_ICON_STD

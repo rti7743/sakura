@@ -43,7 +43,8 @@ void CEditApp::Create(HINSTANCE hInst, int nGroupId)
 	m_hInst = hInst;
 
 	//ヘルパ作成
-	m_cIcons.Create( m_hInst );	//	CreateImage List
+	m_cIcons.Create( m_hInst, false );	//	CreateImage List
+	m_bBigIcons = m_cBigIcons.Create( m_hInst, true );
 
 	//ドキュメントの作成
 	m_pcEditDoc = new CEditDoc(this);
@@ -66,7 +67,7 @@ void CEditApp::Create(HINSTANCE hInst, int nGroupId)
 	m_pcEditWnd = CEditWnd::getInstance();
 
 	m_pcEditDoc->Create( m_pcEditWnd );
-	m_pcEditWnd->Create( m_pcEditDoc, &m_cIcons, nGroupId );
+	m_pcEditWnd->Create( m_pcEditDoc, &m_cIcons, &GetBigIcons(), nGroupId );
 
 	//MRU管理
 	m_pcMruListener = new CMruListener();

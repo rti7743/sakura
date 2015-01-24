@@ -59,6 +59,7 @@ public:
 	HWND GetRebarHwnd() const{ return m_hwndReBar; }
 	HWND GetSearchHwnd() const{ return m_hwndSearchBox; }
 	int GetSearchKey(std::wstring&); //!< 検索キーを取得。戻り値は検索キーの文字数。
+	CImageListMgr& GetIcons(){ return *m_pcIcons; }
 
 	//操作
 	void SetFocusSearchBox( void ) const;		/* ツールバー検索ボックスへフォーカスを移動 */	// 2006.06.04 yukihane

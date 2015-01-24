@@ -270,7 +270,7 @@ HWND CControlTray::Create( HINSTANCE hInstance )
 	::SetWindowPos( GetTrayHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE );
 	
 	// タスクトレイアイコン作成
-	m_hIcons.Create( m_hInstance );	//	Oct. 16, 2000 genta
+	m_hIcons.Create( m_hInstance, false );	//	Oct. 16, 2000 genta
 	m_cMenuDrawer.Create( CSelectLang::getLangRsrcInstance(), GetTrayHwnd(), &m_hIcons );
 	if( GetTrayHwnd() ){
 		CreateTrayIcon( GetTrayHwnd() );

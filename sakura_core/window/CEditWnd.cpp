@@ -610,6 +610,7 @@ void CEditWnd::_AdjustInMonitor(const STabGroupInfo& sTabGroupInfo)
 HWND CEditWnd::Create(
 	CEditDoc*		pcEditDoc,
 	CImageListMgr*	pcIcons,	//!< [in] Image List
+	CImageListMgr*	pcBigIcons,	//!< [in] Image List
 	int				nGroup		//!< [in] グループID
 )
 {
@@ -687,7 +688,7 @@ HWND CEditWnd::Create(
 
 	//イメージ、ヘルパなどの作成
 	m_cMenuDrawer.Create( G_AppInstance(), GetHwnd(), pcIcons );
-	m_cToolbar.Create( pcIcons );
+	m_cToolbar.Create( pcBigIcons );
 
 	// プラグインコマンドを登録する
 	RegisterPluginCommand();
@@ -4919,7 +4920,12 @@ void CEditWnd::RegisterPluginCommand( CPlug* plug )
 {
 	int iBitmap = CMenuDrawer::TOOLBAR_ICON_PLUGCOMMAND_DEFAULT - 1;
 	if( !plug->m_sIcon.empty() ){
-		iBitmap = m_cMenuDrawer.m_pcIcons->Add( to_tchar(plug->m_cPlugin.GetFilePath( to_tchar(plug->m_sIcon.c_str()) ).c_str()) );
+		std::tstring path = to_tchar(plug->m_cPlugin.GetFilePath( to_tchar(plug->m_sIcon.c_str()) ).c_str());
+		iBitmap = m_cMenuDrawer.m_pcIcons->Add( path.c_str() );
+		// 2014.12.09 大きいツールバーアイコン対応
+		if( m_cToolbar.GetIcons().IsBigIcon() ){
+			m_cToolbar.GetIcons().Add( path.c_str() );
+		}
 	}
 
 	m_cMenuDrawer.AddToolButton( iBitmap, plug->GetFunctionCode() );

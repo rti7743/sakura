@@ -56,7 +56,7 @@ public:
 	CImageListMgr();
 	~CImageListMgr();
 
-	bool Create(HINSTANCE hInstance);	//	生成
+	bool Create(HINSTANCE hInstance, bool);	//	生成
 	
 	/*! @brief アイコンの描画
 	
@@ -80,6 +80,8 @@ public:
 	int  cx(void) const { return m_cx; }
 	//! アイコンの高さ
 	int  cy(void) const { return m_cy; }
+
+	bool IsBigIcon() const { return m_bBigIcon; }
 	
 	//! アイコンを追加する
 	int Add(const TCHAR* szPath);
@@ -101,6 +103,7 @@ public:
 protected:
 	int m_cx;			//!<	width of icon
 	int m_cy;			//!<	height of icon
+	bool m_bBigIcon;
 	/*!	@brief 透過色
 	
 		描画を自前で行うため，透過色を覚えておく必要がある．

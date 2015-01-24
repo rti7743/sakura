@@ -111,6 +111,7 @@ public:
 	HWND Create(
 		CEditDoc*		pcEditDoc,
 		CImageListMgr*	pcIcons,
+		CImageListMgr*	pcBigIcons,
 		int				nGroup
 	);
 	void _GetTabGroupInfo(STabGroupInfo* pTabGroupInfo, int& nGroup);

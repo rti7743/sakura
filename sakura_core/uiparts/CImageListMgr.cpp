@@ -31,6 +31,7 @@ const int MAX_Y = MAX_TOOLBAR_ICON_Y;	//2002.01.17
 /*! コンストラクタ */
 CImageListMgr::CImageListMgr()
 	: m_cx( 16 ), m_cy( 16 )
+	, m_bBigIcon( false )
 	, m_cTrans( RGB( 0, 0, 0 ))
 	, m_hIconBitmap( NULL )
 	, m_nIconCount( MAX_TOOLBAR_ICON_COUNT )
@@ -71,7 +72,7 @@ CImageListMgr::~CImageListMgr()
 	
 	@date 2003.07.21 genta ImageListの構築は行わない．代わりにbitmapをそのまま保持する．
 */
-bool CImageListMgr::Create(HINSTANCE hInstance)
+bool CImageListMgr::Create(HINSTANCE hInstance, bool bBigImage)
 {
 	MY_RUNNINGTIMER( cRunningTimer, "CImageListMgr::Create" );
 	if( m_hIconBitmap != NULL ){	//	既に構築済みなら無視する
@@ -90,7 +91,26 @@ bool CImageListMgr::Create(HINSTANCE hInstance)
 		//	2001.7.1 GAE リソースをローカルファイル(sakuraディレクトリ) my_icons.bmp から読めるように
 		// 2007.05.19 ryoji 設定ファイル優先に変更
 		TCHAR szPath[_MAX_PATH];
-		GetInidirOrExedir( szPath, FN_TOOL_BMP );
+		if( bBigImage ){
+			// 16pxのときは大きくはないがメニューとツールバーを別アイコンにできる
+			// 120DPI(125%)等のときも16px固定ツールバーにしたいときも16を使用できる
+			int nSizeList[] = {16, 20, 24, 32, 48, 64, 128};
+			for( int i = 0; i < _countof(nSizeList); i++ ){
+				TCHAR szFile[_MAX_PATH];
+				auto_sprintf( szFile, FN_TOOL_BMP2, nSizeList[i] );
+				GetInidirOrExedir( szPath, szFile );
+				if( fexist(szPath) ){
+					m_cx = m_cy  = nSizeList[i];
+					m_bBigIcon = true;
+					break;
+				}
+			}
+			if( !m_bBigIcon ){
+				return false;
+			}
+		}else{
+			GetInidirOrExedir( szPath, FN_TOOL_BMP );
+		}
 		hRscbmp = (HBITMAP)::LoadImage( NULL, szPath, IMAGE_BITMAP, 0, 0,
 			LR_LOADFROMFILE | LR_CREATEDIBSECTION | LR_LOADMAP3DCOLORS );
 
@@ -380,7 +400,28 @@ int CImageListMgr::Add(const TCHAR* szPath)
 	m_nIconCount++;
 
 	//アイコンを読み込む
-	HBITMAP hExtBmp = (HBITMAP)::LoadImage( NULL, szPath, IMAGE_BITMAP, 0, 0,
+	TCHAR szPath2[_MAX_PATH];
+	if( m_bBigIcon ){
+		// iconname.bmp => iconname32.bmp
+		TCHAR	szDrive[_MAX_DIR];
+		TCHAR	szDir[_MAX_DIR];
+		TCHAR	szFname[_MAX_FNAME];
+		TCHAR	szExt[_MAX_EXT];
+		_tsplitpath(szPath, szDrive, szDir, szFname, szExt);
+		auto_strcpy(szPath2, szDrive);
+		auto_strcat(szPath2, szDir);
+		auto_strcat(szPath2, szFname);
+		TCHAR	szIconSize[10];
+		auto_sprintf(szIconSize, _T("%d"), cx());
+		auto_strcat(szPath2, szIconSize);
+		auto_strcat(szPath2, szExt);
+		if( !fexist(szPath2) ){
+			auto_strcpy(szPath2, szPath);
+		}
+	}else{
+		auto_strcpy(szPath2, szPath);
+	}
+	HBITMAP hExtBmp = (HBITMAP)::LoadImage( NULL, szPath2, IMAGE_BITMAP, 0, 0,
 		LR_LOADFROMFILE | LR_CREATEDIBSECTION );
 
 	if( hExtBmp == NULL ) {
@@ -397,7 +438,32 @@ int CImageListMgr::Add(const TCHAR* szPath)
 	::SelectObject( hExtDC, hOldBmp );
 	::DeleteDC( hExtDC );
 
-	MyBitBlt( hDestDC, (index % MAX_X) * cx(), (index / MAX_X) * cy(), cx(), cy(), hExtBmp, 0, 0, cTrans );
+	BITMAP bmp;
+	GetObject(hExtBmp, sizeof(BITMAP), &bmp);
+	if( bmp.bmWidth != cx() || bmp.bmHeight != cy() ){
+		// 拡大転送(ビットマップファイルが名前に反して大きかったら縮小)
+		HBITMAP bmpExpand = ::CreateCompatibleBitmap(hDestDC, cx(), cy());
+		HDC     hdcTempFrom = ::CreateCompatibleDC(hDestDC);
+		HDC     hdcTempTo = ::CreateCompatibleDC(hDestDC);
+		HBITMAP bmpOldFrom = (HBITMAP)::SelectObject(hdcTempFrom, hExtBmp);
+		HBITMAP bmpOldTo = (HBITMAP)::SelectObject(hdcTempTo, bmpExpand);
+		float fExpandX = (float)cx() / bmp.bmWidth;
+		float fExpandY = (float)cy() / bmp.bmHeight;
+		float fExpand = t_min(fExpandX, fExpandY);
+		int nCXTo = (int)(bmp.bmWidth * fExpand);
+		int nCYTo = (int)(bmp.bmHeight * fExpand);
+		int modeOld = ::SetStretchBltMode(hdcTempTo, COLORONCOLOR);
+		::StretchBlt(hdcTempTo, (cx() - nCXTo) / 2, (cy() - nCYTo) / 2, nCXTo, nCYTo, hdcTempFrom, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+		::SetStretchBltMode(hdcTempTo, modeOld);
+		::SelectObject(hdcTempFrom, bmpOldFrom);
+		::SelectObject(hdcTempTo, bmpOldTo);
+		::DeleteDC(hdcTempFrom);
+		::DeleteDC(hdcTempTo);
+		MyBitBlt( hDestDC, (index % MAX_X) * cx(), (index / MAX_X) * cy(), cx(), cy(), bmpExpand, 0, 0, cTrans );
+		::DeleteObject(bmpExpand);
+	}else{
+		MyBitBlt( hDestDC, (index % MAX_X) * cx(), (index / MAX_X) * cy(), cx(), cy(), hExtBmp, 0, 0, cTrans );
+	}
 
 	::SelectObject( hDestDC, hOldDestBmp );
 	::DeleteDC( hDestDC );

@@ -199,7 +199,12 @@ void CMainToolBar::CreateToolBar( void )
 			(LONG_PTR)ToolBarWndProc
 		);
 
-		Toolbar_SetButtonSize( m_hwndToolBar, DpiScaleX(22), DpiScaleY(22) );	// 2009.10.01 ryoji 高DPI対応スケーリング
+		if( !GetIcons().IsBigIcon() ){
+			Toolbar_SetButtonSize( m_hwndToolBar, DpiScaleX(22), DpiScaleY(22) );	// 2009.10.01 ryoji 高DPI対応スケーリング
+		}else{
+			// 2014.12.09 Moca 大きいサイズのアイコン対応
+			Toolbar_SetButtonSize( m_hwndToolBar, GetIcons().cx() + DpiScaleX(6), GetIcons().cy() + DpiScaleY(6) );
+		}
 		Toolbar_ButtonStructSize( m_hwndToolBar, sizeof(TBBUTTON) );
 		//	Oct. 12, 2000 genta
 		//	既に用意されているImage Listをアイコンとして登録
@@ -253,9 +258,7 @@ void CMainToolBar::CreateToolBar( void )
 					TBBUTTON		my_tbb;
 					LOGFONT		lf;
 
-					switch( tbb.idCommand )
-					{
-					case F_SEARCH_BOX:
+					if( tbb.idCommand == F_SEARCH_BOX){
 						if( m_hwndSearchBox )
 						{
 							break;
@@ -270,11 +273,24 @@ void CMainToolBar::CreateToolBar( void )
 						}
 						Toolbar_AddButtons( m_hwndToolBar, 1, &my_tbb );
 						count++;
+						// フォントサイズ算出
+						int nPxHeight = DpiPointsToPixels(-9);
+						int nBigPercent = 100;
+						if( GetIcons().IsBigIcon() ){
+							// 2014.12.09 指定サイズアイコンの場合は、その高さに合わせる
+							int tmp  = -(GetIcons().cy() - 4);
+							nBigPercent = tmp * 100 / nPxHeight;
+							nPxHeight = tmp;
+						}
 
 						//サイズを設定する
 						tbi.cbSize = sizeof(tbi);
 						tbi.dwMask = TBIF_SIZE;
 						tbi.cx     = (WORD)DpiScaleX(160);	//ボックスの幅	// 2009.10.01 ryoji 高DPI対応スケーリング
+						if( GetIcons().IsBigIcon() ){
+							// 2014.12.09 アイコンサイズに合わせて拡大
+							tbi.cx = (WORD)(tbi.cx * nBigPercent / 100);
+						}
 						Toolbar_SetButtonInfo( m_hwndToolBar, tbb.idCommand, &tbi );
 
 						//位置とサイズを取得する
@@ -294,7 +310,7 @@ void CMainToolBar::CreateToolBar( void )
 
 							lf = m_pOwner->GetLogfont();
 							//memset_raw( &lf, 0, sizeof(lf) );
-							lf.lfHeight			= DpiPointsToPixels(-9); // Jan. 14, 2003 genta ダイアログにあわせてちょっと小さく	// 2009.10.01 ryoji 高DPI対応（ポイント数から算出）
+							lf.lfHeight			= nPxHeight; // Jan. 14, 2003 genta ダイアログにあわせてちょっと小さく	// 2009.10.01 ryoji 高DPI対応（ポイント数から算出）
 							lf.lfWidth			= 0;
 							lf.lfEscapement		= 0;
 							lf.lfOrientation	= 0;
@@ -324,10 +340,6 @@ void CMainToolBar::CreateToolBar( void )
 							m_comboDel.pRecent = &m_cRecentSearch;
 							CDialog::SetComboBoxDeleter(m_hwndSearchBox, &m_comboDel);
 						}
-						break;
-
-					default:
-						break;
 					}
 				}
 				break;
