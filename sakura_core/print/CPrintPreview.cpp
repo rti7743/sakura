@@ -1434,7 +1434,8 @@ CColorStrategy* CPrintPreview::DrawPageTextFirst(int nPageNum)
 				CStringRef	csr = pcPageTopLayout->GetDocLineRef()->GetStringRefWithEOL();
 				CLogicInt	iLogic;
 				for ( iLogic = 0; iLogic < nPageTopOff; ++iLogic) {
-					pStrategy = GetColorStrategy( csr, iLogic, pStrategy );
+					bool bChange;
+					pStrategy = GetColorStrategy( csr, iLogic, pStrategy, bChange );
 				}
 			}
 		}
@@ -1723,10 +1724,11 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 	// 色設定	2012-03-07 ossan
 	CStringRef cStringLine( pLine, nDocLineLen );
 	CColorStrategy* pStrategy = pStrategyStart;
-	CColorStrategy*	pStrategyLast = (CColorStrategy*)-1;
+	// 2014.12.30 色はGetColorStrategyで次の色になる前に取得する必要がある
+	int nColorIdx = ToColorInfoArrIndex( pStrategy ? pStrategy->GetStrategyColor() : COLORIDX_TEXT );
 
 	for( iLogic = nLineStart; iLogic < nLineStart + nLineLen; 
-			++iLogic, nKindLast = nKind, pStrategyLast = pStrategy ){
+			++iLogic, nKindLast = nKind ){
 		//文字の種類
 		if(pLine[iLogic]==WCODE::TAB){
 			nKind = 2;
@@ -1744,10 +1746,11 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 			nKind = 1;
 		}
 
-		pStrategy = pcLayout ? GetColorStrategy(cStringLine, iLogic, pStrategy) : NULL;
+		bool bChange = false;
+		pStrategy = pcLayout ? GetColorStrategy(cStringLine, iLogic, pStrategy, bChange) : NULL;
 
 		// タブ文字出現 or 文字種(全角／半角)の境界 or 色指定の境界
-		if (nKind != nKindLast || pStrategyLast != pStrategy) {
+		if (nKind != nKindLast || bChange) {
 			//iLogicの直前までを描画
 			if ( 0 < iLogic - nBgnLogic ) {
 				Print_DrawBlock(
@@ -1757,7 +1760,7 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 					iLogic - nBgnLogic,
 					nKindLast,
 					pcLayout,	//!< 色設定用Layout
-					pStrategyLast,
+					nColorIdx,
 					nBgnLogic - nLineStart,
 					nLayoutX,
 					nDx,
@@ -1788,6 +1791,10 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 				//ロジック進め
 				nBgnLogic = iLogic;
 			}
+			if( bChange ){
+				// 次のブロックの色
+				nColorIdx = ToColorInfoArrIndex( pStrategy ? pStrategy->GetStrategyColor() : COLORIDX_TEXT );
+			}
 		}
 	}
 
@@ -1800,7 +1807,7 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 			nLineStart + nLineLen - nBgnLogic,
 			nKindLast,
 			pcLayout,	//!< 色設定用Layout
-			pStrategyLast,
+			nColorIdx,
 			nBgnLogic - nLineStart,
 			nLayoutX,
 			nDx,
@@ -1836,7 +1843,7 @@ void CPrintPreview::Print_DrawBlock(
 	int				nBlockLen,	// iLogic - nBgnLogic
 	int				nKind,
 	const CLayout*	pcLayout,	//!< 色設定用Layout
-	const CColorStrategy*	pStrategy,
+	int				nColorIdx,
 	int				nBgnPhysical,	// nBgnLogic - nLineStart
 	CLayoutInt		nLayoutX,
 	int				nDx,
@@ -1850,7 +1857,6 @@ void CPrintPreview::Print_DrawBlock(
 	HFONT	hFont = ((nKind == 1 && m_bFontZenHan) ? m_cFont.GetFontNormal(1) : m_cFont.GetFontNormal(0));
 	// 色設定
 	if (pcLayout) {
-		int nColorIdx = ToColorInfoArrIndex( pStrategy ? pStrategy->GetStrategyColor() : COLORIDX_TEXT );
 		if (-1 != nColorIdx) {
 			const ColorInfo& info = m_pParentWnd->GetDocument()->m_cDocType.GetDocumentAttribute().m_ColorInfoArr[nColorIdx];
 			if (nKind == 2 && !(info.m_sFontAttr.m_bUnderLine || info.m_sFontAttr.m_bStrikeOut)) {
@@ -1884,22 +1890,26 @@ void CPrintPreview::Print_DrawBlock(
 	@param[in] 
 
 	@date 2013.05.01 Uchi 新規作成
+	@date 2014.12.30 Moca 正規表現の違う色が並んでいた場合に色替えできてなかったバグを修正
 */
 CColorStrategy* CPrintPreview::GetColorStrategy(
 	const CStringRef&	cStringLine,
 	int					iLogic,
-	CColorStrategy*		pStrategy
+	CColorStrategy*		pStrategy,
+	bool&				bChange
 )
 {
 	if (pStrategy) {
 		if (pStrategy->EndColor(cStringLine, iLogic)) {
 			pStrategy = NULL;
+			bChange = true;
 		}
 	}
 	if (!pStrategy) {
 		for (int i=0; i < m_pool->GetStrategyCount(); i++) {
 			if (m_pool->GetStrategy(i)->BeginColor(cStringLine, iLogic)) {
 				pStrategy = m_pool->GetStrategy(i);
+				bChange = true;
 				break;
 			}
 		}

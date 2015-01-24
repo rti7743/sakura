@@ -780,18 +780,21 @@
 #define IDC_BUTTON_REPLACE              1711
 #define IDC_BUTTON_SETTING              1712
 #define IDC_STATIC_CHARCODE             1713
-#define IDC_CHECK_INDENTCPPSTR          1714
-#define IDC_CHECK_INDENTCPPCMT          1715
-#define IDC_CHECK_INDENTCPPUNDO         1716
-#define IDC_CHECK_ITALIC                1717
-#define IDC_CHECK_STRIKEOUT             1718
-#define IDC_RADIO_NOHIT                 1719
-#define IDC_RADIO_LINEDELETE            1720
-#define IDC_BUTTON_ALLRESET             1721
-#define IDC_CHECK_BOXSELECTLOCK         1722
-#define IDC_CHECK_USE_FONT              1723
-#define IDC_STATIC_FONT                 1724
-#define IDC_BUTTON_FONT                 1725
+#define IDC_PLUGIN_URL                  1714
+#define IDC_RADIO_LINEDELETE            1715
+#define IDC_RADIO_NOHIT                 1716
+#define IDC_CHECK_INDENTCPPSTR          1717
+#define IDC_CHECK_INDENTCPPCMT          1718
+#define IDC_CHECK_INDENTCPPUNDO         1719
+#define IDC_CHECK_ITALIC                1720
+#define IDC_CHECK_STRIKEOUT             1721
+#define IDC_RADIO_NOHIT                 1722
+#define IDC_RADIO_LINEDELETE            1723
+#define IDC_BUTTON_ALLRESET             1724
+#define IDC_CHECK_BOXSELECTLOCK         1725
+#define IDC_CHECK_USE_FONT              1726
+#define IDC_STATIC_FONT                 1727
+#define IDC_BUTTON_FONT                 1728
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -834,7 +837,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1726
+#define _APS_NEXT_CONTROL_VALUE         1729
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

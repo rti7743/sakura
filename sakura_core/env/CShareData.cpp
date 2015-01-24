@@ -434,7 +434,7 @@ bool CShareData::InitShareData()
 			sSearch.m_bNOTIFYNOTFOUND = TRUE;		/* 検索／置換  見つからないときメッセージを表示 */
 
 			sSearch.m_bGrepSubFolder = TRUE;			/* Grep: サブフォルダも検索 */
-			sSearch.m_nGrepOutputLineType = 1;			// Grep: 結果出力：行を出力/該当部分/否マッチ行
+			sSearch.m_nGrepOutputLineType = 1;			// Grep: 行を出力/該当部分/否マッチ行 を出力
 			sSearch.m_nGrepOutputStyle = 1;			/* Grep: 出力形式 */
 			sSearch.m_bGrepOutputFileOnly = false;
 			sSearch.m_bGrepOutputBaseFolder = false;
