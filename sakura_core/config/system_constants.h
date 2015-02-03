@@ -537,7 +537,7 @@
 	Version x168:
 	全設定リセット 2014.10.03 Moca
 
-	Version x169:
+	Version 164/x169:
 	矩形選択のロック 2014.07.11 Moca
 
 	Version x170:

@@ -119,19 +119,11 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 				switch( m_nFuncID ){
 				case F_HalfPageUp_BOX:
 				case F_HalfPageDown_BOX:
-					if( lParam == 0 ){
-						AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum / 2 );
-					}else{
-						AddIntParam( lParam );
-					}
+					AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum / 2 );
 					break;
 				case F_1PageUp_BOX:
 				case F_1PageDown_BOX:
-					if( lParam == 0 ){
-						AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum - 1 );
-					}else{
-						AddIntParam( lParam );
-					}
+					AddIntParam( (Int)pcEditView->GetTextArea().m_nViewRowNum - 1 );
 					break;
 				default:
 					AddIntParam( lParam );
