@@ -194,7 +194,7 @@ void CEditView::DrawBracketPair( bool bDraw )
 					GetCaret().HideCaret_( GetHwnd() );	// ƒLƒƒƒŒƒbƒg‚ªˆêuÁ‚¦‚é‚Ì‚ğ–h~
 				}
 				{
-					int nWidth  = GetTextMetrics().GetHankakuDx();
+					int nWidth  = GetTextMetrics().GetCharPxWidth();
 					int nHeight = GetTextMetrics().GetHankakuDy();
 					int nLeft = (GetTextArea().GetDocumentLeftClientPointX()) + GetTextMetrics().GetCharPxWidth(ptColLine.x);
 					int nTop  = (Int)( ptColLine.GetY2() - GetTextArea().GetViewTopLine() ) * nHeight + GetTextArea().GetAreaTop();
