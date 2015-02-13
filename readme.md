@@ -8,7 +8,7 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-https://github.com/mocaskr/sakura/releases/tag/v010.20150213-r3977  
+https://github.com/mocaskr/sakura/releases/tag/v011.20150213-r3977  
 
 chm版ヘルプは release tagのページにあります  
 https://github.com/mocaskr/sakura_help/releases/tag/v007  
