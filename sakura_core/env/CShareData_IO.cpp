@@ -1572,6 +1572,14 @@ void CShareData_IO::ShareData_IO_Type_One( CDataProfile& cProfile, CDataProfile&
 			cProfile.IOProfileData( pszSecName, szKeyName, block.m_bCommentNest );
 		}
 
+		//	Line Comment
+		cProfile.IOProfileData( pszSecName, LTEXT("szLineComment")		,
+			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cLineComment.getLineComment(0))) );
+		cProfile.IOProfileData( pszSecName, LTEXT("szLineComment2")		,
+			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cLineComment.getLineComment(1))) );
+		cProfile.IOProfileData( pszSecName, LTEXT("szLineComment3")		,
+			MakeStringBufferW0(const_cast<wchar_t*>(types.m_cLineComment.getLineComment(2))) );	//Jun. 01, 2001 JEPRO ’Ç‰Á
+
 		//	From here May 12, 2001 genta
 		int pos;
 		pos = types.m_cLineComment.getLineCommentPos( 0 );
