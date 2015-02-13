@@ -688,6 +688,7 @@ void CViewCommander::Command_COPYLINESWITHLINENUMBER( void )
 
 
 static bool AppendHTMLColor(
+	const SColorAttr& sColorAttrBase,
 	const SColorAttr& sColorAttrLast, SColorAttr& sColorAttrLast2,
 	const SFontAttr& sFontAttrLast, SFontAttr& sFontAttrLast2,
 	const WCHAR* pAppendStr, int nLen,
@@ -710,7 +711,9 @@ static bool AppendHTMLColor(
 		}
 		if( cdsi ){
 			if( d.m_cTEXT != (COLORREF)-1 ){
-				cmemClip.AppendString( L"</span>", 7 );
+				if( d.m_cTEXT != sColorAttrBase.m_cTEXT || d.m_cBACK != sColorAttrBase.m_cBACK ){
+					cmemClip.AppendString( L"</span>", 7 );
+				}
 			}
 		}
 		if( b.m_bItalic ){
@@ -736,7 +739,17 @@ static bool AppendHTMLColor(
 				WCHAR szColor[60];
 				DWORD dwTEXTColor = (GetRValue(c.m_cTEXT) << 16) + (GetGValue(c.m_cTEXT) << 8) + GetBValue(c.m_cTEXT);
 				DWORD dwBACKColor = (GetRValue(c.m_cBACK) << 16) + (GetGValue(c.m_cBACK) << 8) + GetBValue(c.m_cBACK);
-				swprintf( szColor, L"<span style=\"color:#%06x;background-color:#%06x\">", dwTEXTColor, dwBACKColor);
+				if( sColorAttrBase.m_cTEXT == c.m_cTEXT ){
+					if( sColorAttrBase.m_cBACK == c.m_cBACK ){
+						szColor[0] = L'\0';	// ‚È‚µ
+					}else{
+						swprintf( szColor, L"<span style=\"background-color:#%06x\">", dwBACKColor);
+					}
+				}else if( sColorAttrBase.m_cBACK == c.m_cBACK ){
+					swprintf( szColor, L"<span style=\"color:#%06x\">", dwTEXTColor);
+				}else{
+					swprintf( szColor, L"<span style=\"color:#%06x;background-color:#%06x\">", dwTEXTColor, dwBACKColor);
+				}
 				cmemClip.AppendString( szColor );
 			}
 		}
@@ -875,13 +888,16 @@ void CViewCommander::Command_COPY_COLOR_HTML(bool bLineNumber)
 	}else{
 		nBuffSize += (Int)(nLineNumberMaxLen * (sSelectLogic.GetTo().y - sSelectLogic.GetFrom().y + 1));
 	}
+	SColorAttr sColorAttrBase = type.m_ColorInfoArr[COLORIDX_TEXT].m_sColorAttr;
 	CNativeW cmemClip;
 	cmemClip.AllocStringBuffer(nBuffSize + 11);
 	{
-		COLORREF cBACK = type.m_ColorInfoArr[COLORIDX_TEXT].m_sColorAttr.m_cBACK;
+		COLORREF cTEXT = sColorAttrBase.m_cTEXT;
+		DWORD dwTEXTColor = (GetRValue(cTEXT) << 16) + (GetGValue(cTEXT) << 8) + GetBValue(cTEXT);
+		COLORREF cBACK = sColorAttrBase.m_cBACK;
 		DWORD dwBACKColor = (GetRValue(cBACK) << 16) + (GetGValue(cBACK) << 8) + GetBValue(cBACK);
-		WCHAR szBuf[50];
-		swprintf(szBuf, L"<pre style=\"background-color:#%06x\">", dwBACKColor);
+		WCHAR szBuf[60];
+		swprintf(szBuf, L"<pre style=\"text-color:#%06x;background-color:#%06x\">", dwTEXTColor, dwBACKColor);
 		cmemClip.AppendString( szBuf );
 	}
 	CLayoutInt nLayoutLineNum = rcSel.top;
@@ -999,13 +1015,13 @@ void CViewCommander::Command_COPY_COLOR_HTML(bool bLineNumber)
 					}else if( nIdxFrom + nLineStart < iLogic
 					  && (sFontAttr.m_bBoldFont != sFontAttrNext.m_bBoldFont || sFontAttr.m_bUnderLine != sFontAttrNext.m_bUnderLine
 					  || sColorAttr.m_cTEXT != sColorAttrNext.m_cTEXT || sColorAttr.m_cBACK != sColorAttrNext.m_cBACK) ){
-						bAddCRLF = AppendHTMLColor(sColorAttrLast, sColorAttrLast2,
+						bAddCRLF = AppendHTMLColor(sColorAttrBase, sColorAttrLast, sColorAttrLast2,
 							sFontAttrLast, sFontAttrLast2, pLine + nBgnLogic, iLogic - nBgnLogic, cmemClip);
 						sColorAttrLast = sColorAttrNext;
 						sFontAttrLast  = sFontAttrNext;
 						nBgnLogic = iLogic;
 					}else if( nIdxTo + nLineStart == iLogic ){
-						bAddCRLF = AppendHTMLColor(sColorAttrLast, sColorAttrLast2,
+						bAddCRLF = AppendHTMLColor(sColorAttrBase, sColorAttrLast, sColorAttrLast2,
 							sFontAttrLast, sFontAttrLast2, pLine + nBgnLogic, iLogic - nBgnLogic, cmemClip);
 						nBgnLogic = iLogic;
 					}
@@ -1014,7 +1030,7 @@ void CViewCommander::Command_COPY_COLOR_HTML(bool bLineNumber)
 				sFontAttr = sFontAttrNext;
 			}
 			if( nIdxFrom != -1 && nIdxTo + nLineStart == iLogic ){
-				bAddCRLF = AppendHTMLColor(sColorAttrLast, sColorAttrLast2,
+				bAddCRLF = AppendHTMLColor(sColorAttrBase, sColorAttrLast, sColorAttrLast2,
 					sFontAttrLast, sFontAttrLast2, pLine + nBgnLogic, iLogic - nBgnLogic, cmemClip);
 			}
 			if( bLineNumber ){
@@ -1073,7 +1089,9 @@ void CViewCommander::Command_COPY_COLOR_HTML(bool bLineNumber)
 		cmemClip.AppendString(L"</u>", 4);
 	}
 	if( sColorAttrLast2.m_cTEXT != (COLORREF)-1 ){
-		cmemClip.AppendString(L"</span>", 7);
+		if( sColorAttrBase.m_cTEXT != sColorAttrLast2.m_cTEXT || sColorAttrBase.m_cBACK != sColorAttrLast2.m_cBACK ){
+			cmemClip.AppendString(L"</span>", 7);
+		}
 	}
 	if( sFontAttrLast2.m_bItalic ){
 		cmemClip.AppendString(L"</i>", 4);
