@@ -417,12 +417,28 @@ void CTextDrawer::DispLineNumber(
 			}
 		}
 	}
+	bool bDispLineNumTrans = false;
+	int nDispLineNumber; // 表示は+1
+	if( pTypes->m_bLineNumIsCRLF ){
+		nDispLineNumber = (Int)pcLayout->GetLogicLineNo() + 1;
+	}else{
+		nDispLineNumber = (Int)nLineNum + 1;
+	}
+	bool bInterval = false;
+	EColorIndexType nColorIndexExt = nColorIndex;
+	CTypeSupport cGyouType(pView,COLORIDX_GYOU);
+	if( cGyouType.IsDisp() && CTypeSupport(pView,COLORIDX_GYOU_INTERVAL).IsDisp() && ((nDispLineNumber % 10) == 0) ){
+		// 10行の強調表示は行番号表示の時のみ有効
+		bInterval = true;
+		nColorIndexExt = COLORIDX_GYOU_INTERVAL;
+	}
 
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 	//             決定されたnColorIndexを使って描画               //
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 
 	CTypeSupport cColorType(pView,nColorIndex);
+	CTypeSupport cColorExtType(pView,nColorIndexExt); // 10LINE,MOD,DIFF,MARK,GYO
 	CTypeSupport cMarkType(pView,COLORIDX_MARK);
 
 	//該当行の行番号エリア矩形
@@ -432,21 +448,27 @@ void CTextDrawer::DispLineNumber(
 	rcLineNum.top = y;
 	rcLineNum.bottom = y + nLineHeight;
 	
-	bool bTrans = pView->IsBkBitmap() && cTextType.GetBackColor() == cColorType.GetBackColor();
+	bool bTrans = pView->IsBkBitmap() && cTextType.GetBackColor() == cColorExtType.GetBackColor();
 	bool bTransText = pView->IsBkBitmap() && cTextType.GetBackColor() == cBackType.GetBackColor();
-	bool bDispLineNumTrans = false;
 
-	COLORREF fgcolor = cColorType.GetTextColor();
-	COLORREF bgcolor = cColorType.GetBackColor();
-	CTypeSupport cGyouType(pView,COLORIDX_GYOU);
+	COLORREF fgcolor = cColorExtType.GetTextColor();
+	COLORREF bgcolor = cColorExtType.GetBackColor();
 	CTypeSupport cGyouModType(pView,COLORIDX_GYOU_MOD);
+	// 2014.12.29 10行の強調行の色が普通行の色と同じなら次の強調を適用
+	if( nColorIndex != nColorIndexExt ){
+		if( cGyouType.GetTextColor() == fgcolor ){
+			fgcolor = cColorType.GetTextColor();
+		}
+		if( cGyouType.GetBackColor() == bgcolor ){
+			bgcolor = cColorType.GetBackColor();
+		}
+	}
 	if( bGyouMod && nColorIndex != COLORIDX_GYOU_MOD ){
-		if( cGyouType.GetTextColor() == cColorType.GetTextColor() ){
+		if( cGyouType.GetTextColor() == fgcolor ){
 			fgcolor = cGyouModType.GetTextColor();
 		}
-		if( cGyouType.GetBackColor() == cColorType.GetBackColor() ){
+		if( cGyouType.GetBackColor() == bgcolor ){
 			bgcolor = cGyouModType.GetBackColor();
-			bTrans = pView->IsBkBitmap() && cTextType.GetBackColor() == cGyouModType.GetBackColor();
 		}
 	}
 	// 2014.01.29 Moca 背景色がテキストと同じなら、透過色として行背景色を適用
@@ -463,30 +485,49 @@ void CTextDrawer::DispLineNumber(
 		bDispLineNumTrans = true;
 	}
 	else if( CTypeSupport(pView,COLORIDX_GYOU).IsDisp() ){ /* 行番号表示／非表示 */
-		SFONT sFont = cColorType.GetTypeFont();
+		SFONT sFont = cColorExtType.GetTypeFont();
+		bool bChange = false;
+		if( nColorIndex != nColorIndexExt ){
+			if( cGyouType.IsBoldFont() == sFont.m_sFontAttr.m_bBoldFont ){
+				sFont.m_sFontAttr.m_bBoldFont = cColorType.IsBoldFont();
+				bChange = true;
+			}
+			if( cGyouType.HasUnderLine() == sFont.m_sFontAttr.m_bUnderLine ){
+				sFont.m_sFontAttr.m_bUnderLine = cColorType.HasUnderLine();
+				bChange = true;
+			}
+			if( cGyouType.IsItalic() == sFont.m_sFontAttr.m_bItalic ){
+				sFont.m_sFontAttr.m_bItalic = cColorType.IsItalic();
+				bChange = true;
+			}
+			if( cGyouType.IsStrikeOut() == sFont.m_sFontAttr.m_bStrikeOut ){
+				sFont.m_sFontAttr.m_bStrikeOut = cColorType.IsStrikeOut();
+				bChange = true;
+			}
+		}
 	 	// 2013.12.30 変更行の色・フォント属性をDIFFブックマーク行に継承するように
 		if( bGyouMod && nColorIndex != COLORIDX_GYOU_MOD ){
 			bool bChange = false;
 			// cGyouTypeとcColorTypeが同じなら、変更行の値を優先
-			if( cGyouType.IsBoldFont() == cColorType.IsBoldFont() ){
+			if( cGyouType.IsBoldFont() == sFont.m_sFontAttr.m_bBoldFont ){
 		 		sFont.m_sFontAttr.m_bBoldFont = cGyouModType.IsBoldFont();
 				bChange = true;
 			}
-			if( cGyouType.HasUnderLine() == cColorType.HasUnderLine() ){
+			if( cGyouType.HasUnderLine() == sFont.m_sFontAttr.m_bUnderLine ){
 				sFont.m_sFontAttr.m_bUnderLine = cGyouModType.HasUnderLine();
 				bChange = true;
 			}
-			if( cGyouType.IsItalic() == cColorType.IsItalic() ){
+			if( cGyouType.IsItalic() == sFont.m_sFontAttr.m_bItalic ){
 				sFont.m_sFontAttr.m_bItalic = cGyouModType.IsItalic();
 				bChange = true;
 			}
-			if( cGyouType.IsStrikeOut() == cColorType.IsStrikeOut() ){
+			if( cGyouType.IsStrikeOut() == sFont.m_sFontAttr.m_bStrikeOut ){
 				sFont.m_sFontAttr.m_bStrikeOut = cGyouModType.IsStrikeOut();
 				bChange = true;
 			}
-			if( bChange ){
-				sFont.m_hFont = pView->GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
-			}
+		}
+		if( bChange ){
+			sFont.m_hFont = pView->GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
 		}
 		gr.PushTextForeColor(fgcolor);	//テキスト：行番号の色
 		gr.PushTextBackColor(bgcolor);	//テキスト：行番号背景の色
@@ -503,13 +544,13 @@ void CTextDrawer::DispLineNumber(
 				if( NULL == pcLayout || 0 != pcLayout->GetLogicOffset() ){ //折り返しレイアウト行
 					wcscpy( szLineNum, L" " );
 				}else{
-					_itow( pcLayout->GetLogicLineNo() + 1, szLineNum, 10 );	/* 対応する論理行番号 */
+					_itow( nDispLineNumber, szLineNum, 10 );	/* 対応する論理行番号 */
 //###デバッグ用
 //					_itow( CModifyVisitor().GetLineModifiedSeq(pCDocLine), szLineNum, 10 );	// 行の変更番号
 				}
 			}else{
 				/* 物理行（レイアウト行）番号表示モード */
-				_itow( (Int)nLineNum + 1, szLineNum, 10 );
+				_itow( nDispLineNumber, szLineNum, 10 );
 			}
 			nLineCols = wcslen( szLineNum );
 			nLineNumCols = nLineCols; // 2010.08.17 Moca 位置決定に行番号区切りは含めない

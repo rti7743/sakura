@@ -49,6 +49,7 @@ enum EColorIndexType {
 	COLORIDX_NOTELINE,		//!< ノート線	// 2013.12.21 Moca
 	COLORIDX_GYOU,			//!< 行番号
 	COLORIDX_GYOU_MOD,		//!< 行番号(変更行)
+	COLORIDX_GYOU_INTERVAL,	//!< 10行毎の行番号
 	COLORIDX_EVENLINEBG,	//!< 奇数行の背景色
 	COLORIDX_TAB,			//!< TAB記号
 	COLORIDX_SPACE,			//!< 半角空白 //2002.04.28 Add by KK 以降全て+1

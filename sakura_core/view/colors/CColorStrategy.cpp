@@ -391,6 +391,7 @@ const SColorAttributeData g_ColorAttributeArr[] =
 	{_T("CVL"), COLOR_ATTRIB_NO_BACK | ( COLOR_ATTRIB_NO_EFFECTS & ~COLOR_ATTRIB_NO_BOLD )}, // 2007.09.09 Moca カーソル位置縦線
 	{_T("NOT"), COLOR_ATTRIB_NO_BACK | COLOR_ATTRIB_NO_EFFECTS},
 	{_T("LNO"), 0},
+	{_T("LNI"), 0},
 	{_T("MOD"), 0},
 	{_T("EBK"), COLOR_ATTRIB_NO_TEXT | COLOR_ATTRIB_NO_EFFECTS},
 	{_T("TAB"), 0},
