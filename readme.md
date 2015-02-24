@@ -8,7 +8,7 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-https://github.com/mocaskr/sakura/releases/tag/v012.20150224-r4000  
+https://github.com/mocaskr/sakura/releases/tag/v013.20150224-r4000  
 
 chm版ヘルプは release tagのページにあります  
 https://github.com/mocaskr/sakura_help/releases/tag/v012  
@@ -18,7 +18,7 @@ http://mocaskr.web.fc2.com/sakurahelp2/HLP000001.html
 https://github.com/mocaskr/sakura_help  
 
 ## 変更内容
-sakura 2.2.0.0 mocaskr_ver 012.20150224-r4000  
+sakura 2.2.0.0 mocaskr_ver 013.20150224-r4000  
 baseリビジョンからの変更点一覧  
 v001 2.1.1.4 
  713	プロポーショナルフォント  
