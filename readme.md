@@ -8,7 +8,7 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-https://github.com/mocaskr/sakura/releases/tag/v011.20150213-r3977  
+https://github.com/mocaskr/sakura/releases/tag/v012.20150224-r4000  
 
 chm版ヘルプは release tagのページにあります  
 https://github.com/mocaskr/sakura_help/releases/tag/v007  
@@ -18,9 +18,9 @@ http://mocaskr.web.fc2.com/sakurahelp2/HLP000001.html
 https://github.com/mocaskr/sakura_help  
 
 ## 変更内容
-sakura 2.1.1.4 mocaskr_ver 011.20150213-r3977  
+sakura 2.2.0.0 mocaskr_ver 012.20150224-r4000  
 baseリビジョンからの変更点一覧  
-v001  
+v001 2.1.1.4 
  713	プロポーショナルフォント  
  717	C/C++インデントの改良  
  735	ファイル読み込みでスレッドを使う  
@@ -44,4 +44,9 @@ v011
  936	iniの履歴を分離して記憶するオプション  
  938	大きいツールバーアイコン対応  
  944	XMLアウトラインとHTMLの修正  
+v012  2.2.0.0
+ 926	カーソル左右リピート設定(iniのみ)  
+ 946	行番号の10行毎の強調表示  
+ 950	色つきHTMLコピーの出力HTMLの一部省略  
+ 956	カラーの文字列にC++11を追加,C/C++はC/C++03に変更しRawを処理しない  
 番号と詳細は http://sourceforge.net/p/sakura-editor/patchunicode/ 参照  
