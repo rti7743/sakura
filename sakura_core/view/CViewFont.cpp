@@ -34,6 +34,7 @@ void CViewFont::CreateFont(const LOGFONT *plf, int fontNo)
 	if( m_bMiniMap ){
 		m_logFont[fontNo].lfHeight = GetDllShareData().m_Common.m_sWindow.m_nMiniMapFontSize;;
 		m_logFont[fontNo].lfQuality = GetDllShareData().m_Common.m_sWindow.m_nMiniMapQuality;
+		m_logFont[fontNo].lfOutPrecision = OUT_TT_ONLY_PRECIS;	// FixedSys等でMiniMapのフォントが小さくならない修正
 	}
 
 	/* フォント作成 */
