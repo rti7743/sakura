@@ -58,6 +58,8 @@ static const wchar_t	szKeyPluginOutlineName[]		= L"szPluginOutlineName";
 static const wchar_t	szKeyPluginOutlineId[]			= L"szPluginOutlineId";
 static const wchar_t	szKeyPluginSmartIndentName[]	= L"szPluginSmartIndentName";
 static const wchar_t	szKeyPluginSmartIndentId[]		= L"szPluginSmartIndentId";
+static const wchar_t	szKeyPluginHokanName[]			= L"szPluginHokanName";
+static const wchar_t	szKeyPluginHokanId[]			= L"szPluginHokanId";
 static const wchar_t	szKeyVersion[]					= L"szVersion";
 static const wchar_t	szKeyStructureVersion[]			= L"vStructureVersion";
 
@@ -291,6 +293,13 @@ bool CImpExpType::ImportAscertain( HINSTANCE hInstance, HWND hwndParent, const w
 	return true;
 }
 
+struct STypePluginValueImport
+{
+	int*	m_pValue;
+	const wchar_t*	m_pszKeyName;
+	const wchar_t*	m_pszKeyId;
+};
+
 // インポート
 bool CImpExpType::Import( const wstring& sFileName, wstring& sErrMsg )
 {
@@ -389,47 +398,33 @@ bool CImpExpType::Import( const wstring& sFileName, wstring& sErrMsg )
 	}
 
 	// Plugin
-	//  アウトライン解析方法
 	CommonSetting_Plugin& plugin = common.m_sPlugin;
-	if (m_cProfile.IOProfileData( szSecTypeEx, szKeyPluginOutlineId, MakeStringBufferW( szKeyData ))) {
-		nDataLen = wcslen( szKeyData );
-		pSlashPos = wcschr( szKeyData, L'/' );
-		nIdx = -1;
-		for (i = 0; i < MAX_PLUGIN; i++) {
-			if (auto_strncmp(szKeyData, plugin.m_PluginTable[i].m_szId, pSlashPos ? pSlashPos-szKeyData : nDataLen) == 0) {
-				nIdx = i;
-				if (pSlashPos) {	// スラッシュの後ろのプラグIDを取得
-					nPlug = _wtoi( pSlashPos + 1 );
-				} else {
-					nPlug = 0;
+	const STypePluginValueImport aItemList[] = {
+		{reinterpret_cast<int*>(&m_Types.m_eDefaultOutline), szKeyPluginOutlineName, szKeyPluginOutlineId}, // アウトライン解析方法
+		{reinterpret_cast<int*>(&m_Types.m_eSmartIndent), szKeyPluginSmartIndentName, szKeyPluginSmartIndentId}, // スマートインデント
+		{reinterpret_cast<int*>(&m_Types.m_nHokanType), szKeyPluginHokanName, szKeyPluginHokanId} // 入力補完 2015.02.22
+	};
+	for (int k = 0; k < _countof(aItemList); k++) {
+		const STypePluginValueImport& item = aItemList[k];
+		if (m_cProfile.IOProfileData(szSecTypeEx, item.m_pszKeyId, MakeStringBufferW(szKeyData))) {
+			nDataLen = wcslen(szKeyData);
+			pSlashPos = wcschr(szKeyData, L'/');
+			nIdx = -1;
+			for (i = 0; i < MAX_PLUGIN; i++) {
+				if (auto_strncmp(szKeyData, plugin.m_PluginTable[i].m_szId, pSlashPos ? pSlashPos-szKeyData : nDataLen) == 0) {
+					nIdx = i;
+					if (pSlashPos) {	// スラッシュの後ろのプラグIDを取得
+						nPlug = _wtoi(pSlashPos + 1);
+					} else {
+						nPlug = 0;
+					}
+					break;
 				}
-				break;
 			}
-		}
-		// 2010.08.21 0が範囲から漏れていた
-		if (nIdx >= 0) {
-			m_Types.m_eDefaultOutline = CPlug::GetOutlineType( CPlug::GetPluginFunctionCode(nIdx, nPlug) );
-		}
-	}
-	//  スマートインデント
-	if (m_cProfile.IOProfileData( szSecTypeEx, szKeyPluginSmartIndentId, MakeStringBufferW( szKeyData ))) {
-		nDataLen = wcslen( szKeyData );
-		pSlashPos = wcschr( szKeyData, L'/' );
-		nIdx = -1;
-		for (i = 0; i < MAX_PLUGIN; i++) {
-			if (auto_strncmp(szKeyData, plugin.m_PluginTable[i].m_szId, pSlashPos ? pSlashPos-szKeyData : nDataLen) == 0) {
-				nIdx = i;
-				if (pSlashPos) {	// スラッシュの後ろのプラグIDを取得
-					nPlug = _wtoi( pSlashPos + 1 );
-				} else {
-					nPlug = 0;
-				}
-				break;
+			// 2010.08.21 0が範囲から漏れていた
+			if (nIdx >= 0) {
+				*item.m_pValue = CPlug::GetPluginFunctionCode(nIdx, nPlug);
 			}
-		}
-		// 2010.08.21 0が範囲から漏れていた
-		if (nIdx >= 0) {
-			m_Types.m_eSmartIndent = CPlug::GetSmartIndentType( CPlug::GetPluginFunctionCode(nIdx, nPlug) );
 		}
 	}
 
@@ -438,6 +433,12 @@ bool CImpExpType::Import( const wstring& sFileName, wstring& sErrMsg )
 	return true;
 }
 
+struct STypePluginValueExport
+{
+	int	m_nValue;
+	const wchar_t*	m_pszKeyName;
+	const wchar_t*	m_pszKeyId;
+};
 
 // エクスポート
 bool CImpExpType::Export( const wstring& sFileName, wstring& sErrMsg )
@@ -489,31 +490,27 @@ bool CImpExpType::Export( const wstring& sFileName, wstring& sErrMsg )
 	}
 
 	// Plugin
-	//  アウトライン解析方法
 	CommonSetting_Plugin& plugin = common.m_sPlugin;
-	int		nPIdx;
-	int		nPlug;
-	wchar_t szId[ MAX_PLUGIN_ID + 1 + 2 ];
-	if ((nPIdx = CPlug::GetPluginId( static_cast<EFunctionCode>( m_Types.m_eDefaultOutline ))) >= 0) {
-		cProfile.IOProfileData( szSecTypeEx, szKeyPluginOutlineName, MakeStringBufferW(plugin.m_PluginTable[nPIdx].m_szName));
-		wcscpyn( szId, plugin.m_PluginTable[nPIdx].m_szId, _countof(szId) );
-		if( (nPlug = CPlug::GetPlugId( static_cast<EFunctionCode>( m_Types.m_eDefaultOutline ))) != 0 ){
-			wchar_t szPlug[8];
-			swprintf( szPlug, L"/%d", nPlug );
-			wcscat( szId, szPlug );
+	const STypePluginValueExport aItemList[] = {
+		{m_Types.m_eDefaultOutline, szKeyPluginOutlineName, szKeyPluginOutlineId}, // アウトライン解析方法
+		{m_Types.m_eSmartIndent, szKeyPluginSmartIndentName, szKeyPluginSmartIndentId}, // スマートインデント
+		{m_Types.m_nHokanType, szKeyPluginHokanName, szKeyPluginHokanId} // 入力補完 2015.02.22
+	};
+	for (int k = 0; k < _countof(aItemList); k++) {
+		const STypePluginValueExport& item = aItemList[k];
+		int nPIdx = CPlug::GetPluginId( static_cast<EFunctionCode>(item.m_nValue));
+		if (nPIdx >= 0) {
+			cProfile.IOProfileData(szSecTypeEx, item.m_pszKeyName, MakeStringBufferW(plugin.m_PluginTable[nPIdx].m_szName));
+			wchar_t szId[ MAX_PLUGIN_ID + 1 + 2 ];
+			wcscpyn(szId, plugin.m_PluginTable[nPIdx].m_szId, _countof(szId));
+			int nPlug = CPlug::GetPlugId(static_cast<EFunctionCode>(item.m_nValue));
+			if (nPlug != 0) {
+				wchar_t szPlug[8];
+				swprintf(szPlug, L"/%d", nPlug);
+				wcscat(szId, szPlug);
+			}
+			cProfile.IOProfileData(szSecTypeEx, item.m_pszKeyId, MakeStringBufferW(szId));
 		}
-		cProfile.IOProfileData( szSecTypeEx, szKeyPluginOutlineId,   MakeStringBufferW(szId) );
-	}
-	//  スマートインデント
-	if ((nPIdx = CPlug::GetPluginId( static_cast<EFunctionCode>( m_Types.m_eSmartIndent ))) >= 0) {
-		cProfile.IOProfileData( szSecTypeEx, szKeyPluginSmartIndentName, MakeStringBufferW(plugin.m_PluginTable[nPIdx].m_szName));
-		wcscpyn( szId, plugin.m_PluginTable[nPIdx].m_szId, _countof(szId) );
-		if( (nPlug = CPlug::GetPlugId( static_cast<EFunctionCode>( m_Types.m_eSmartIndent ))) != 0 ){
-			wchar_t szPlug[8];
-			swprintf( szPlug, L"/%d", nPlug );
-			wcscat( szId, szPlug );
-		}
-		cProfile.IOProfileData( szSecTypeEx, szKeyPluginSmartIndentId,   MakeStringBufferW(szId) );
 	}
 
 	// Version
