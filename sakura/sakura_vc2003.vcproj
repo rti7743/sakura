@@ -2176,6 +2176,12 @@
 					RelativePath="..\sakura_core\dlg\CDlgTagsMake.h">
 				</File>
 				<File
+					RelativePath="..\sakura_core\dlg\CDlgWindowList.cpp">
+				</File>
+				<File
+					RelativePath="..\sakura_core\dlg\CDlgWindowList.h">
+				</File>
+				<File
 					RelativePath="..\sakura_core\dlg\CDlgWinSize.cpp">
 				</File>
 				<File
