@@ -21,10 +21,9 @@ public:
 	}
 };
 
-void CColor_Quote::Update(void)
+void CColor_Quote::Update(const STypeConfig& type)
 {
-	const CEditDoc* pCEditDoc = CEditDoc::GetInstance(0);
-	m_pTypeData = &pCEditDoc->m_cDocType.GetDocumentAttribute();
+	m_pTypeData = &type;
 	m_nStringType = m_pTypeData->m_nStringType;
 	int nEspaceTypeList[] = {
 		STRING_LITERAL_CPP,

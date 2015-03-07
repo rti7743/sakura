@@ -35,7 +35,7 @@ public:
 		m_szQuote[1] = cQuote;
 		m_szQuote[2] = cQuote;
 	}
-	virtual void Update(void);
+	virtual void Update(const STypeConfig& type);
 	virtual EColorIndexType GetStrategyColor() const = 0;
 	virtual CLayoutColorInfo* GetStrategyColorInfo() const;
 	virtual void InitStrategyStatus(){ m_nCOMMENTEND = -1; }

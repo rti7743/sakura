@@ -48,6 +48,7 @@
 #include "env/CSakuraEnvironment.h"
 // CColorStrategyは本来はCEditViewが必要だが、CEditWnd.hあたりでinclude済み
 #include "view/colors/CColorStrategy.h"
+#include "view/figures/CFigureManager.h"
 #include "sakura_rc.h"
 
 using namespace std;
@@ -102,7 +103,14 @@ CPrintPreview::~CPrintPreview()
 	
 	/* 印刷用のレイアウト情報の削除 */
 	delete m_pLayoutMgr_Print;
-	
+
+	// 2014.12.30 カラー&記号設定を戻す
+	if( m_pParentWnd && m_pParentWnd->GetDocument() ){
+		const STypeConfig& ref = m_pParentWnd->GetDocument()->m_cDocType.GetDocumentAttribute();
+		CColorStrategyPool::getInstance()->OnChangeSetting(ref);
+		CFigureManager::getInstance()->OnChangeSetting(ref);
+	}
+
 	/* フォント幅キャッシュを編集モードに戻す */
 	SelectCharWidthCache( CWM_FONT_EDIT, CWM_CACHE_NEUTRAL );
 
@@ -828,16 +836,20 @@ void CPrintPreview::OnChangePrintSetting( void )
 	ref.m_nTabSpace =			m_pParentWnd->GetDocument()->m_cLayoutMgr.GetTabSpaceKetas();
 
 	//@@@ 2002.09.22 YAZAKI
-	ref.m_cLineComment.CopyTo(0, L"", -1);	/* 行コメントデリミタ */
-	ref.m_cLineComment.CopyTo(1, L"", -1);	/* 行コメントデリミタ2 */
-	ref.m_cLineComment.CopyTo(2, L"", -1);	/* 行コメントデリミタ3 */	//Jun. 01, 2001 JEPRO 追加
-	ref.m_cBlockComments[0].SetBlockCommentRule(L"", L"");	/* ブロックコメントデリミタ */
-	ref.m_cBlockComments[1].SetBlockCommentRule(L"", L"");	/* ブロックコメントデリミタ2 */
+	if( false == m_pPrintSetting->m_bColorPrint ){
+		ref.m_cLineComment.CopyTo(0, L"", -1);	/* 行コメントデリミタ */
+		ref.m_cLineComment.CopyTo(1, L"", -1);	/* 行コメントデリミタ2 */
+		ref.m_cLineComment.CopyTo(2, L"", -1);	/* 行コメントデリミタ3 */	//Jun. 01, 2001 JEPRO 追加
+		ref.m_cBlockComments[0].SetBlockCommentRule(L"", L"");	/* ブロックコメントデリミタ */
+		ref.m_cBlockComments[1].SetBlockCommentRule(L"", L"");	/* ブロックコメントデリミタ2 */
 
-	ref.m_nStringType =			0;		/* 文字列区切り記号エスケープ方法  0=[\"][\'] 1=[""][''] */
-	ref.m_ColorInfoArr[COLORIDX_COMMENT].m_bDisp = false;
-	ref.m_ColorInfoArr[COLORIDX_SSTRING].m_bDisp = false;
-	ref.m_ColorInfoArr[COLORIDX_WSTRING].m_bDisp = false;
+		ref.m_ColorInfoArr[COLORIDX_COMMENT].m_bDisp = false;
+		ref.m_ColorInfoArr[COLORIDX_SSTRING].m_bDisp = false;
+		ref.m_ColorInfoArr[COLORIDX_WSTRING].m_bDisp = false;
+	}
+	CColorStrategyPool::getInstance()->OnChangeSetting(ref);
+	CFigureManager::getInstance()->OnChangeSetting(ref);
+
 	ref.m_bKinsokuHead = m_pPrintSetting->m_bPrintKinsokuHead,	/* 行頭禁則する */	//@@@ 2002.04.08 MIK
 	ref.m_bKinsokuTail = m_pPrintSetting->m_bPrintKinsokuTail,	/* 行末禁則する */	//@@@ 2002.04.08 MIK
 	ref.m_bKinsokuRet = m_pPrintSetting->m_bPrintKinsokuRet,	/* 改行文字をぶら下げる */	//@@@ 2002.04.13 MIK

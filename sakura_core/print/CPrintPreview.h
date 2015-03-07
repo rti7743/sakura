@@ -253,9 +253,10 @@ protected:
 
 public:
 	class CLayoutMgr*	m_pLayoutMgr_Print;		/* 印刷用のレイアウト管理情報 */
-protected:
+public:
 	STypeConfig m_typePrint;
 
+protected:
 	// プレビューから出ても現在のプリンタ情報を記憶しておけるようにstaticにする 2003.05.02 かろと 
 	static CPrint	m_cPrint;					//!< 現在のプリンタ情報
 

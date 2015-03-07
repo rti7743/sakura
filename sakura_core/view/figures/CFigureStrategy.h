@@ -39,10 +39,9 @@ public:
 	virtual bool Disp(void) const = 0;
 
 	//! Ý’èXV
-	virtual void Update(void)
+	virtual void Update(const STypeConfig& type)
 	{
-		CEditDoc* pCEditDoc = CEditDoc::GetInstance(0);
-		m_pTypeData = &pCEditDoc->m_cDocType.GetDocumentAttribute();
+		m_pTypeData = &type;
 	}
 protected:
 	const STypeConfig* m_pTypeData;
@@ -79,9 +78,9 @@ protected:
 		return m_pTypeData->m_ColorInfoArr[nColorIndex].m_bDisp;
 	}
 
-	virtual void Update(void)
+	virtual void Update(const STypeConfig& type)
 	{
-		CFigure::Update();
+		CFigure::Update(type);
 
 		EColorIndexType nColorIndex = GetColorIdx();
 		if( m_pTypeData->m_ColorInfoArr[nColorIndex].m_bDisp ){

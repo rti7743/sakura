@@ -41,7 +41,8 @@ CFigureManager::CFigureManager()
 	m_vFigures.push_back(new CFigure_ZenBinary());
 	m_vFigures.push_back(new CFigure_Text());
 
-	OnChangeSetting();
+	const CEditDoc* pCEditDoc = CEditDoc::GetInstance(0);
+	OnChangeSetting(pCEditDoc->m_cDocType.GetDocumentAttribute());
 }
 
 CFigureManager::~CFigureManager()
@@ -72,14 +73,14 @@ CFigure& CFigureManager::GetFigure(const wchar_t* pText, int nTextLen)
 
 /*! 設定更新
 */
-void CFigureManager::OnChangeSetting(void)
+void CFigureManager::OnChangeSetting(const STypeConfig& type)
 {
 	m_vFiguresDisp.clear();
 
 	int size = (int)m_vFigures.size();
 	int i;
 	for(i = 0; i < size; i++){
-		m_vFigures[i]->Update();
+		m_vFigures[i]->Update(type);
 		// 色分け表示対象のみを登録
 		if( m_vFigures[i]->Disp() ){
 			m_vFiguresDisp.push_back(m_vFigures[i]);

@@ -210,7 +210,8 @@ CColorStrategyPool::CColorStrategyPool()
 	m_vStrategies.push_back(new CColor_KeywordSet);			// キーワードセット
 
 	// 設定更新
-	OnChangeSetting();
+	const CEditDoc* pCEditDoc = CEditDoc::GetInstance(0);
+	OnChangeSetting(pCEditDoc->m_cDocType.GetDocumentAttribute());
 }
 
 CColorStrategyPool::~CColorStrategyPool()
@@ -280,15 +281,15 @@ void CColorStrategyPool::CheckColorMODE(
 
 /*! 設定更新
 */
-void CColorStrategyPool::OnChangeSetting(void)
+void CColorStrategyPool::OnChangeSetting(const STypeConfig& type)
 {
 	m_vStrategiesDisp.clear();
 
-	m_pcSelectStrategy->Update();
-	m_pcFoundStrategy->Update();
+	m_pcSelectStrategy->Update(type);
+	m_pcFoundStrategy->Update(type);
 	int size = (int)m_vStrategies.size();
 	for(int i = 0; i < size; i++){
-		m_vStrategies[i]->Update();
+		m_vStrategies[i]->Update(type);
 
 		// 色分け表示対象であれば登録
 		if( m_vStrategies[i]->Disp() ){
@@ -305,7 +306,6 @@ void CColorStrategyPool::OnChangeSetting(void)
 	m_pcDoubleQuote = static_cast<CColor_DoubleQuote*>(GetStrategyByColor(COLORIDX_WSTRING));	// ダブルクォーテーション文字列
 
 	// 色分けをしない場合に、処理をスキップできるように確認する
-	const STypeConfig& type = CEditDoc::GetInstance(0)->m_cDocType.GetDocumentAttribute();
 	EColorIndexType bSkipColorTypeTable[] = {
 		COLORIDX_DIGIT,
 		COLORIDX_COMMENT,

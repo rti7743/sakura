@@ -69,8 +69,8 @@ void CDocType::SetDocumentType(CTypeConfig type, bool force, bool bTypeOnly )
 	}
 
 	// タイプ別設定更新を反映
-	CColorStrategyPool::getInstance()->OnChangeSetting();
-	CFigureManager::getInstance()->OnChangeSetting();
+	CColorStrategyPool::getInstance()->OnChangeSetting(m_typeConfig);
+	CFigureManager::getInstance()->OnChangeSetting(m_typeConfig);
 	this->SetDocumentIcon();	// Sep. 11, 2002 genta
 	m_pcDocRef->SetBackgroundImage();
 }

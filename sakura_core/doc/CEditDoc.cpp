@@ -69,6 +69,8 @@
 #include "outline/CFuncInfoArr.h" /// 2002/2/3 aroka
 #include "macro/CSMacroMgr.h"
 #include "recent/CMRUFolder.h"
+#include "view/colors/CColorStrategy.h"
+#include "view/figures/CFigureManager.h"
 #include "util/file.h"
 #include "util/format.h"
 #include "util/module.h"
@@ -840,6 +842,9 @@ void CEditDoc::OnChangeSetting(
 	if( m_pcEditWnd->m_pPrintPreview ){
 		// Ý’è‚ð–ß‚·
 		SelectCharWidthCache( CWM_FONT_PRINT, CWM_CACHE_LOCAL );
+		// SetDocumentType‚Å•ÏX‚³‚ê‚½‚à‚Ì‚ð–ß‚·
+		CColorStrategyPool::getInstance()->OnChangeSetting(m_pcEditWnd->m_pPrintPreview->m_typePrint);
+		CFigureManager::getInstance()->OnChangeSetting(m_pcEditWnd->m_pPrintPreview->m_typePrint);
 	}
 }
 

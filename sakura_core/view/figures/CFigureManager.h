@@ -40,7 +40,7 @@ public:
 	CFigure& GetFigure(const wchar_t* pText, int nTextLen);
 
 	// İ’è•ÏX
-	void OnChangeSetting(void);
+	void OnChangeSetting(const STypeConfig&);
 
 private:
 	std::vector<CFigure*>	m_vFigures;
