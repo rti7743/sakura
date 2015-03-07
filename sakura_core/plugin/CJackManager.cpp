@@ -116,7 +116,7 @@ ERegisterPlugResult CJackManager::RegisterPlug( wstring pszJack, CPlug* plug )
 		break;
 	case PP_COMPLEMENT:
 		{
-			int nMethod = CPlug::GetPluginFunctionCode( plug->m_cPlugin.m_id, 0 );
+			int nMethod = plug->GetFunctionCode(); // 2015.02.22 Plugin‚Ì•¡”Žw’è
 			CPropTypesSupport::AddHokanMethod( nMethod, plug->m_sLabel.c_str() );
 		}
 		break;
@@ -144,7 +144,7 @@ bool CJackManager::UnRegisterPlug( wstring pszJack, CPlug* plug )
 		break;
 	case PP_COMPLEMENT:
 		{
-			int nMethod = CPlug::GetPluginFunctionCode( plug->m_cPlugin.m_id, 0 );
+			int nMethod = plug->GetFunctionCode(); // 2015.02.22 Plugin‚Ì•¡”Žw’è
 			CPropTypesSupport::RemoveHokanMethod( nMethod, plug->m_sLabel.c_str() );
 		}
 		break;
