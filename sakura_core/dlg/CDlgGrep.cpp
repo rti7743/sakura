@@ -22,6 +22,9 @@
 #include "CGrepEnumKeys.h"
 #include "func/Funccode.h"		// Stonee, 2001/03/12
 #include "charset/CCodePage.h"
+#include "dlg/CDlgOpenFile.h"
+#include "recent/CMRUFile.h"
+#include "recent/CMRUFolder.h"
 #include "util/module.h"
 #include "util/shell.h"
 #include "util/os.h"
@@ -348,6 +351,54 @@ BOOL CDlgGrep::OnBnClicked( int wID )
 			/* 単語単位で検索 */
 			::EnableWindow( ::GetDlgItem( GetHwnd(), IDC_CHK_WORD ), TRUE );
 
+		}
+		return TRUE;
+	case IDC_BUTTON_FILEOPENDIR:
+		// 2015.03.03 ファイル参照ボタン
+		{
+			TCHAR	szFolder[MAX_PATH];
+			/* 検索フォルダ */
+			::DlgItem_GetText( GetHwnd(), IDC_COMBO_FOLDER, szFolder, _MAX_PATH - 1 );
+			if( szFolder[0] == _T('\0') ){
+				::GetCurrentDirectory( _countof( szFolder ), szFolder );
+			}
+			CDlgOpenFile dlg;
+			dlg.Create(
+				G_AppInstance(), GetHwnd(), _T("*.*"),
+				szFolder,
+				CMRUFile().GetPathList(),
+				CMRUFolder().GetPathList()
+			);
+			SLoadInfo sLoadInfo(_T(""), CODE_AUTODETECT, false);
+			std::vector<std::tstring> files;
+			if( dlg.DoModalOpenDlg(&sLoadInfo, &files, false) ){
+				if( 0 < files.size() ){
+					CFilePath path = files[0].c_str();
+					SetGrepFolder( GetItemHwnd(IDC_COMBO_FOLDER), path.GetDirPath().c_str() );
+					std::tstring filePaths;
+					for( int i = 0; i < (int)files.size(); i++ ){
+						if( 0 < i ){
+							filePaths += _T(";");
+						}
+						const TCHAR* title = GetFileTitlePointer(files[i].c_str());
+						if( NULL != auto_strchr(title, _T(' '))
+							|| NULL != auto_strchr(title, _T(';'))
+							|| NULL != auto_strchr(title, _T(',')) ){
+							filePaths += _T("\"");
+							filePaths += title;
+							filePaths += _T("\"");
+						}else{
+							filePaths += title;
+						}
+						if( _MAX_PATH < filePaths.length() ){
+							filePaths = LS(STR_DLGGREP_FILE_LEN_OVER);
+							break;
+						}
+					}
+					::DlgItem_SetText(GetHwnd(), IDC_COMBO_FILE, filePaths.c_str());
+					::CheckDlgButton( GetHwnd(), IDC_CHK_SUBFOLDER, FALSE );
+				}
+			}
 		}
 		return TRUE;
 

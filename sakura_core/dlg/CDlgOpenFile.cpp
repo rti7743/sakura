@@ -363,6 +363,7 @@ UINT_PTR CALLBACK OFNHookProc(
 			if( !pData->m_bUseCharCode ){
 				::ShowWindow( GetDlgItem( hdlg, IDC_STATIC_CHARCODE ), SW_HIDE );
 				::ShowWindow( pData->m_hwndComboCODES, SW_HIDE );
+				::ShowWindow( GetDlgItem( hdlg, IDC_CHECK_CP ), SW_HIDE );
 			}
 
 
