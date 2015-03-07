@@ -62,7 +62,7 @@ enum maxdata{
 	// 2004/06/21 novice タグジャンプ機能追加
 	MAX_TAGJUMPNUM				= 100,	// タブジャンプ情報最大値
 	MAX_TAGJUMP_KEYWORD			= 30,	//タグジャンプ用キーワード最大登録数2005.04.04 MIK
-	MAX_KEYWORDSET_PER_TYPE		= 10,	// 2004.01.23 genta (for MIK) タイプ別設定毎のキーワードセット数
+	MAX_KEYWORDSET_PER_TYPE		= 20,	// 2004.01.23 genta (for MIK) タイプ別設定毎のキーワードセット数
 	MAX_VERTLINES = 10,	// 2005.11.08 Moca 指定桁縦線
 
 	//	MRUリストに関係するmaxdata

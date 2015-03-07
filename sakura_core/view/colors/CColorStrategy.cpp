@@ -323,6 +323,16 @@ void CColorStrategyPool::OnChangeSetting(void)
 		COLORIDX_KEYWORD8,
 		COLORIDX_KEYWORD9,
 		COLORIDX_KEYWORD10,
+		COLORIDX_KEYWORD11,
+		COLORIDX_KEYWORD12,
+		COLORIDX_KEYWORD13,
+		COLORIDX_KEYWORD14,
+		COLORIDX_KEYWORD15,
+		COLORIDX_KEYWORD16,
+		COLORIDX_KEYWORD17,
+		COLORIDX_KEYWORD18,
+		COLORIDX_KEYWORD19,
+		COLORIDX_KEYWORD20,
 	};
 	m_bSkipBeforeLayoutGeneral = true;
 	int nKeyword1;
@@ -415,6 +425,11 @@ const SColorAttributeData g_ColorAttributeArr[] =
 	{_T("WQT"), 0},
 	{_T("HDC"), 0},
 	{_T("URL"), 0},
+	{_T("DFA"), 0},	//DIFF追加	//@@@ 2002.06.01 MIK
+	{_T("DFC"), 0},	//DIFF変更	//@@@ 2002.06.01 MIK
+	{_T("DFD"), 0},	//DIFF削除	//@@@ 2002.06.01 MIK
+	{_T("MRK"), 0},	//ブックマーク	// 02/10/16 ai Add
+	{_T("PGV"), COLOR_ATTRIB_NO_TEXT | COLOR_ATTRIB_NO_EFFECTS},
 	{_T("KW1"), 0},
 	{_T("KW2"), 0},
 	{_T("KW3"), 0},	//@@@ 2003.01.13 by MIK 強調キーワード3-10
@@ -425,6 +440,16 @@ const SColorAttributeData g_ColorAttributeArr[] =
 	{_T("KW8"), 0},
 	{_T("KW9"), 0},
 	{_T("KWA"), 0},
+	{_T("KWB"), 0},	// 2015.02.12 Moca 強調キーワード11-20
+	{_T("KWC"), 0},
+	{_T("KWD"), 0},
+	{_T("KWE"), 0},
+	{_T("KWF"), 0},
+	{_T("KWG"), 0},
+	{_T("KWH"), 0},
+	{_T("KWI"), 0},
+	{_T("KWJ"), 0},
+	{_T("KWK"), 0},
 	{_T("RK1"), 0},	//@@@ 2001.11.17 add MIK
 	{_T("RK2"), 0},	//@@@ 2001.11.17 add MIK
 	{_T("RK3"), 0},	//@@@ 2001.11.17 add MIK
@@ -435,11 +460,6 @@ const SColorAttributeData g_ColorAttributeArr[] =
 	{_T("RK8"), 0},	//@@@ 2001.11.17 add MIK
 	{_T("RK9"), 0},	//@@@ 2001.11.17 add MIK
 	{_T("RKA"), 0},	//@@@ 2001.11.17 add MIK
-	{_T("DFA"), 0},	//DIFF追加	//@@@ 2002.06.01 MIK
-	{_T("DFC"), 0},	//DIFF変更	//@@@ 2002.06.01 MIK
-	{_T("DFD"), 0},	//DIFF削除	//@@@ 2002.06.01 MIK
-	{_T("MRK"), 0},	//ブックマーク	// 02/10/16 ai Add
-	{_T("PGV"), COLOR_ATTRIB_NO_TEXT | COLOR_ATTRIB_NO_EFFECTS},
 	{_T("LAST"), 0}	// Not Used
 };
 

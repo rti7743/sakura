@@ -37,6 +37,7 @@
 	@date 2000.09.18 JEPRO 順番を大幅に入れ替えた
 	@date 2007.09.09 Moca  中間の定義はお任せに変更
 	@date 2013.04.26 novice 色定数を色番号を変換するための識別bit導入
+	@date 2015.02.12 Moca キーワード10-20追加。DIFF/Mark/MiniMapをキーワードの前へ移動
 */
 enum EColorIndexType {
 	COLORIDX_TEXT = 0,		//!< テキスト
@@ -72,6 +73,11 @@ enum EColorIndexType {
 	COLORIDX_WSTRING,		//!< ダブルクォーテーション文字列		//Dec. 4, 2000 shifted by MIK
 	COLORIDX_HEREDOC,		//!< ヒアドキュメント
 	COLORIDX_URL,			//!< URL								//Dec. 4, 2000 shifted by MIK
+	COLORIDX_DIFF_APPEND,	//!< DIFF追加  //@@@ 2002.06.01 MIK
+	COLORIDX_DIFF_CHANGE,	//!< DIFF追加  //@@@ 2002.06.01 MIK
+	COLORIDX_DIFF_DELETE,	//!< DIFF追加  //@@@ 2002.06.01 MIK
+	COLORIDX_MARK,			//!< ブックマーク  // 02/10/16 ai Add
+	COLORIDX_PAGEVIEW,		//!< 表示範囲(ミニマップ)  // 2014.07.14 Add
 	COLORIDX_KEYWORD1,		//!< 強調キーワード1 // 2002/03/13 novice
 	COLORIDX_KEYWORD2,		//!< 強調キーワード2 // 2002/03/13 novice  //MIK ADDED
 	COLORIDX_KEYWORD3,		//!< 強調キーワード3 // 2005.01.13 MIK 3-10 added
@@ -82,6 +88,16 @@ enum EColorIndexType {
 	COLORIDX_KEYWORD8,		//!< 強調キーワード8
 	COLORIDX_KEYWORD9,		//!< 強調キーワード9
 	COLORIDX_KEYWORD10,		//!< 強調キーワード10
+	COLORIDX_KEYWORD11,		//!< 強調キーワード11 // 2015.02.12 Moca 強調キーワード11-20
+	COLORIDX_KEYWORD12,		//!< 強調キーワード12
+	COLORIDX_KEYWORD13,		//!< 強調キーワード13
+	COLORIDX_KEYWORD14,		//!< 強調キーワード14
+	COLORIDX_KEYWORD15,		//!< 強調キーワード15
+	COLORIDX_KEYWORD16,		//!< 強調キーワード16
+	COLORIDX_KEYWORD17,		//!< 強調キーワード17
+	COLORIDX_KEYWORD18,		//!< 強調キーワード18
+	COLORIDX_KEYWORD19,		//!< 強調キーワード19
+	COLORIDX_KEYWORD20,		//!< 強調キーワード20
 	COLORIDX_REGEX1,		//!< 正規表現キーワード1  //@@@ 2001.11.17 add MIK
 	COLORIDX_REGEX2,		//!< 正規表現キーワード2  //@@@ 2001.11.17 add MIK
 	COLORIDX_REGEX3,		//!< 正規表現キーワード3  //@@@ 2001.11.17 add MIK
@@ -92,11 +108,6 @@ enum EColorIndexType {
 	COLORIDX_REGEX8,		//!< 正規表現キーワード8  //@@@ 2001.11.17 add MIK
 	COLORIDX_REGEX9,		//!< 正規表現キーワード9  //@@@ 2001.11.17 add MIK
 	COLORIDX_REGEX10,		//!< 正規表現キーワード10	//@@@ 2001.11.17 add MIK
-	COLORIDX_DIFF_APPEND,	//!< DIFF追加  //@@@ 2002.06.01 MIK
-	COLORIDX_DIFF_CHANGE,	//!< DIFF追加  //@@@ 2002.06.01 MIK
-	COLORIDX_DIFF_DELETE,	//!< DIFF追加  //@@@ 2002.06.01 MIK
-	COLORIDX_MARK,			//!< ブックマーク  // 02/10/16 ai Add
-	COLORIDX_PAGEVIEW,		//!< 表示範囲(ミニマップ)  // 2014.07.14 Add
 
 	//カラーの最後
 	COLORIDX_LAST,			//!< カラーの最後

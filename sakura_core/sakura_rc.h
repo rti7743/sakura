@@ -793,6 +793,16 @@
 #define IDC_CHECK_USE_FONT              1724
 #define IDC_STATIC_FONT                 1725
 #define IDC_BUTTON_FONT                 1726
+#define IDC_COMBO11                     1727
+#define IDC_COMBO12                     1728
+#define IDC_COMBO13                     1729
+#define IDC_COMBO14                     1730
+#define IDC_COMBO15                     1731
+#define IDC_COMBO16                     1732
+#define IDC_COMBO17                     1733
+#define IDC_COMBO18                     1734
+#define IDC_COMBO19                     1735
+#define IDC_COMBO20                     1736
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -835,7 +845,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1727
+#define _APS_NEXT_CONTROL_VALUE         1737
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

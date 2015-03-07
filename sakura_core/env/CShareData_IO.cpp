@@ -1405,14 +1405,11 @@ void CShareData_IO::ShareData_IO_Type_One( CDataProfile& cProfile, CDataProfile&
 		cProfile.IOProfileData( pszSecName, szKeyName, MakeStringBufferW(szKeyData) );
 	}
 	// 2005.01.13 MIK Keywordset 3-10
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect3"),  types.m_nKeyWordSetIdx[2] );
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect4"),  types.m_nKeyWordSetIdx[3] );
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect5"),  types.m_nKeyWordSetIdx[4] );
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect6"),  types.m_nKeyWordSetIdx[5] );
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect7"),  types.m_nKeyWordSetIdx[6] );
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect8"),  types.m_nKeyWordSetIdx[7] );
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect9"),  types.m_nKeyWordSetIdx[8] );
-	cProfile.IOProfileData( pszSecName, LTEXT("nKeywordSelect10"), types.m_nKeyWordSetIdx[9] );
+	for( int i = 2; i < _countof(types.m_nKeyWordSetIdx); i++ ){
+		wchar_t szKeyName[64];
+		auto_sprintf( szKeyName, L"nKeywordSelect%d", i + 1 );
+		cProfile.IOProfileData( pszSecName, szKeyName,  types.m_nKeyWordSetIdx[i] );
+	}
 
 	/* sŠÔ‚Ì‚·‚«‚Ü */
 	cProfile.IOProfileData( pszSecName, LTEXT("nLineSpace"), types.m_nLineSpace );
