@@ -2024,7 +2024,7 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 	if( cProfile.IsReadingMode() && nVersion < nCurrentVer ){
 		CommonSetting_MainMenu& mainmenu = GetDllShareData().m_Common.m_sMainMenu;
 		SMainMenuAddItemInfo addInfos[] = {
-			{1, F_FILENEW_NEWWINDOW, F_FILENEW, L'\0', false, false},	// 新しいウインドウを開く
+			{1, F_FILENEW_NEWWINDOW, F_FILENEW, L'M', false, false},	// 新しいウインドウを開く
 			{1, F_CHG_CHARSET, F_TOGGLE_KEY_SEARCH, L'A', false, false},	// 文字コード変更
 			{1, F_CHG_CHARSET, F_VIEWMODE, L'A', false, false}, 	// 文字コード変更(Sub)
 			{1, F_FILE_REOPEN_LATIN1, F_FILE_REOPEN_EUC, L'L', false, false}, 	// Latin1で開き直す
