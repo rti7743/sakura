@@ -2032,7 +2032,7 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 						pcMenu->m_nFunc    = item.m_nAddFuncCode;
 						pcMenu->m_nLevel   = nLevel;
 						pcMenu->m_sName[0] = L'\0';
-						pcMenu->m_sKey[0]  = L'\0';
+						pcMenu->m_sKey[0]  = item.m_cAccKey;
 						pcMenu->m_sKey[1]  = L'\0';
 						mainmenu.m_nMainMenuNum++;
 						if( item.m_bAddNextSeparete ){
