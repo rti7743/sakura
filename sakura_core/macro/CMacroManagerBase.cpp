@@ -32,29 +32,32 @@
 #include "view/CEditView.h"
 #include "cmd/CViewCommander_inline.h"
 #include "COpeBlk.h"
+#include "macro/CMacro.h"
 
 // CMacroBeforeAfter
 
-void CMacroBeforeAfter::ExecKeyMacroBefore( class CEditView* pcEditView, int flags )
+void CMacroBeforeAfter::ExecKeyMacroBefore( class CEditView* pcEditView, int flags, CMacroExecVars* vars )
 {
 	COpeBlk* opeBlk = pcEditView->m_cCommander.GetOpeBlk();
 	if( opeBlk ){
-		m_nOpeBlkCount = opeBlk->GetRefCount();
+		vars->m_nOpeBlkCount = opeBlk->GetRefCount();
 	}else{
-		m_nOpeBlkCount = 0;
+		vars->m_nOpeBlkCount = 0;
 	}
-	m_bDrawSwitchOld = pcEditView->GetDrawSwitch();
+	vars->m_bDrawSwitchOld = pcEditView->GetDrawSwitch();
+	vars->m_pcMacroInstanceDataOld = pcEditView->m_pcEditWnd->m_pcMacroInstanceData;
+	pcEditView->m_pcEditWnd->m_pcMacroInstanceData = CMacro::CreateCMacroInstanceData();
 }
 
-void CMacroBeforeAfter::ExecKeyMacroAfter( class CEditView* pcEditView, int flags, bool bRet )
+void CMacroBeforeAfter::ExecKeyMacroAfter( class CEditView* pcEditView, int flags, bool bRet, CMacroExecVars* vars )
 {
-	if( 0 < m_nOpeBlkCount ){
+	if( 0 < vars->m_nOpeBlkCount ){
 		COpeBlk* opeBlk = pcEditView->m_cCommander.GetOpeBlk();
 		if( opeBlk == NULL ){
 			pcEditView->m_cCommander.SetOpeBlk(new COpeBlk());
 		}
-		if( pcEditView->m_cCommander.GetOpeBlk()->GetRefCount() != m_nOpeBlkCount ){
-			pcEditView->m_cCommander.GetOpeBlk()->SetRefCount( m_nOpeBlkCount );
+		if( pcEditView->m_cCommander.GetOpeBlk()->GetRefCount() != vars->m_nOpeBlkCount ){
+			pcEditView->m_cCommander.GetOpeBlk()->SetRefCount( vars->m_nOpeBlkCount );
 		}
 	}else{
 		COpeBlk* opeBlk = pcEditView->m_cCommander.GetOpeBlk();
@@ -63,7 +66,9 @@ void CMacroBeforeAfter::ExecKeyMacroAfter( class CEditView* pcEditView, int flag
 			pcEditView->SetUndoBuffer();
 		}
 	}
-	pcEditView->m_pcEditWnd->SetDrawSwitchOfAllViews(m_bDrawSwitchOld);
+	pcEditView->m_pcEditWnd->SetDrawSwitchOfAllViews(vars->m_bDrawSwitchOld);
+	CMacro::DeleteCMacroInstanceData(pcEditView->m_pcEditWnd->m_pcMacroInstanceData);
+	pcEditView->m_pcEditWnd->m_pcMacroInstanceData = vars->m_pcMacroInstanceDataOld;
 }
 
 // CMacroManagerBase
@@ -78,8 +83,9 @@ CMacroManagerBase::~CMacroManagerBase()
 
 void CMacroManagerBase::ExecKeyMacro2( class CEditView* pcEditView, int flags )
 {
-	ExecKeyMacroBefore(pcEditView, flags);
+	CMacroExecVars vars; // çƒì¸ópïœêîÉNÉâÉX
+	ExecKeyMacroBefore(pcEditView, flags, &vars);
 	bool b = ExecKeyMacro(pcEditView, flags);
-	ExecKeyMacroAfter(pcEditView, flags, b);
+	ExecKeyMacroAfter(pcEditView, flags, b, &vars);
 }
 

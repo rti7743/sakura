@@ -707,6 +707,7 @@ bool CShareData::InitShareData()
 			m_pShareData->m_sTagJump.m_bTagJumpICase = FALSE;
 			m_pShareData->m_sTagJump.m_bTagJumpAnyWhere = FALSE;
 			//To Here 2005.04.03 MIK 
+		m_pShareData->m_Common.m_sMacro.m_bMacroIncludeSave = false;
 
 			m_pShareData->m_sHistory.m_aExceptMRU.clear();
 

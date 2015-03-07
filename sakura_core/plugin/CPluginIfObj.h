@@ -172,7 +172,11 @@ public:
 			break;
 		case F_PL_ADDCOMMAND:			//ƒRƒ}ƒ“ƒh‚ð’Ç‰Á‚·‚é
 			{
-				int id = m_cPlugin.AddCommand( Arguments[0], Arguments[1], Arguments[2], true );
+				bool bRecMacro = true;
+				if( 4 <= ArgSize ){
+					bRecMacro  = (_wtoi(Arguments[4]) & 0x01) != 0;
+				}
+				int id = m_cPlugin.AddCommand( Arguments[0], Arguments[1], Arguments[2], bRecMacro, true );
 				View->m_pcEditWnd->RegisterPluginCommand( id );
 			}
 			break;

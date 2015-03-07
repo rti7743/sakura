@@ -39,8 +39,8 @@ class CDllPlug
 	: public CPlug
 {
 public:
-	CDllPlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel )
-		: CPlug( plugin, id, sJack, sHandler, sLabel )
+	CDllPlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel, bool bRecMacro )
+		: CPlug( plugin, id, sJack, sHandler, sLabel, bRecMacro )
 		, m_handler( NULL )
 	{
 	}
@@ -66,7 +66,7 @@ public:
 	bool ReadPluginOption( CDataProfile *cProfile ) {
 		return true;
 	}
-	CPlug* CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel );
+	CPlug* CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel, bool bRecMacro );
 	CPlug::Array GetPlugs() const{
 		return m_plugs;
 	}

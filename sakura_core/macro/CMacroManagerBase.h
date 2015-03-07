@@ -33,16 +33,31 @@
 
 #include <Windows.h>
 class CEditView;
+class CMacroInstanceData;
+
+// !É}ÉNÉçïœêîåQ
+// @note çƒì¸Ççló∂Ç∑ÇÈÇΩÇﬂCMacroBeforeAfterÇ∆ï™ó£
+class CMacroExecVars
+{
+public:
+	CMacroExecVars()
+	:m_nOpeBlkCount(0)
+	,m_bDrawSwitchOld(true)
+	,m_pcMacroInstanceDataOld()
+		{};
+	~CMacroExecVars(){};
+
+	int m_nOpeBlkCount;
+	bool m_bDrawSwitchOld;
+	CMacroInstanceData* m_pcMacroInstanceDataOld;
+};
 
 class CMacroBeforeAfter {
 public:
-	CMacroBeforeAfter() : m_nOpeBlkCount(0), m_bDrawSwitchOld(true){};
+	CMacroBeforeAfter(){};
 	virtual ~CMacroBeforeAfter(){};
-	virtual void ExecKeyMacroBefore( class CEditView* pcEditView, int flags );
-	virtual void ExecKeyMacroAfter( class CEditView* pcEditView, int flags, bool bRet );
-private:
-	int m_nOpeBlkCount;
-	bool m_bDrawSwitchOld;
+	virtual void ExecKeyMacroBefore( class CEditView* pcEditView, int flags, CMacroExecVars* vars );
+	virtual void ExecKeyMacroAfter( class CEditView* pcEditView, int flags, bool bRet, CMacroExecVars* vars );
 };
 
 /*!

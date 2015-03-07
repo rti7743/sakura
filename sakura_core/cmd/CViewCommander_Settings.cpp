@@ -158,7 +158,7 @@ void CViewCommander::Command_SHOWMINIMAP( void )
 
 
 /* タイプ別設定一覧 */
-void CViewCommander::Command_TYPE_LIST( void )
+void CViewCommander::Command_TYPE_LIST( EFunctionFlags flags )
 {
 	CDlgTypeList			cDlgTypeList;
 	CDlgTypeList::SResult	sResult;
@@ -168,7 +168,7 @@ void CViewCommander::Command_TYPE_LIST( void )
 		//	Nov. 29, 2000 genta
 		//	一時的な設定適用機能を無理矢理追加
 		if( sResult.bTempChange ){
-			HandleCommand( F_CHANGETYPE, true, (LPARAM)sResult.cDocumentType.GetIndex() + 1, 0, 0, 0 );
+			HandleCommand( static_cast<EFunctionCode>(F_CHANGETYPE | flags), true, (LPARAM)sResult.cDocumentType.GetIndex() + 1, 0, 0, 0 );
 		}
 		else{
 			/* タイプ別設定 */

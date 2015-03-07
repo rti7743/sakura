@@ -29,11 +29,28 @@
 #include <vector>		// wstring_split用 2010/4/4 Uchi
 #include "CPlugin.h"
 #include "CJackManager.h"
+#include "window/CEditWnd.h"
+#include "macro/CMacro.h"
 
 /////////////////////////////////////////////
 // CPlug メンバ関数
-bool CPlug::Invoke( CEditView* view, CWSHIfObj::List& params ){
-	return m_cPlugin.InvokePlug( view, *this, params );
+bool CPlug::Invoke( CEditView* view, CWSHIfObj::List& params, bool bStackMacroParam ){
+	CMacro cMacroParent(F_0);
+	CMacro cMacroParamOld(F_0);
+	if( bStackMacroParam ){
+		if( view && view->m_pcEditWnd ){
+			cMacroParent.Move(view->m_pcEditWnd->m_cRecMacroParam);
+			cMacroParamOld.Move(view->m_pcEditWnd->m_cExecMacroParam);
+		}
+	}
+	bool bRet = m_cPlugin.InvokePlug( view, *this, params );
+	if( bStackMacroParam ){
+		if( view && view->m_pcEditWnd ){
+			view->m_pcEditWnd->m_cRecMacroParam.Move(cMacroParent);
+			view->m_pcEditWnd->m_cExecMacroParam.Move(cMacroParamOld);
+		}
+	}
+	return bRet;
 }
 
 EFunctionCode CPlug::GetFunctionCode() const{
@@ -113,7 +130,7 @@ bool CPlugin::ReadPluginDefPlug( CDataProfile *cProfile, CDataProfile *cProfileM
 					sLabel = sHandler;		// Labelが無ければハンドラ名で代用
 				}
 
-				CPlug *newPlug = CreatePlug( *this, nCount, jacks[i].szName, sHandler, sLabel );
+				CPlug *newPlug = CreatePlug( *this, nCount, jacks[i].szName, sHandler, sLabel, false );
 				m_plugs.push_back( newPlug );
 			}else{
 				break;		//定義がなければ読み込みを終了
@@ -135,6 +152,7 @@ bool CPlugin::ReadPluginDefCommand( CDataProfile *cProfile, CDataProfile *cProfi
 		if( cProfile->IOProfileData( PII_COMMAND, bufKey, sHandler ) ){
 			wstring sLabel;
 			wstring sIcon;
+			bool bRecMacro = true;
 
 			//ラベルの取得
 			swprintf( bufKey, L"C[%d].Label", nCount );
@@ -151,8 +169,10 @@ bool CPlugin::ReadPluginDefCommand( CDataProfile *cProfile, CDataProfile *cProfi
 			if( cProfileMlang ){
 				cProfileMlang->IOProfileData( PII_COMMAND, bufKey, sIcon );
 			}
+			swprintf( bufKey, L"C[%d].RecMacro", bRecMacro );
+			cProfile->IOProfileData( PII_COMMAND, bufKey, bRecMacro );
 
-			AddCommand( sHandler.c_str(), sLabel.c_str(), sIcon.c_str(), false );
+			AddCommand( sHandler.c_str(), sLabel.c_str(), sIcon.c_str(), bRecMacro, false );
 		}else{
 			break;		//定義がなければ読み込みを終了
 		}
@@ -232,14 +252,14 @@ CPlugin::tstring CPlugin::GetFolderName() const
 }
 
 //コマンドを追加する
-int CPlugin::AddCommand( const WCHAR* handler, const WCHAR* label, const WCHAR* icon, bool doRegister )
+int CPlugin::AddCommand( const WCHAR* handler, const WCHAR* label, const WCHAR* icon, bool bRecMacro, bool doRegister )
 {
 	if( !handler ){ handler = L""; }
 	if( !label ){ label = L""; }
 
 	//コマンドプラグIDは1から振る
 	m_nCommandCount++;
-	CPlug *newPlug = CreatePlug( *this, m_nCommandCount, PP_COMMAND_STR, wstring(handler), wstring(label) );
+	CPlug *newPlug = CreatePlug( *this, m_nCommandCount, PP_COMMAND_STR, wstring(handler), wstring(label), bRecMacro );
 	if( icon ){
 		newPlug->m_sIcon = icon;
 	}
@@ -287,5 +307,72 @@ bool CPlugin::ReadPluginDefString( CDataProfile *cProfile, CDataProfile *cProfil
 		}
 		m_aStrings.push_back( sVal );
 	}
+	return true;
+}
+
+/*! プラグインコマンドを名前から機能番号へ変換
+	@note CShareData_IOから呼ばれるためCPlugin類の実体へのアクセス禁止
+*/
+EFunctionCode CPlugin::GetPlugCmdInfoByName(
+	const WCHAR*	pszFuncName			//!< [in]  プラグインコマンド名
+)
+{
+	CommonSetting_Plugin& plugin = GetDllShareData().m_Common.m_sPlugin;
+	WCHAR		sPluginName[MAX_PLUGIN_ID+1];
+	const WCHAR* psCmdName;
+	size_t		nLen;
+	int			i;
+	int			nId;
+	int			nNo;
+
+	if (pszFuncName == NULL) {
+		return F_INVALID;
+	}
+	if ((psCmdName = wcschr(pszFuncName, L'/')) == NULL) {
+		return F_INVALID;
+	}
+	nLen = MAX_PLUGIN_ID < (psCmdName - pszFuncName) ? MAX_PLUGIN_ID : (psCmdName - pszFuncName);
+	wcsncpy( sPluginName, pszFuncName, nLen);
+	sPluginName[nLen] = L'\0'; 
+	psCmdName++;
+
+	nId = -1;
+	for (i = 0; i < MAX_PLUGIN; i++) {
+		PluginRec& pluginrec = plugin.m_PluginTable[i];
+		if (auto_strcmp( pluginrec.m_szId, sPluginName ) == 0) {
+			nId = i;
+			break;
+		}
+	}
+	nNo = _wtoi( psCmdName );
+
+	if (nId < 0 || nNo <= 0 || nNo >= MAX_PLUG_CMD) {
+		// プラグインがない/番号がおかしい
+		return F_INVALID;
+	}
+	
+	return CPlug::GetPluginFunctionCode( nId, nNo );
+}
+
+/* プラグインコマンドを機能番号から名前へ変換
+	@note CShareData_IOから呼ばれるためCPlugin類の実体へのアクセス禁止
+*/
+bool CPlugin::GetPlugCmdInfoByFuncCode(
+	EFunctionCode	eFuncCode,				//!< [in]  機能コード
+	WCHAR*			pszFuncName				//!< [out] 機能名．この先にはMAX_PLUGIN_ID + 20文字のメモリが必要．
+)
+{
+	CommonSetting_Plugin& plugin = GetDllShareData().m_Common.m_sPlugin;
+
+	if (eFuncCode < F_PLUGCOMMAND_FIRST || eFuncCode > F_PLUGCOMMAND_LAST) {
+		return false;
+	}
+
+	PluginId nID = CPlug::GetPluginId( eFuncCode );
+	PlugId nNo = CPlug::GetPlugId( eFuncCode );
+	if (nID < 0 || nNo < 0) {
+		return false;
+	}
+	auto_sprintf(pszFuncName, L"%ls/%02d", plugin.m_PluginTable[nID].m_szId, nNo);
 	return true;
 }

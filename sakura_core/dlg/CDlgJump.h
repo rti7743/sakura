@@ -37,6 +37,7 @@ public:
 	BOOL		m_bPLSQL;		/*!< PL/SQLソースの有効行か */
 	int			m_nPLSQL_E1;
 	int			m_nPLSQL_E2;
+	int			m_flags; 	// マクロ等フラグ
 protected:
 	/*
 	||  実装ヘルパ関数

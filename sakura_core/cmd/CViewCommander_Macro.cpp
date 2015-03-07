@@ -60,6 +60,10 @@ void CViewCommander::Command_RECKEYMACRO( void )
 			ErrorMessage(	m_pCommanderView->GetHwnd(), LS(STR_ERR_CEDITVIEW_CMD25), GetDllShareData().m_Common.m_sMacro.m_szKeyMacroFileName );
 		}
 	}else{
+		if( GetEditWindow()->m_bExecKeyMacro ){
+			// 2014.12.24 キーマクロ実行中は不可
+			return;
+		}
 		GetDllShareData().m_sFlags.m_bRecordingKeyMacro = TRUE;
 		GetDllShareData().m_sFlags.m_hwndRecordingKeyMacro = GetMainWindow();	/* キーボードマクロを記録中のウィンドウ */
 		/* キーマクロのバッファをクリアする */
@@ -132,6 +136,10 @@ void CViewCommander::Command_SAVEKEYMACRO( void )
  */
 void CViewCommander::Command_LOADKEYMACRO( void )
 {
+	if( GetEditWindow()->m_bExecKeyMacro ){
+		// 2014.12.24 キーマクロ実行中は不可
+		return;
+	}
 	GetDllShareData().m_sFlags.m_bRecordingKeyMacro = FALSE;
 	GetDllShareData().m_sFlags.m_hwndRecordingKeyMacro = NULL;	/* キーボードマクロを記録中のウィンドウ */
 
@@ -173,6 +181,11 @@ void CViewCommander::Command_LOADKEYMACRO( void )
 /* キーマクロの実行 */
 void CViewCommander::Command_EXECKEYMACRO( void )
 {
+	if( GetEditWindow()->m_bExecKeyMacro ){
+		// 2014.12.24 マクロ内メニュー表示で再入の可能性。再入不可
+		return;
+	}
+	GetEditWindow()->m_bExecKeyMacro = true;
 	//@@@ 2002.1.24 YAZAKI 記録中は終了してから実行
 	if (GetDllShareData().m_sFlags.m_bRecordingKeyMacro){
 		Command_RECKEYMACRO();
@@ -199,6 +212,7 @@ void CViewCommander::Command_EXECKEYMACRO( void )
 			m_pcSMacroMgr->Exec( STAND_KEYMACRO, G_AppInstance(), m_pCommanderView, 0 );
 		}
 	}
+	GetEditWindow()->m_bExecKeyMacro = false;
 	return;
 }
 
@@ -211,7 +225,7 @@ void CViewCommander::Command_EXECKEYMACRO( void )
 	@date 2008.10.23 syat 新規作成
 	@date 2008.12.21 syat 引数「種別」を追加
  */
-void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* pszTypeW )
+void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* pszTypeW, CMacro* pMacroParam, bool bRecKeyMacro )
 {
 	CDlgOpenFile	cDlgOpenFile;
 	TCHAR			szPath[_MAX_PATH + 1];
@@ -220,11 +234,20 @@ void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* p
 	const TCHAR*	pszPath = NULL;				//第1引数をTCHAR*に変換した文字列
 	const TCHAR*	pszType = NULL;				//第2引数をTCHAR*に変換した文字列
 	HWND			hwndRecordingKeyMacro = NULL;
+	std::tstring	tstrPathTemp;
+	std::tstring	tstrTypeTemp;
+	std::wstring	wstrPath;
+	std::wstring	wstrType;
+	const WCHAR*	pszTypeMacro = NULL;
 
 	if ( pszPathW != NULL ) {
 		//to_tchar()で取得した文字列はdeleteしないこと。
-		pszPath = to_tchar( pszPathW );
-		pszType = to_tchar( pszTypeW );
+		tstrPathTemp = to_tchar( pszPathW );
+		pszPath = tstrPathTemp.c_str();
+		tstrTypeTemp = to_tchar( pszTypeW );
+		pszType = tstrTypeTemp.c_str();
+		wstrPath = pszPathW;
+		pszTypeMacro = pszTypeW;
 
 	} else {
 		// ファイルが指定されていない場合、ダイアログを表示する
@@ -248,15 +271,18 @@ void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* p
 		}
 		pszPath = szPath;
 		pszType = NULL;
+		wstrPath = to_wchar(szPath);
 	}
 
-	//キーマクロ記録中の場合、追加する
-	if( GetDllShareData().m_sFlags.m_bRecordingKeyMacro &&									/* キーボードマクロの記録中 */
-		GetDllShareData().m_sFlags.m_hwndRecordingKeyMacro == GetMainWindow()	/* キーボードマクロを記録中のウィンドウ */
-	){
-		LPARAM lparams[] = {(LPARAM)pszPath, 0, 0, 0};
-		m_pcSMacroMgr->Append( STAND_KEYMACRO, F_EXECEXTMACRO, lparams, m_pCommanderView );
-
+	//キーマクロ記録中
+	CMacro cMacroParent(F_0);
+	cMacroParent.Move(GetEditWindow()->m_cRecMacroParam);
+	CMacro cMacroParamOld(F_0);
+	cMacroParamOld.Move(GetEditWindow()->m_cExecMacroParam);
+	if( pMacroParam ){
+		GetEditWindow()->m_cExecMacroParam.Move(*pMacroParam);
+	}
+	if( bRecKeyMacro ){
 		//キーマクロの記録を一時停止する
 		GetDllShareData().m_sFlags.m_bRecordingKeyMacro = FALSE;
 		hwndRecordingKeyMacro = GetDllShareData().m_sFlags.m_hwndRecordingKeyMacro;
@@ -287,9 +313,15 @@ void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* p
 
 	// キーマクロ記録中だった場合は再開する
 	if ( hwndRecordingKeyMacro != NULL ) {
+		// キーマクロの記録を登録
+		LPARAM lparams[] = {(LPARAM)wstrPath.c_str(), (LPARAM)pszTypeMacro, (LPARAM)&GetEditWindow()->m_cRecMacroParam, 0};
+		m_pcSMacroMgr->Append( STAND_KEYMACRO, F_EXECEXTMACRO, lparams, m_pCommanderView );
+
 		GetDllShareData().m_sFlags.m_bRecordingKeyMacro = TRUE;
 		GetDllShareData().m_sFlags.m_hwndRecordingKeyMacro = hwndRecordingKeyMacro;	/* キーボードマクロを記録中のウィンドウ */
 	}
+	GetEditWindow()->m_cRecMacroParam.Move(cMacroParent);
+	GetEditWindow()->m_cExecMacroParam.Move(cMacroParamOld);
 	return;
 }
 
@@ -298,7 +330,7 @@ void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* p
 /*! 外部コマンド実行ダイアログ表示
 	@date 2002.02.02 YAZAKI.
 */
-void CViewCommander::Command_EXECCOMMAND_DIALOG( void )
+void CViewCommander::Command_EXECCOMMAND_DIALOG( EFunctionFlags flags )
 {
 	CDlgExec cDlgExec;
 
@@ -320,7 +352,7 @@ void CViewCommander::Command_EXECCOMMAND_DIALOG( void )
 	}
 
 	//HandleCommand( F_EXECMD, true, (LPARAM)cmd_string, 0, 0, 0);	//	外部コマンド実行コマンドの発行
-	HandleCommand( F_EXECMD, true, (LPARAM)cmd_string, (LPARAM)(GetDllShareData().m_nExecFlgOpt), (LPARAM)pszDir, 0);	//	外部コマンド実行コマンドの発行
+	HandleCommand( static_cast<EFunctionCode>(F_EXECMD | flags), true, (LPARAM)cmd_string, (LPARAM)(GetDllShareData().m_nExecFlgOpt), (LPARAM)pszDir, 0);	//	外部コマンド実行コマンドの発行
 }
 
 

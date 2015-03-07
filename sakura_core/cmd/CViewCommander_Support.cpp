@@ -123,7 +123,7 @@ void CViewCommander::Command_HELP_SEARCH( void )
 
 
 /* コマンド一覧 */
-void CViewCommander::Command_MENU_ALLFUNC( void )
+void CViewCommander::Command_MENU_ALLFUNC( EFunctionFlags flags )
 {
 
 	UINT	uFlags;
@@ -194,7 +194,13 @@ void CViewCommander::Command_MENU_ALLFUNC( void )
 	if( 0 != nId ){
 		/* コマンドコードによる処理振り分け */
 //		HandleCommand( nFuncID, true, 0, 0, 0, 0 );
-		::PostMessageCmd( GetMainWindow(), WM_COMMAND, MAKELONG( nId, 0 ), (LPARAM)NULL );
+		int nCmdId = nId;
+		if( F_PLUGCOMMAND_FIRST <= nCmdId ){
+			nCmdId |= flags;
+			GetDocument()->HandleCommand( static_cast<EFunctionCode>(nCmdId) );
+		}else{
+			::SendMessageCmd( GetMainWindow(), WM_COMMAND, nCmdId, (LPARAM)NULL );
+		}
 	}
 	return;
 }

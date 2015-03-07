@@ -51,7 +51,7 @@ CViewCommander::CViewCommander(CEditView* pEditView) : m_pCommanderView(pEditVie
 	@param lparam4 parameter4(内容はコマンドコードによって変わります)
 */
 BOOL CViewCommander::HandleCommand(
-	EFunctionCode	nCommand,
+	EFunctionCode	nCommandAndFlag,
 	bool			bRedraw,
 	LPARAM			lparam1,
 	LPARAM			lparam2,
@@ -61,13 +61,12 @@ BOOL CViewCommander::HandleCommand(
 {
 	BOOL	bRet = TRUE;
 	bool	bRepeat = false;
-	int		nFuncID;
 
 	//	May. 19, 2006 genta 上位16bitに送信元の識別子が入るように変更したので
 	//	下位16ビットのみを取り出す
 	//	Jul.  7, 2007 genta 定数と比較するためにシフトしないで使う
-	int nCommandFrom = nCommand & ~0xffff;
-	nCommand = (EFunctionCode)LOWORD( nCommand );
+	const EFunctionFlags nCommandFrom = static_cast<EFunctionFlags>(nCommandAndFlag & FA_FLAGS);
+	EFunctionCode nCommand = static_cast<EFunctionCode>(LOWORD( nCommandAndFlag ));
 
 
 	if( m_pCommanderView->m_nAutoScrollMode && F_AUTOSCROLL != nCommand ){
@@ -103,15 +102,22 @@ BOOL CViewCommander::HandleCommand(
 		bRepeat = true;
 	}
 	m_bPrevCommand = nCommand;
+	bool bRecKeyMacro;
 	if( GetDllShareData().m_sFlags.m_bRecordingKeyMacro &&									/* キーボードマクロの記録中 */
 		GetDllShareData().m_sFlags.m_hwndRecordingKeyMacro == GetMainWindow() &&	/* キーボードマクロを記録中のウィンドウ */
-		( nCommandFrom & FA_NONRECORD ) != FA_NONRECORD	/* 2007.07.07 genta 記録抑制フラグ off */
+		( nCommandFrom & EFunctionFlags_NONRECORD ) != EFunctionFlags_NONRECORD	/* 2007.07.07 genta 記録抑制フラグ off */
 	){
+		bRecKeyMacro = true;
+	}else{
+		bRecKeyMacro = false;
+	}
+	if( bRecKeyMacro ){
 		/* キーリピート状態をなくする */
 		bRepeat = false;
 		/* キーマクロに記録可能な機能かどうかを調べる */
 		//@@@ 2002.2.2 YAZAKI マクロをCSMacroMgrに統一
 		//F_EXECEXTMACROコマンドはファイルを選択した後にマクロ文が確定するため個別に記録する。
+		//「登録済みマクロ」「プラグイン」も後で追加
 		if( CSMacroMgr::CanFuncIsKeyMacro( nCommand ) &&
 			nCommand != F_EXECEXTMACRO	//F_EXECEXTMACROは個別で記録します
 		){
@@ -135,16 +141,58 @@ BOOL CViewCommander::HandleCommand(
 
 	//	From Here Sep. 29, 2001 genta マクロの実行機能追加
 	if( F_USERMACRO_0 <= nCommand && nCommand < F_USERMACRO_0 + MAX_CUSTMACRO ){
+		// 2014.12.17 「登録済みマクロ実行」として記録するか
+		bool bRecKeyMacroSave = bRecKeyMacro;
+		if( GetDllShareData().m_Common.m_sMacro.m_bMacroIncludeSave ){
+			bRecKeyMacroSave = false;
+		}
+		std::wstring strMacroFile;
+		std::wstring strMacroName;
+		if( bRecKeyMacroSave ){
+			TCHAR* n = GetDllShareData().m_Common.m_sMacro.m_MacroTable[nCommand - F_USERMACRO_0].m_szName;
+			TCHAR* p = GetDllShareData().m_Common.m_sMacro.m_MacroTable[nCommand - F_USERMACRO_0].m_szFile;
+			strMacroFile = to_wchar(p);
+			strMacroName = to_wchar(n);
+		}
+		CMacro cMacroParent(F_0); // MacroParam記録・退避
+		cMacroParent.Move(GetEditWindow()->m_cRecMacroParam);
+		CMacro cMacroParamOld(F_0); // MacroParam引数・退避
+		cMacroParamOld.Move(m_pCommanderView->m_pcEditWnd->m_cExecMacroParam);
+		if( lparam1 ){
+			m_pCommanderView->m_pcEditWnd->m_cExecMacroParam.Move(*(CMacro*)lparam1);
+		}
+		bool bMacroExecResult = true;
 		//@@@ 2002.2.2 YAZAKI マクロをCSMacroMgrに統一（インターフェースの変更）
+		// 2014.12.17 オプションでマクロを記録するか
+		EFunctionFlags eMacroFlags;
+		if( GetDllShareData().m_Common.m_sMacro.m_bMacroIncludeSave ){
+			// 旧互換:マクロ記録中のマクロ実行は中身を記録(元の値を引き継ぐ)
+			eMacroFlags = static_cast<EFunctionFlags>(nCommandFrom & EFunctionFlags_NONRECORD);
+		}else{
+			// マクロの中身は記録しない(デフォルト)
+			// NONRECORDなので、次の再入ではbRecKeyMacroはfalseになるはず
+			eMacroFlags = static_cast<EFunctionFlags>(EFunctionFlags_NONRECORD | EFunctionFlags_FROMMACRO);
+		}
 		if( !m_pcSMacroMgr->Exec( nCommand - F_USERMACRO_0, G_AppInstance(), m_pCommanderView,
-			nCommandFrom & FA_NONRECORD )){
+			eMacroFlags ) ){
 			InfoMessage(
 				this->m_pCommanderView->m_hwndParent,
 				LS(STR_ERR_MACRO1),
 				nCommand - F_USERMACRO_0,
 				m_pcSMacroMgr->GetFile( nCommand - F_USERMACRO_0 )
 			);
+			bMacroExecResult = false;
 		}
+		if( bRecKeyMacroSave ){
+			if( bMacroExecResult ){
+				// 正常終了:キーマクロに登録
+				LPARAM lparams[] = { (LPARAM)&GetEditWindow()->m_cRecMacroParam,
+					(LPARAM)strMacroFile.c_str(), (LPARAM)strMacroName.c_str(), 0 };
+				m_pcSMacroMgr->Append( STAND_KEYMACRO, nCommand, lparams, m_pCommanderView );
+			}
+		}
+		GetEditWindow()->m_cRecMacroParam.Move(cMacroParent); // 戻し
+		m_pCommanderView->m_pcEditWnd->m_cExecMacroParam.Move(cMacroParamOld);
 		return TRUE;
 	}
 	//	To Here Sep. 29, 2001 genta マクロの実行機能追加
@@ -384,7 +432,7 @@ BOOL CViewCommander::HandleCommand(
 	/* 挿入系 */
 	case F_INS_DATE:				Command_INS_DATE();break;	//日付挿入
 	case F_INS_TIME:				Command_INS_TIME();break;	//時刻挿入
-    case F_CTRL_CODE_DIALOG:		Command_CtrlCode_Dialog();break;	/* コントロールコードの入力(ダイアログ) */	//@@@ 2002.06.02 MIK
+    case F_CTRL_CODE_DIALOG:		Command_CtrlCode_Dialog( nCommandFrom );break;	/* コントロールコードの入力(ダイアログ) */	//@@@ 2002.06.02 MIK
     case F_CTRL_CODE:				Command_WCHAR( (wchar_t)lparam1, false );break;
 
 	/* 変換 */
@@ -428,16 +476,16 @@ BOOL CViewCommander::HandleCommand(
 	case F_GREP_DIALOG:	//Grepダイアログの表示
 		/* 再帰処理対策 */
 		m_pCommanderView->SetUndoBuffer( true );
-		Command_GREP_DIALOG();
+		Command_GREP_DIALOG( nCommandFrom );
 		return bRet;
 	case F_GREP:			Command_GREP();break;							//Grep
 	case F_GREP_REPLACE_DLG:	//Grep置換ダイアログの表示
 		/* 再帰処理対策 */
 		m_pCommanderView->SetUndoBuffer( true );
-		Command_GREP_REPLACE_DLG();
+		Command_GREP_REPLACE_DLG( nCommandFrom );
 		return bRet;
 	case F_GREP_REPLACE:	Command_GREP_REPLACE();break;							//Grep置換
-	case F_JUMP_DIALOG:		Command_JUMP_DIALOG();break;					//指定行ヘジャンプダイアログの表示
+	case F_JUMP_DIALOG:		Command_JUMP_DIALOG( nCommandFrom );break;					//指定行ヘジャンプダイアログの表示
 	case F_JUMP:			Command_JUMP();break;							//指定行ヘジャンプ
 	case F_OUTLINE:			bRet = Command_FUNCLIST( (int)lparam1, OUTLINE_DEFAULT );break;	//アウトライン解析
 	case F_OUTLINE_TOGGLE:	bRet = Command_FUNCLIST( SHOW_TOGGLE, OUTLINE_DEFAULT );break;	//アウトライン解析(toggle) // 20060201 aroka
@@ -487,7 +535,7 @@ BOOL CViewCommander::HandleCommand(
 	case F_SHOWTAB:			Command_SHOWTAB();break;		/* タブの表示/非表示 */	//@@@ 2003.06.10 MIK
 	case F_SHOWSTATUSBAR:	Command_SHOWSTATUSBAR();break;	/* ステータスバーの表示/非表示 */
 	case F_SHOWMINIMAP:		Command_SHOWMINIMAP();break;	// ミニマップの表示/非表示
-	case F_TYPE_LIST:		Command_TYPE_LIST();break;		/* タイプ別設定一覧 */
+	case F_TYPE_LIST:		Command_TYPE_LIST( nCommandFrom );break;		/* タイプ別設定一覧 */
 	case F_CHANGETYPE:		Command_CHANGETYPE((int)lparam1);break;		// タイプ別設定一時適用
 	case F_OPTION_TYPE:		Command_OPTION_TYPE();break;	/* タイプ別設定 */
 	case F_OPTION:			Command_OPTION();break;			/* 共通設定 */
@@ -517,13 +565,13 @@ BOOL CViewCommander::HandleCommand(
 		/* 再帰処理対策 */
 		m_pCommanderView->SetUndoBuffer( true );
 		/* 名前を指定してマクロ実行 */
-		Command_EXECEXTMACRO( (const WCHAR*)lparam1, (const WCHAR*)lparam2 );
+		Command_EXECEXTMACRO( (const WCHAR*)lparam1, (const WCHAR*)lparam2, (CMacro*)lparam3, bRecKeyMacro );
 		return bRet;
 	//	From Here Sept. 20, 2000 JEPRO 名称CMMANDをCOMMANDに変更
 	//	case F_EXECCMMAND:		Command_EXECCMMAND();break;	/* 外部コマンド実行 */
 	case F_EXECMD_DIALOG:
 		//Command_EXECCOMMAND_DIALOG((const char*)lparam1);	/* 外部コマンド実行 */
-		Command_EXECCOMMAND_DIALOG();	/* 外部コマンド実行 */	//	引数つかってないみたいなので
+		Command_EXECCOMMAND_DIALOG( nCommandFrom );	/* 外部コマンド実行 */	//	引数つかってないみたいなので
 		break;
 	//	To Here Sept. 20, 2000
 	case F_EXECMD:
@@ -535,7 +583,7 @@ BOOL CViewCommander::HandleCommand(
 	case F_MENU_RBUTTON:	/* 右クリックメニュー */
 		/* 再帰処理対策 */
 		m_pCommanderView->SetUndoBuffer( true );
-		Command_MENU_RBUTTON();
+		Command_MENU_RBUTTON( nCommandFrom );
 		return bRet;
 	case F_CUSTMENU_1:  /* カスタムメニュー1 */
 	case F_CUSTMENU_2:  /* カスタムメニュー2 */
@@ -563,12 +611,7 @@ BOOL CViewCommander::HandleCommand(
 	case F_CUSTMENU_24: /* カスタムメニュー24 */
 		/* 再帰処理対策 */
 		m_pCommanderView->SetUndoBuffer( true );
-		nFuncID = Command_CUSTMENU( nCommand - F_CUSTMENU_1 + 1 );
-		if( 0 != nFuncID ){
-			/* コマンドコードによる処理振り分け */
-//			HandleCommand( nFuncID, true, 0, 0, 0, 0 );
-			::PostMessageCmd( GetMainWindow(), WM_COMMAND, MAKELONG( nFuncID, 0 ), (LPARAM)NULL );
-		}
+		Command_CUSTMENU( nCommand - F_CUSTMENU_1 + 1, nCommandFrom );
 		return bRet;
 
 	/* ウィンドウ系 */
@@ -612,7 +655,7 @@ BOOL CViewCommander::HandleCommand(
 	case F_MENU_ALLFUNC:									/* コマンド一覧 */
 		/* 再帰処理対策 */
 		m_pCommanderView->SetUndoBuffer( true );
-		Command_MENU_ALLFUNC();return bRet;
+		Command_MENU_ALLFUNC( nCommandFrom );return bRet;
 	case F_EXTHELP1:	Command_EXTHELP1();break;		/* 外部ヘルプ１ */
 	case F_EXTHTMLHELP:	/* 外部HTMLヘルプ */
 		//	Jul. 5, 2002 genta
@@ -634,11 +677,29 @@ BOOL CViewCommander::HandleCommand(
 
 			if( plugs.size() > 0 ){
 				assert_warning( 1 == plugs.size() );
+				CMacro cMacroParent(F_0);
+				cMacroParent.Move(GetEditWindow()->m_cRecMacroParam); // バックアップ
+				CMacro cMacroParamOld(F_0);
+				cMacroParamOld.Move(GetEditWindow()->m_cExecMacroParam);
+				if( lparam1 ){
+					GetEditWindow()->m_cExecMacroParam.Move(*(CMacro*)lparam1);
+				}
+
 				//インタフェースオブジェクト準備
 				CWSHIfObj::List params;
+				
 				//プラグイン呼び出し
-				( *plugs.begin() )->Invoke( m_pCommanderView, params );
+				( *plugs.begin() )->Invoke( m_pCommanderView, params, false );
 
+				// 2014.01.24 プラグインコマンドのマクロ記録
+				if( bRecKeyMacro ){
+					if( plugs[0]->m_bRecMacro ){
+						LPARAM lparams[] = { (LPARAM)&GetEditWindow()->m_cRecMacroParam, 0, 0, 0 };
+						m_pcSMacroMgr->Append(STAND_KEYMACRO, nCommand, lparams, m_pCommanderView);
+					}
+				}
+				GetEditWindow()->m_cRecMacroParam.Move(cMacroParent); // 戻し
+				GetEditWindow()->m_cExecMacroParam.Move(cMacroParamOld);
 				return bRet;
 			}
 		}

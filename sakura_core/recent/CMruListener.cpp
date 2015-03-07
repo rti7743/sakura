@@ -166,7 +166,8 @@ void CMruListener::OnAfterLoad(const SLoadInfo& sLoadInfo)
 
 		if( ptCaretPos.GetY2() >= pcDoc->m_cLayoutMgr.GetLineCount() ){
 			//ファイルの最後に移動
-			cView.GetCommander().HandleCommand( F_GOFILEEND, false, 0, 0, 0, 0 );
+			// 2014.01.24 FA_NONRECORD 付加
+			cView.GetCommander().HandleCommand( static_cast<EFunctionCode>(F_GOFILEEND | FA_NONRECORD), false, 0, 0, 0, 0 );
 		}
 		else{
 			cView.GetTextArea().SetViewTopLine( eiOld.m_nViewTopLine ); // 2001/10/20 novice

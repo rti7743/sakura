@@ -22,7 +22,7 @@
 
 
 /* 右クリックメニュー */
-void CViewCommander::Command_MENU_RBUTTON( void )
+void CViewCommander::Command_MENU_RBUTTON( EFunctionFlags flags )
 {
 	int			nId;
 	int			nLength;
@@ -73,7 +73,13 @@ void CViewCommander::Command_MENU_RBUTTON( void )
 	default:
 		/* コマンドコードによる処理振り分け */
 //		HandleCommand( nId, true, 0, 0, 0, 0 );
-		::PostMessageCmd( GetMainWindow(), WM_COMMAND, MAKELONG( nId, 0 ),  (LPARAM)NULL );
+		int nCmdId = nId;
+		if( F_PLUGCOMMAND_FIRST <= nCmdId ){
+			nCmdId |= flags;
+			GetDocument()->HandleCommand( static_cast<EFunctionCode>(nCmdId) );
+		}else{
+			::SendMessageCmd( GetMainWindow(), WM_COMMAND, nCmdId, (LPARAM)NULL );
+		}
 		break;
 	}
 	return;
@@ -82,7 +88,7 @@ void CViewCommander::Command_MENU_RBUTTON( void )
 
 
 /* カスタムメニュー表示 */
-int CViewCommander::Command_CUSTMENU( int nMenuIdx )
+void CViewCommander::Command_CUSTMENU( int nMenuIdx, EFunctionFlags flags )
 {
 	HMENU		hMenu;
 
@@ -91,11 +97,18 @@ int CViewCommander::Command_CUSTMENU( int nMenuIdx )
 	//	Oct. 3, 2001 genta
 
 	if( nMenuIdx < 0 || MAX_CUSTOM_MENU <= nMenuIdx ){
-		return 0;
+		return;
 	}
 	if( 0 == GetDllShareData().m_Common.m_sCustomMenu.m_nCustMenuItemNumArr[nMenuIdx] ){
-		return 0;
+		return;
 	}
 	hMenu = ::CreatePopupMenu();
-	return m_pCommanderView->CreatePopUpMenuSub( hMenu, nMenuIdx, NULL );
+	int nId = m_pCommanderView->CreatePopUpMenuSub( hMenu, nMenuIdx, NULL );
+	int nCmdId = nId;
+	if( F_PLUGCOMMAND_FIRST <= nCmdId ){
+		nCmdId |= flags;
+		GetDocument()->HandleCommand( static_cast<EFunctionCode>(nCmdId) );
+	}else{
+		::SendMessageCmd( GetMainWindow(), WM_COMMAND, nCmdId, (LPARAM)NULL );
+	}
 }

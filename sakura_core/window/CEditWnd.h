@@ -58,6 +58,7 @@
 #include "dlg/CDlgSetCharSet.h"
 #include "outline/CDlgFuncList.h"
 #include "CHokanMgr.h"
+#include "macro/CMacro.h"
 #include "util/design_template.h"
 #include "doc/CDocListener.h"
 #include "uiparts/CMenuDrawer.h"
@@ -431,6 +432,11 @@ private:
 public:
 	ESelectCountMode	m_nSelectCountMode; // 選択文字カウント方法
 
+	// マクロ引数
+	bool			m_bExecKeyMacro;
+	CMacro			m_cRecMacroParam;
+	CMacro			m_cExecMacroParam;
+	CMacroInstanceData*	m_pcMacroInstanceData;
 };
 
 

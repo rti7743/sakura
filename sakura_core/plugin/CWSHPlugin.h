@@ -39,8 +39,8 @@ class CWSHPlug :
 	public CPlug
 {
 public:
-	CWSHPlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel ) :
-		CPlug( plugin, id, sJack, sHandler, sLabel )
+	CWSHPlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel, bool bRecMacro ) :
+		CPlug( plugin, id, sJack, sHandler, sLabel, bRecMacro )
 	{
 		m_Wsh = NULL;
 	}
@@ -68,9 +68,9 @@ public:
 
 	//操作
 	//CPlugインスタンスの作成。ReadPluginDefPlug/Command から呼ばれる。
-	virtual CPlug* CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel )
+	virtual CPlug* CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel, bool bRecMacro )
 	{
-		return new CWSHPlug( plugin, id, sJack, sHandler, sLabel );
+		return new CWSHPlug( plugin, id, sJack, sHandler, sLabel, bRecMacro );
 	}
 
 	//実装

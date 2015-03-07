@@ -224,6 +224,10 @@ CEditWnd::CEditWnd()
 , m_bDragMode( false )
 , m_IconClicked(icNone) //by 鬼(2)
 , m_nSelectCountMode( SELECT_COUNT_TOGGLE )	//文字カウント方法の初期値はSELECT_COUNT_TOGGLE→共通設定に従う
+, m_bExecKeyMacro(false)
+, m_cRecMacroParam(F_0)
+, m_cExecMacroParam(F_0)
+, m_pcMacroInstanceData(NULL)
 {
 	g_pcEditWnd=this;
 }

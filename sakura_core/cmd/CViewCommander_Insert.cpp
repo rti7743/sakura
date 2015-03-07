@@ -53,7 +53,7 @@ void CViewCommander::Command_INS_TIME( void )
 	@author	MIK
 	@date	2002/06/02
 */
-void CViewCommander::Command_CtrlCode_Dialog( void )
+void CViewCommander::Command_CtrlCode_Dialog( EFunctionFlags flags )
 {
 	CDlgCtrlCode	cDlgCtrlCode;
 
@@ -63,6 +63,6 @@ void CViewCommander::Command_CtrlCode_Dialog( void )
 		//コントロールコードを入力する
 		// 2013.06.11 Command_WCHAR -> HandleCommand マクロ記録対応
 		// 2013.12.12 F_WCHAR -> F_CTRL_CODE
-		HandleCommand( F_CTRL_CODE, true, cDlgCtrlCode.GetCharCode(), 0, 0, 0 );
+		HandleCommand( static_cast<EFunctionCode>(F_CTRL_CODE | flags), true, cDlgCtrlCode.GetCharCode(), 0, 0, 0 );
 	}
 }

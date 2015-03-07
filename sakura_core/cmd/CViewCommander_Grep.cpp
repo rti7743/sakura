@@ -26,7 +26,7 @@
 	@date 2005.01.10 genta CEditView_Commandより移動
 	@author Yazaki
 */
-void CViewCommander::Command_GREP_DIALOG( void )
+void CViewCommander::Command_GREP_DIALOG( EFunctionFlags flags )
 {
 	CNativeW	cmemCurText;
 	// 2014.07.01 複数Grepウィンドウを使い分けている場合などに影響しないように、未設定のときだけHistoryを見る
@@ -46,7 +46,7 @@ void CViewCommander::Command_GREP_DIALOG( void )
 	if( !nRet ){
 		return;
 	}
-	HandleCommand(F_GREP, true, 0, 0, 0, 0);	//	GREPコマンドの発行
+	HandleCommand(static_cast<EFunctionCode>(F_GREP | flags), true, 0, 0, 0, 0);	//	GREPコマンドの発行
 }
 
 /*! GREP実行
@@ -131,7 +131,7 @@ void CViewCommander::Command_GREP( void )
 
 /*! GREP置換ダイアログの表示
 */
-void CViewCommander::Command_GREP_REPLACE_DLG( void )
+void CViewCommander::Command_GREP_REPLACE_DLG( EFunctionFlags flags )
 {
 	CNativeW	cmemCurText;
 	CDlgGrepReplace& cDlgGrepRep = GetEditWindow()->m_cDlgGrepReplace;
@@ -156,6 +156,7 @@ void CViewCommander::Command_GREP_REPLACE_DLG( void )
 		return;
 	}
 	HandleCommand(F_GREP_REPLACE, TRUE, 0, 0, 0, 0);	//	GREPコマンドの発行
+	HandleCommand(static_cast<EFunctionCode>(F_GREP | flags), true, 0, 0, 0, 0);	//	GREPコマンドの発行
 }
 
 /*! GREP置換実行

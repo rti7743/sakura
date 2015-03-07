@@ -34,7 +34,15 @@ class CEditWnd;
 class CColorStrategy;
 class CColorStrategyPool;
 class CSMacroMgr;
+class CMacro;
 #include "CEol.h"
+
+enum EFunctionFlags {
+	EFunctionFlags_FROMKEYBOARD = 0x00010000,
+	EFunctionFlags_FROMMACRO = 0x00020000,
+	EFunctionFlags_NONRECORD = 0x00040000,
+	EFunctionFlags_FLAGS = 0x000F0000
+};
 
 class CViewCommander{
 public:
@@ -70,7 +78,7 @@ private:
 	// -- -- -- -- 以下、コマンド処理関数群 -- -- -- -- //
 public:
 	BOOL HandleCommand(
-		EFunctionCode	nCommand,
+		EFunctionCode	nCommandAndFlag,
 		bool			bRedraw,
 		LPARAM			lparam1,
 		LPARAM			lparam2,
@@ -150,7 +158,7 @@ public:
 	void Command_SORT(BOOL);				// 2001.12.06 hor
 	void Command_MERGE(void);				// 2001.12.06 hor
 	void Command_Reconvert(void);			/* メニューからの再変換対応 minfu 2002.04.09 */
-	void Command_CtrlCode_Dialog(void);		/* コントロールコードの入力(ダイアログ) */	//@@@ 2002.06.02 MIK
+	void Command_CtrlCode_Dialog( EFunctionFlags flags );		/* コントロールコードの入力(ダイアログ) */	//@@@ 2002.06.02 MIK
 
 
 	/* カーソル移動系 */
@@ -275,11 +283,11 @@ public:
 	void Command_JUMP_SRCHSTARTPOS( void );				/* 検索開始位置へ戻る */	// 02/06/26 ai
 
 
-	void Command_GREP_DIALOG( void );					/* Grepダイアログの表示 */
+	void Command_GREP_DIALOG( EFunctionFlags );					/* Grepダイアログの表示 */
 	void Command_GREP( void );							/* Grep */
-	void Command_GREP_REPLACE_DLG( void );				/* Grep置換ダイアログの表示 */
+	void Command_GREP_REPLACE_DLG( EFunctionFlags );				/* Grep置換ダイアログの表示 */
 	void Command_GREP_REPLACE( void );					/* Grep置換 */
-	void Command_JUMP_DIALOG( void );					/* 指定行ヘジャンプダイアログの表示 */
+	void Command_JUMP_DIALOG( EFunctionFlags );					/* 指定行ヘジャンプダイアログの表示 */
 	void Command_JUMP( void );							/* 指定行ヘジャンプ */
 // From Here 2001.12.03 hor
 	BOOL Command_FUNCLIST( int nAction, int nOutlineType );	/* アウトライン解析 */ // 20060201 aroka
@@ -323,7 +331,7 @@ public:
 	void Command_SHOWTAB( void );			/* タブの表示/非表示 */	//@@@ 2003.06.10 MIK
 	void Command_SHOWSTATUSBAR( void );		/* ステータスバーの表示/非表示 */
 	void Command_SHOWMINIMAP( void );		// ミニマップの表示/非表示
-	void Command_TYPE_LIST( void );			/* タイプ別設定一覧 */
+	void Command_TYPE_LIST( EFunctionFlags );			/* タイプ別設定一覧 */
 	void Command_CHANGETYPE( int nTypePlusOne );	// タイプ別設定一時適用
 	void Command_OPTION_TYPE( void );		/* タイプ別設定 */
 	void Command_OPTION( void );			/* 共通設定 */
@@ -340,22 +348,22 @@ public:
 	void Command_SAVEKEYMACRO( void );	/* キーマクロの保存 */
 	void Command_LOADKEYMACRO( void );	/* キーマクロの読み込み */
 	void Command_EXECKEYMACRO( void );	/* キーマクロの実行 */
-	void Command_EXECEXTMACRO( const WCHAR* path, const WCHAR* type );	/* 名前を指定してマクロ実行 */
+	void Command_EXECEXTMACRO( const WCHAR* path, const WCHAR* type, CMacro*, bool );	/* 名前を指定してマクロ実行 */
 //	From Here 2006.12.03 maru 引数の拡張．
 //	From Here Sept. 20, 2000 JEPRO 名称CMMANDをCOMMANDに変更
 //	void Command_EXECCMMAND( void );	/* 外部コマンド実行 */
 	//	Oct. 9, 2001 genta マクロ対応のため機能拡張
 //	void Command_EXECCOMMAND_DIALOG( const WCHAR* cmd );	/* 外部コマンド実行ダイアログ表示 */
 //	void Command_EXECCOMMAND( const WCHAR* cmd );	/* 外部コマンド実行 */
-	void Command_EXECCOMMAND_DIALOG( void );	/* 外部コマンド実行ダイアログ表示 */	//	引数使ってないみたいなので
+	void Command_EXECCOMMAND_DIALOG( EFunctionFlags );	/* 外部コマンド実行ダイアログ表示 */	//	引数使ってないみたいなので
 	//	マクロからの呼び出しではオプションを保存させないため、Command_EXECCOMMAND_DIALOG内で処理しておく．
 	void Command_EXECCOMMAND( LPCWSTR cmd, const int nFlgOpt, LPCWSTR );	/* 外部コマンド実行 */
 //	To Here Sept. 20, 2000
 //	To Here 2006.12.03 maru 引数の拡張
 
 	/* カスタムメニュー */
-	void Command_MENU_RBUTTON( void );	/* 右クリックメニュー */
-	int Command_CUSTMENU( int );		/* カスタムメニュー表示 */
+	void Command_MENU_RBUTTON( EFunctionFlags );	/* 右クリックメニュー */
+	void Command_CUSTMENU( int, EFunctionFlags );		/* カスタムメニュー表示 */
 
 	/* ウィンドウ系 */
 	void Command_SPLIT_V( void );		/* 上下に分割 */	//Sept. 17, 2000 jepro 説明の「縦」を「上下に」に変更
@@ -393,7 +401,7 @@ public:
 	void Command_HOKAN( void );			/* 入力補完 */
 	void Command_HELP_CONTENTS( void );	/* ヘルプ目次 */			//Nov. 25, 2000 JEPRO added
 	void Command_HELP_SEARCH( void );	/* ヘルプキーワード検索 */	//Nov. 25, 2000 JEPRO added
-	void Command_MENU_ALLFUNC( void );	/* コマンド一覧 */
+	void Command_MENU_ALLFUNC( EFunctionFlags );	/* コマンド一覧 */
 	void Command_EXTHELP1( void );		/* 外部ヘルプ１ */
 	//	Jul. 5, 2002 genta
 	void Command_EXTHTMLHELP( const WCHAR* helpfile = NULL, const WCHAR* kwd = NULL );	/* 外部HTMLヘルプ */

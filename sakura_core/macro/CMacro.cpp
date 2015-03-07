@@ -52,11 +52,30 @@
 #include "env/CSakuraEnvironment.h"
 #include "dlg/CDlgInput1.h"
 #include "dlg/CDlgOpenFile.h"
+#include "plugin/CPlugin.h"
+#include "plugin/CJackManager.h"
 #include "util/format.h"
 #include "util/shell.h"
 #include "util/ole_convert.h"
 #include "util/os.h"
 #include "uiparts/CWaitCursor.h"
+
+class CMacroInstanceData{
+public:
+	CMacroInstanceData(): m_cExecFuncArg(F_0)
+		{};
+	CMacro m_cExecFuncArg;
+};
+
+CMacroInstanceData* CMacro::CreateCMacroInstanceData()
+{
+	return new CMacroInstanceData();
+}
+
+void CMacro::DeleteCMacroInstanceData(CMacroInstanceData* p)
+{
+	delete p;
+}
 
 CMacro::CMacro( EFunctionCode nFuncID )
 {
@@ -82,6 +101,35 @@ void CMacro::ClearMacroParam()
 	m_pParamTop = NULL;
 	m_pParamBot = NULL;
 	return;
+}
+
+void CMacro::Move( CMacro& from )
+{
+	ClearMacroParam();
+	m_nFuncID = from.m_nFuncID;
+	m_pNext = from.m_pNext;
+	m_pParamTop = from.m_pParamTop;
+	from.m_pParamTop = NULL;
+	m_pParamBot = from.m_pParamBot;
+	from.m_pParamBot = NULL;
+}
+
+/*! 引数の設定
+	引数のCMacroの引数は空になる
+*/
+void CMacro::AddLParamFromCMacro( CMacro* pMacro )
+{
+	if( m_pParamTop ){
+		if( pMacro->m_pParamTop ){
+			m_pParamBot->m_pNext = pMacro->m_pParamTop;
+			m_pParamBot = pMacro->m_pParamBot;
+		}
+	}else{
+		m_pParamTop = pMacro->m_pParamTop;
+		m_pParamBot = pMacro->m_pParamBot;
+	}
+	pMacro->m_pParamTop = NULL;
+	pMacro->m_pParamBot = NULL;
 }
 
 /*	引数の型振り分け
@@ -155,10 +203,24 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 		}
 		break;
 	case F_INSTEXT_W:
-	case F_FILEOPEN:
+		{
+			AddStringParam( (const wchar_t*)lParam, (int)lParams[1] );	//	lParamを追加。
+		}
+		break;
+
 	case F_EXECEXTMACRO:
 		{
-			AddStringParam( (const wchar_t*)lParam );	//	lParamを追加。
+			AddStringParam( (const wchar_t*)lParam ); // ファイル名
+			const wchar_t* pMacroType = reinterpret_cast<const wchar_t*>(lParams[1]);
+			if( pMacroType == NULL ){
+				AddStringParam(L""); // マクロ種別
+			}else{
+				AddStringParam(pMacroType);
+			}
+			CMacro* pMacro = reinterpret_cast<CMacro*>(lParams[2]);
+			if( pMacro->m_pParamTop ){
+				AddLParamFromCMacro( pMacro );
+			}
 		}
 		break;
 
@@ -314,6 +376,23 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 
 	/*	標準もパラメータを追加 */
 	default:
+		if( F_USERMACRO_0 <= m_nFuncID && m_nFuncID < (F_USERMACRO_0 + MAX_CUSTMACRO) ){
+			int idx = m_nFuncID - F_USERMACRO_0;
+			AddIntParam(idx);
+			AddStringParam(reinterpret_cast<const wchar_t*>(lParams[1]));
+			CMacro* pMacro = reinterpret_cast<CMacro*>(lParam);
+			AddLParamFromCMacro(pMacro);
+			m_strMemo = reinterpret_cast<const wchar_t*>(lParams[2]);
+			return;
+		}else if( F_PLUGCOMMAND_FIRST <= m_nFuncID && m_nFuncID <= F_PLUGCOMMAND_LAST ){
+			WCHAR szPlgCmdName[MAX_PLUGIN_ID+20];
+			if( CPlugin::GetPlugCmdInfoByFuncCode(m_nFuncID, szPlgCmdName) ){
+				AddStringParam(szPlgCmdName);
+				CMacro* pMacro = reinterpret_cast<CMacro*>(lParam);
+				AddLParamFromCMacro(pMacro);
+			}
+			return;
+		}
 		AddIntParam( lParam );
 		break;
 	}
@@ -429,33 +508,47 @@ bool CMacro::Exec( CEditView* pcEditView, int flags ) const
 	const int maxArg = 8;
 	const WCHAR* paramArr[maxArg] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 	int paramLenArr[maxArg] = {0, 0, 0, 0, 0, 0, 0, 0};
+	const WCHAR** pParamArr = NULL;
+	const WCHAR** a = paramArr;
+	int* pLenArr = NULL;
+	int* n = paramLenArr;
+	const int nParamCount = GetParamCount();
+	if( maxArg < nParamCount ){
+		a = pParamArr = new const WCHAR*[nParamCount];
+		n = pLenArr = new int[nParamCount];
+	}
 
 	CMacroParam* p = m_pParamTop;
 	int i = 0;
-	for (i = 0; i < maxArg; i++) {
+	for (i = 0; i < nParamCount; i++) {
 		if (!p) break;	//	pが無ければbreak;
-		paramArr[i] = p->m_pData;
-		paramLenArr[i] = wcslen(paramArr[i]);
+		a[i] = p->m_pData;
+		n[i] = p->m_nDataLen;
 		p = p->m_pNext;
 	}
-	return CMacro::HandleCommand(pcEditView, (EFunctionCode)(m_nFuncID | flags), paramArr, paramLenArr, i);
+	bool bRet = CMacro::HandleCommand(pcEditView, (EFunctionCode)(m_nFuncID | flags), a, n, i);
+	if( pParamArr ){
+		delete [] a;
+		delete [] n;
+	}
+	return bRet;
 }
 
-WCHAR* CMacro::GetParamAt(CMacroParam* p, int index)
+CStringRef CMacro::GetParamAt(CMacroParam* p, int index)
 {
 	CMacroParam* x = p;
 	int i = 0;
 	while(i < index){
 		if( x == NULL ){
-			return NULL;
+			return CStringRef(NULL, 0);
 		}
 		x = x->m_pNext;
 		i++;
 	}
 	if( x == NULL ){
-		return NULL;
+		return CStringRef(NULL, 0);
 	}
-	return x->m_pData;
+	return CStringRef(x->m_pData, x->m_nDataLen);
 }
 
 int CMacro::GetParamCount() const
@@ -494,12 +587,77 @@ void CMacro::Save( HINSTANCE hInstance, CTextOutputStream& out ) const
 	CNativeW		cmemWork;
 	int nFuncID = m_nFuncID;
 
+	if( F_USERMACRO_0 <= nFuncID && nFuncID < (F_USERMACRO_0 + MAX_CUSTMACRO) ){
+		nFuncID = F_EXECUSERMACRO;
+	}else if( F_PLUGCOMMAND_FIRST <= nFuncID && nFuncID <= F_PLUGCOMMAND_LAST ){
+		nFuncID = F_EXECPLUGINCMD;
+	}
+
 	/* 2002.2.2 YAZAKI CSMacroMgrに頼む */
 	if (CSMacroMgr::GetFuncInfoByID( hInstance, nFuncID, szFuncName, szFuncNameJapanese)){
 		// 2014.01.24 Moca マクロ書き出しをm_eTypeを追加して統合
-		out.WriteF( L"S_%ls(", szFuncName );
+		if( F_EXECPLUGINCMD == nFuncID ){
+			CPlug::Array plugs;
+			CJackManager::getInstance()->GetUsablePlug( PP_COMMAND, m_nFuncID, &plugs );
+			if( 0 < plugs.size() ){
+				auto_strncpy( szFuncNameJapanese, plugs[0]->m_sLabel.c_str(), _countof(szFuncNameJapanese) );
+				szFuncNameJapanese[_countof(szFuncNameJapanese)-1] = L'\0';
+			}
+		}else if( F_EXECUSERMACRO == nFuncID ){
+			if( m_pParamTop->m_pData ){
+				auto_strncpy( szFuncNameJapanese, m_strMemo.c_str(), _countof(szFuncNameJapanese) );
+				szFuncNameJapanese[_countof(szFuncNameJapanese)-1] = L'\0';
+			}
+		}
 		CMacroParam* pParam = m_pParamTop;
-		while( pParam ){
+		int nArgLimit = 99;
+		if( nArgLimit < GetParamCount() ){
+			// 99個以上の場合はAddExecFuncArg(Int|Str)で設定する
+			const MacroFuncInfo* mInfo = CSMacroMgr::GetFuncInfoByID( nFuncID );
+			int nArgSizeMin = 0;
+			if( mInfo->m_pData ){
+				nArgSizeMin = mInfo->m_pData->m_nArgMinSize;
+			}else{
+				for( int i = 0; i < _countof(mInfo->m_varArguments); i++ ){
+					if( mInfo->m_varArguments[i] == VT_EMPTY ){
+						break;
+					}
+					nArgSizeMin++;
+				}
+			}
+			{
+				int k = 0;
+				while( pParam && k < nArgSizeMin ){
+					pParam = pParam->m_pNext;
+					k++;
+				}
+			}
+			while( pParam ){
+				EFunctionCode eFuncArg = F_0;
+				switch( pParam->m_eType ){
+				case EMacroParamTypeInt:
+					{
+						CMacro cMacroFuncArg(F_ADDEXECFUNCARGINT);
+						cMacroFuncArg.AddIntParam(_wtoi(pParam->m_pData));
+						cMacroFuncArg.Save(hInstance, out);
+					}
+					break;
+				case EMacroParamTypeStr:
+					{
+						CMacro cMacroFuncArg(F_ADDEXECFUNCARGSTR);
+						cMacroFuncArg.AddStringParam(pParam->m_pData, pParam->m_nDataLen);
+						cMacroFuncArg.Save(hInstance, out);
+					}
+					break;
+				}
+				pParam = pParam->m_pNext;
+			}
+			pParam = m_pParamTop;
+			nArgLimit = nArgSizeMin;
+		}
+		out.WriteF( L"S_%ls(", szFuncName );
+		int k = 0;
+		while( pParam && k < nArgLimit ){
 			if( pParam != m_pParamTop ){
 				out.WriteString( L", " );
 			}
@@ -544,6 +702,7 @@ void CMacro::Save( HINSTANCE hInstance, CTextOutputStream& out ) const
 				break;
 			}
 			pParam = pParam->m_pNext;
+			k++;
 		}
 		out.WriteF( L");\t// %ls\r\n", szFuncNameJapanese );
 		return;
@@ -1244,8 +1403,21 @@ bool CMacro::HandleCommand(
 	/* 2つの引数が文字列 */
 	// Jul. 5, 2002 genta
 	case F_EXTHTMLHELP:
-	case F_EXECEXTMACRO:				// 2009.06.14 syat
 		pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[0], (LPARAM)Argument[1], 0, 0);
+		break;
+	case F_EXECEXTMACRO:				// 2009.06.14 syat
+		{
+			CMacro macroParam(F_0);
+			if( pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.m_pParamTop != NULL ){
+				macroParam.AddLParamFromCMacro(
+					&pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg);
+			}else{
+				for( int i = 2; i < ArgSize; i++ ){
+					macroParam.AddStringParam( Argument[i] );
+				}
+			}
+			pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[0], (LPARAM)Argument[1], (LPARAM)&macroParam, 0);
+		}
 		break;
 	//	From Here Dec. 4, 2002 genta
 	case F_FILE_REOPEN				://開き直す
@@ -1465,6 +1637,107 @@ bool CMacro::HandleCommand(
 			pcEditView->SyncScrollH( pcEditView->ScrollAtH( nColumn ) );
 		}
 		break;
+	case F_EXECUSERMACRO:
+		{
+			if( ArgSize <= 0 ){
+				if( pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.m_pParamTop != NULL ){
+					pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.ClearMacroParam();
+				}
+				return false;
+			}
+			// Arg[0]: マクロidx
+			// Arg[1]: マクロファイル名
+			// idxしかない場合はそのidxを実行
+			// idxとファイル名が一致したらそのidxを実行
+			// もしidxが異なっていてもファイル名が一致するidx2を優先して実行
+			// ファイル名が指定されていて一致しなかった場合はエラー
+			int idx = _wtoi(Argument[0]);
+			if( 2 <= ArgSize && Argument[1][0] != L'\0' ){
+				int idx2 = -1;
+				const MacroRec* macroTable = GetDllShareData().m_Common.m_sMacro.m_MacroTable;
+				if( 0 <= idx && idx < MAX_CUSTMACRO ){
+					if( 0 == wcsicmp(to_wchar(macroTable[idx].m_szFile), Argument[1]) ){
+						idx2 = idx;
+					}
+				}
+				if( idx2 == -1 ){
+					for( int i = 0; i < MAX_CUSTMACRO; i++ ){
+						if( 0 == wcsicmp(to_wchar(macroTable[i].m_szFile), Argument[1]) ){
+							idx2 = i;
+							break;
+						}
+					}
+					if( idx2 == -1 ){
+						return false;
+					}
+				}
+				idx = idx2;
+			}
+			if( 0 <= idx && idx < MAX_CUSTMACRO ){
+				EFunctionCode cmdIdx = static_cast<EFunctionCode>(F_USERMACRO_0 + idx | (Index & FA_FLAGS));
+				CMacro macroParam(F_0);
+				if( pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.m_pParamTop != NULL ){
+					macroParam.AddLParamFromCMacro(
+						&pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg);
+				}else{
+					for( int i = 2; i < ArgSize; i++ ){
+						macroParam.AddStringParam( Argument[i] );
+					}
+				}
+				pcEditView->GetCommander().HandleCommand( cmdIdx, true, (LPARAM)&macroParam, 0, 0, 0 );
+			}else{
+				return false;
+			}
+		}
+		break;
+	case F_EXECPLUGINCMD:
+		{
+			if( ArgSize <= 0 ){
+				if( pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.m_pParamTop != NULL ){
+					pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.ClearMacroParam();
+				}
+				return false;
+			}
+			EFunctionCode cmdIdx = CPlugin::GetPlugCmdInfoByName( Argument[0] );
+			if( cmdIdx == F_INVALID ){ return false; }
+			cmdIdx = static_cast<EFunctionCode>(cmdIdx | (Index & FA_FLAGS));
+			CMacro macroParam(F_0);
+			if( pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.m_pParamTop != NULL ){
+				macroParam.AddLParamFromCMacro(
+					&pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg);
+			}else{
+				for( int i = 1; i < ArgSize; i++ ){
+					macroParam.AddStringParam( Argument[i] );
+				}
+			}
+			pcEditView->GetCommander().HandleCommand( cmdIdx, true, (LPARAM)&macroParam, 0, 0, 0 );
+		}
+		break;
+	case F_ADDRECMACROPARAMINT:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			pcEditView->m_pcEditWnd->m_cRecMacroParam.AddIntParam( _wtoi( Argument[0] ) );
+		}
+		break;
+	case F_ADDRECMACROPARAMSTR:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			pcEditView->m_pcEditWnd->m_cRecMacroParam.AddStringParam( Argument[0], ArgLengths[0] );
+		}
+		break;
+	case F_ADDEXECFUNCARGINT:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.AddIntParam( _wtoi(Argument[0]) );
+		}
+		break;
+	case F_ADDEXECFUNCARGSTR:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.AddStringParam( Argument[0], ArgLengths[0] );
+		}
+		break;
+		
 	default:
 		//	引数なし。
 		pcEditView->GetCommander().HandleCommand( Index, true, 0, 0, 0, 0 );	//	標準
@@ -2474,6 +2747,34 @@ bool CMacro::HandleFunction(CEditView *View, EFunctionCode ID, const VARIANT *Ar
 				return true;
 			}
 			return false;
+		}
+	case F_GETMACROPARAM:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			if( !VariantToI4(varCopy, Arguments[0]) ){ return false; }
+			int at = varCopy.Data.lVal - 1;
+			const wchar_t* p;
+			int len;
+			if( 0 <= at ){
+				CStringRef ref = GetParamAt( View->m_pcEditWnd->m_cExecMacroParam.m_pParamTop, at );
+				p = ref.GetPtr();
+				len = ref.GetLength();
+			}else{
+				p = NULL;
+			}
+			if( NULL == p ){
+				p = L"";
+				len = 0;
+			}
+			SysString ret(p, len);
+			Wrap( &Result )->Receive( ret );
+			return true;
+		}
+	case F_GETMACROPARAMCOUNT:
+		{
+			int n = View->m_pcEditWnd->m_cExecMacroParam.GetParamCount();
+			Wrap( &Result )->Receive( n );
+			return true;
 		}
 	default:
 		return false;

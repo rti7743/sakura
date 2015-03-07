@@ -83,11 +83,12 @@ public:
 
 	//コンストラクタ
 public:
-	CPlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel )
+	CPlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel, bool bRecMacro )
 		: m_id( id )
 		, m_sJack( sJack )
 		, m_sHandler( sHandler )
 		, m_sLabel( sLabel )
+		, m_bRecMacro( bRecMacro )
 		, m_cPlugin( plugin )
 	{
 	}
@@ -97,7 +98,7 @@ public:
 
 	//操作
 public:
-	bool Invoke( CEditView* view, CWSHIfObj::List& params );	//プラグを実行する
+	bool Invoke( CEditView* view, CWSHIfObj::List& params, bool bStackMacroParam = true );	//プラグを実行する
 
 	//属性
 public:
@@ -166,6 +167,7 @@ public:
 	const wstring m_sHandler;			//ハンドラ文字列（関数名）
 	const wstring m_sLabel;				//ラベル文字列
 	wstring m_sIcon;					//アイコンのファイルパス
+	const bool m_bRecMacro;					//キーマクロ登録許可
 	CPlugin& m_cPlugin;					//親プラグイン
 };
 
@@ -251,9 +253,11 @@ public:
 
 	//操作
 public:
-	virtual int AddCommand( const WCHAR* handler, const WCHAR* label, const WCHAR* icon, bool doRegister );//コマンドを追加する
+	virtual int AddCommand( const WCHAR* handler, const WCHAR* label, const WCHAR* icon, bool bRecMacro, bool doRegister );//コマンドを追加する
 	int 	GetCommandCount()	{ return m_nCommandCount; }			// コマンド数を返す	2010/7/4 Uchi
 
+	static bool GetPlugCmdInfoByFuncCode( EFunctionCode, WCHAR* );
+ 	static EFunctionCode GetPlugCmdInfoByName( const WCHAR* );
 protected:
 	bool ReadPluginDefCommon( CDataProfile *cProfile, CDataProfile *cProfileMlang );					//プラグイン定義ファイルのCommonセクションを読み込む
 	bool ReadPluginDefPlug( CDataProfile *cProfile, CDataProfile *cProfileMlang );					//プラグイン定義ファイルのPlugセクションを読み込む
@@ -262,9 +266,9 @@ protected:
 	bool ReadPluginDefString( CDataProfile *cProfile, CDataProfile *cProfileMlang );					//プラグイン定義ファイルのStringセクションを読み込む
 
 	//CPlugインスタンスの作成。ReadPluginDefPlug/Command から呼ばれる。
-	virtual CPlug* CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel )
+	virtual CPlug* CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel, bool bRecMacro )
 	{
-		return new CPlug( plugin, id, sJack, sHandler, sLabel );
+		return new CPlug( plugin, id, sJack, sHandler, sLabel, bRecMacro );
 	}
 
 //	void NormalizeExtList( const wstring& sExtList, wstring& sOut );	//カンマ区切り拡張子リストを正規化する

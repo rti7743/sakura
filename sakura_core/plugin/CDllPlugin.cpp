@@ -39,9 +39,9 @@ CDllPlugin::~CDllPlugin(void)
 
 // ÉvÉâÉOÇÃê∂ê¨
 // CPlugÇÃë„ÇÌÇËÇ…CDllPlugÇçÏê¨Ç∑ÇÈ
-CPlug* CDllPlugin::CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel )
+CPlug* CDllPlugin::CreatePlug( CPlugin& plugin, PlugId id, wstring sJack, wstring sHandler, wstring sLabel, bool bRecMacro )
 {
-	CDllPlug *newPlug =  new CDllPlug( plugin, id, sJack, sHandler, sLabel );
+	CDllPlug *newPlug =  new CDllPlug( plugin, id, sJack, sHandler, sLabel, bRecMacro );
 	return newPlug;
 }
 
@@ -92,11 +92,12 @@ bool CDllPlugin::InvokePlug( CEditView* view, CPlug& plug_raw, CWSHIfObj::List& 
 		}
 	}
 	CMacroBeforeAfter ba;
+	CMacroExecVars vars;
 	int flags = FA_NONRECORD | FA_FROMMACRO;
-	ba.ExecKeyMacroBefore(view, flags);
+	ba.ExecKeyMacroBefore(view, flags, &vars);
 	//DLLä÷êîÇÃåƒÇ—èoÇµ
 	plug.m_handler();
-	ba.ExecKeyMacroAfter(view, flags, true);
+	ba.ExecKeyMacroAfter(view, flags, true, &vars);
 	
 	return true;
 }

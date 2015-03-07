@@ -1012,6 +1012,10 @@ bool IsFuncEnable( const CEditDoc* pcEditDoc, const DLLSHAREDATA* pShareData, EF
 				return false;
 			}
 		}else{
+			if( pcEditDoc->m_pcEditWnd->m_bExecKeyMacro ){
+				// 2014.12.24 キーマクロ実行中(によるメニュー表示)は記録開始不可
+				return false;
+			}
 			return true;
 		}
 	case F_SAVEKEYMACRO:	/* キーマクロの保存 */
@@ -1030,6 +1034,10 @@ bool IsFuncEnable( const CEditDoc* pcEditDoc, const DLLSHAREDATA* pShareData, EF
 	case F_EXECKEYMACRO:	/* キーマクロの実行 */
 		if( pShareData->m_sFlags.m_bRecordingKeyMacro ){	/* キーボードマクロの記録中 */
 			if( pShareData->m_sFlags.m_hwndRecordingKeyMacro == CEditWnd::getInstance()->GetHwnd() ){	/* キーボードマクロを記録中のウィンドウ */
+				if( pcEditDoc->m_pcEditWnd->m_bExecKeyMacro ){
+					// 2014.12.24 キーマクロ実行中(によるメニュー表示)は不可
+					return false;
+				}
 				return true;
 			}else{
 				return false;
@@ -1037,6 +1045,10 @@ bool IsFuncEnable( const CEditDoc* pcEditDoc, const DLLSHAREDATA* pShareData, EF
 		}else{
 			//@@@ 2002.1.24 YAZAKI m_szKeyMacroFileNameにファイル名がコピーされているかどうか。
 			if (pShareData->m_Common.m_sMacro.m_szKeyMacroFileName[0] ) {
+				if( pcEditDoc->m_pcEditWnd->m_bExecKeyMacro ){
+					// 2014.12.24 キーマクロ実行中(によるメニュー表示)は不可
+					return false;
+				}
 				return true;
 			}else{
 				return false;
@@ -1045,11 +1057,19 @@ bool IsFuncEnable( const CEditDoc* pcEditDoc, const DLLSHAREDATA* pShareData, EF
 	case F_LOADKEYMACRO:	/* キーマクロの読み込み */
 		if( pShareData->m_sFlags.m_bRecordingKeyMacro ){	/* キーボードマクロの記録中 */
 			if( pShareData->m_sFlags.m_hwndRecordingKeyMacro == CEditWnd::getInstance()->GetHwnd() ){	/* キーボードマクロを記録中のウィンドウ */
+				if( pcEditDoc->m_pcEditWnd->m_bExecKeyMacro ){
+					// 2014.12.24 キーマクロ実行中(によるメニュー表示)は不可
+					return false;
+				}
 				return true;
 			}else{
 				return false;
 			}
 		}else{
+			if( pcEditDoc->m_pcEditWnd->m_bExecKeyMacro ){
+				// 2014.12.24 キーマクロ実行中(によるメニュー表示)は不可
+				return false;
+			}
 			return true;
 		}
 	case F_EXECEXTMACRO:	/* 名前を指定してマクロ実行 */

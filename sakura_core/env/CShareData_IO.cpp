@@ -771,68 +771,6 @@ void CShareData_IO::ShareData_IO_Common( CDataProfile& cProfile, CDataProfile& c
 }
 
 
-// プラグインコマンドを名前から機能番号へ変換
-EFunctionCode GetPlugCmdInfoByName(
-	const WCHAR*	pszFuncName			//!< [in]  プラグインコマンド名
-)
-{
-	CommonSetting_Plugin& plugin = GetDllShareData().m_Common.m_sPlugin;
-	WCHAR		sPluginName[MAX_PLUGIN_ID+1];
-	const WCHAR* psCmdName;
-	size_t		nLen;
-	int			i;
-	int			nId;
-	int			nNo;
-
-	if (pszFuncName == NULL) {
-		return F_INVALID;
-	}
-	if ((psCmdName = wcschr(pszFuncName, L'/')) == NULL) {
-		return F_INVALID;
-	}
-	nLen = MAX_PLUGIN_ID < (psCmdName - pszFuncName) ? MAX_PLUGIN_ID : (psCmdName - pszFuncName);
-	wcsncpy( sPluginName, pszFuncName, nLen);
-	sPluginName[nLen] = L'\0'; 
-	psCmdName++;
-
-	nId = -1;
-	for (i = 0; i < MAX_PLUGIN; i++) {
-		PluginRec& pluginrec = plugin.m_PluginTable[i];
-		if (auto_strcmp( pluginrec.m_szId, sPluginName ) == 0) {
-			nId = i;
-			break;
-		}
-	}
-	nNo = _wtoi( psCmdName );
-
-	if (nId < 0 || nNo <= 0 || nNo >= MAX_PLUG_CMD) {
-		// プラグインがない/番号がおかしい
-		return F_INVALID;
-	}
-	
-	return CPlug::GetPluginFunctionCode( nId, nNo );
-}
-
-// プラグインコマンドを機能番号から名前へ変換
-bool GetPlugCmdInfoByFuncCode(
-	EFunctionCode	eFuncCode,				//!< [in]  機能コード
-	WCHAR*			pszFuncName				//!< [out] 機能名．この先にはMAX_PLUGIN_ID + 20文字のメモリが必要．
-)
-{
-	CommonSetting_Plugin& plugin = GetDllShareData().m_Common.m_sPlugin;
-
-	if (eFuncCode < F_PLUGCOMMAND_FIRST || eFuncCode > F_PLUGCOMMAND_LAST) {
-		return false;
-	}
-
-	PluginId nID = CPlug::GetPluginId( eFuncCode );
-	PlugId nNo = CPlug::GetPlugId( eFuncCode );
-	if (nID < 0 || nNo < 0) {
-		return false;
-	}
-	auto_sprintf(pszFuncName, L"%ls/%02d", plugin.m_PluginTable[nID].m_szId, nNo);
-	return true;
-}
 
 
 /*!
@@ -872,7 +810,7 @@ void CShareData_IO::ShareData_IO_Toolbar( CDataProfile& cProfile, CMenuDrawer* p
 			}
 			else {
 				// Plugin
-				eFunc = GetPlugCmdInfoByName( szText );
+				eFunc = CPlugin::GetPlugCmdInfoByName( szText );
 				if ( eFunc == F_INVALID ) {
 					toolbar.m_nToolBarButtonIdxArr[i] = -1;		// 未解決
 				}
@@ -892,7 +830,7 @@ void CShareData_IO::ShareData_IO_Toolbar( CDataProfile& cProfile, CMenuDrawer* p
 				if (eFunc == F_DEFAULT) {
 					cProfile.IOProfileData( pszSecName, szKeyName, nInvalid );	
 				}
-				else if (GetPlugCmdInfoByFuncCode( eFunc, szText )) {
+				else if (CPlugin::GetPlugCmdInfoByFuncCode( eFunc, szText )) {
 					cProfile.IOProfileData( pszSecName, szKeyName, MakeStringBufferW(szText) );	
 				}
 				else {
@@ -953,7 +891,7 @@ void CShareData_IO::IO_CustMenu( CDataProfile& cProfile, CommonSetting_CustomMen
 				cProfile.IOProfileData(pszSecName, szKeyName, MakeStringBufferW(szFuncName));
 				if (wcschr(szFuncName, L'/') != NULL) {
 					// Plugin名
-					n = GetPlugCmdInfoByName(szFuncName);
+					n = CPlugin::GetPlugCmdInfoByName(szFuncName);
 				}
 				else if ( WCODE::Is09(*szFuncName) 
 				  && (szFuncName[1] == L'\0' || WCODE::Is09(szFuncName[1])) ) {
@@ -968,7 +906,7 @@ void CShareData_IO::IO_CustMenu( CDataProfile& cProfile, CommonSetting_CustomMen
 				menu.m_nCustMenuItemFuncArr[i][j] = n;
 			}
 			else {
-				if (GetPlugCmdInfoByFuncCode( menu.m_nCustMenuItemFuncArr[i][j], szFuncName)) {
+				if (CPlugin::GetPlugCmdInfoByFuncCode( menu.m_nCustMenuItemFuncArr[i][j], szFuncName)) {
 					// Plugin
 					cProfile.IOProfileData( pszSecName, szKeyName, MakeStringBufferW(szFuncName) );
 				}
@@ -1109,7 +1047,7 @@ void CShareData_IO::IO_KeyBind( CDataProfile& cProfile, CommonSetting_KeyBind& s
 						*pn = 0;
 						if (wcschr(p, L'/') != NULL) {
 							// Plugin名
-							n = GetPlugCmdInfoByName( p );
+							n = CPlugin::GetPlugCmdInfoByName( p );
 						}
 						else if (WCODE::Is09(*p) && (p[1] == L'\0' || WCODE::Is09(p[1]))) {
 							n = (EFunctionCode)auto_atol( p);
@@ -1173,7 +1111,7 @@ void CShareData_IO::IO_KeyBind( CDataProfile& cProfile, CommonSetting_KeyBind& s
 			for(int j = 0; j < 8; j++)
 			{
 				WCHAR	szFuncName[256];
-				if (GetPlugCmdInfoByFuncCode( keydata.m_nFuncCodeArr[j], szFuncName )) {
+				if (CPlugin::GetPlugCmdInfoByFuncCode( keydata.m_nFuncCodeArr[j], szFuncName )) {
 					// Plugin
 					auto_sprintf( szWork, L",%ls", szFuncName );
 				}
@@ -1925,6 +1863,7 @@ void CShareData_IO::ShareData_IO_Macro( CDataProfile& cProfile )
 	cProfile.IOProfileData( pszSecName, LTEXT("nMacroOnTypeChanged"), pShare->m_Common.m_sMacro.m_nMacroOnTypeChanged );	/* タイプ変更後自動実行マクロ番号 */	//@@@ 2006.09.01 ryoji
 	cProfile.IOProfileData( pszSecName, LTEXT("nMacroOnSave"), pShare->m_Common.m_sMacro.m_nMacroOnSave );	/* 保存前自動実行マクロ番号 */	//@@@ 2006.09.01 ryoji
 	cProfile.IOProfileData( pszSecName, LTEXT("nMacroCancelTimer"), pShare->m_Common.m_sMacro.m_nMacroCancelTimer );	// マクロ停止ダイアログ表示待ち時間	// 2011.08.04 syat
+	cProfile.IOProfileData( pszSecName, LTEXT("bMacroIncludeSave"), pShare->m_Common.m_sMacro.m_bMacroIncludeSave );
 }
 
 /*!
@@ -2213,7 +2152,7 @@ void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, std::vector<std::wstrin
 			if (pn != NULL)		*pn++ = L'\0';
 			if (wcschr(p, L'/') != NULL) {
 				// Plugin名
-				n = GetPlugCmdInfoByName(p);
+				n = CPlugin::GetPlugCmdInfoByName(p);
 			}
 			else if (WCODE::Is09( *p )
 			  && (WCODE::Is09( p[1] ) == L'\0' ||  WCODE::Is09( p[1] ))) {
@@ -2251,7 +2190,7 @@ void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, std::vector<std::wstrin
 			auto_strcpy_s( pcMenu->m_sName, MAX_MAIN_MENU_NAME_LEN+1, p );
 		}
 		else {
-			if (GetPlugCmdInfoByFuncCode( pcMenu->m_nFunc, szFuncName )) {
+			if (CPlugin::GetPlugCmdInfoByFuncCode( pcMenu->m_nFunc, szFuncName )) {
 				// Plugin
 			}
 			else {

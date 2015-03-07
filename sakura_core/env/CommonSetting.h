@@ -524,6 +524,7 @@ struct CommonSetting_Macro
 	int				m_nMacroOnTypeChanged;			//!< タイプ変更後自動実行マクロ番号	@@@ 2006.09.01 ryoji
 	int				m_nMacroOnSave;					//!< 保存前自動実行マクロ番号	@@@ 2006.09.01 ryoji
 	int				m_nMacroCancelTimer;			//!< マクロ停止ダイアログ表示待ち時間	@@@ 2011.08.04 syat
+	bool			m_bMacroIncludeSave;			//!< マクロ実行ではなくマクロの内容をマクロ保存	2014.12.17 Moca
 };
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //

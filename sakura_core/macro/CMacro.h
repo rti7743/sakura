@@ -40,6 +40,7 @@
 
 class CTextOutputStream;
 class CEditView;
+class CMacroInstanceData;
 
 enum EMacroParamType{
 	EMacroParamTypeNull,
@@ -101,6 +102,7 @@ public:
 	CMacro( EFunctionCode nFuncID );	//	機能IDを指定して初期化
 	~CMacro();
 	void ClearMacroParam();
+	void Move( CMacro& from );
 
 	void SetNext(CMacro* pNext){ m_pNext = pNext; }
 	CMacro* GetNext(){ return m_pNext; }
@@ -108,6 +110,7 @@ public:
 	bool Exec( CEditView* pcEditView, int flags ) const; //2007.09.30 kobake const追加
 	void Save( HINSTANCE hInstance, CTextOutputStream& out ) const; //2007.09.30 kobake const追加
 	
+	void AddLParamFromCMacro( CMacro* );
 	void AddLParam( const LPARAM* lParam, const CEditView* pcEditView  );	//@@@ 2002.2.2 YAZAKI pcEditViewも渡す
 	void AddStringParam( const WCHAR* szParam, int nLength = -1 );
 	void AddStringParam( const ACHAR* lParam ){ return AddStringParam(to_wchar(lParam)); }
@@ -126,9 +129,11 @@ public:
 	static int GetFuncInfoByName( HINSTANCE , const char* , char* );	/* 関数名→機能ID，機能名日本語 */
 	static BOOL CanFuncIsKeyMacro( int );	/* キーマクロに記録可能な機能かどうかを調べる */
 #endif
+	static CMacroInstanceData* CreateCMacroInstanceData();
+	static void DeleteCMacroInstanceData(CMacroInstanceData* p);
 
 protected:
-	static WCHAR* GetParamAt(CMacroParam*, int);
+	static CStringRef GetParamAt(CMacroParam*, int);
 
 	/*
 	||  実装ヘルパ関数
@@ -137,6 +142,7 @@ protected:
 	CMacroParam*	m_pParamTop;	//	パラメータ
 	CMacroParam*	m_pParamBot;
 	CMacro*			m_pNext;		//	次のマクロへのポインタ
+	std::wstring	m_strMemo;
 };
 
 

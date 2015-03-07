@@ -27,9 +27,17 @@
 #include "macro/CPPAMacroMgr.h"
 #include "macro/CWSHManager.h"
 #include "macro/CMacroFactory.h"
+#include "plugin/CJackManager.h"
+#include "plugin/CPlugin.h"
 #include "env/CShareData.h"
 #include "view/CEditView.h"
 #include "debug/CRunningTimer.h"
+
+VARTYPE s_MacroArgEx_v1_x[] = {VT_EMPTY};
+MacroFuncInfoEx s_MacroInfoEx_v1_x  = {1, 99, s_MacroArgEx_v1_x};
+
+VARTYPE s_MacroArgEx_v2_x[] = {VT_EMPTY};
+MacroFuncInfoEx s_MacroInfoEx_v2_x = {2, 99, s_MacroArgEx_v2_x};
 
 VARTYPE s_MacroArgEx_i[] = {VT_I4};
 MacroFuncInfoEx s_MacroInfoEx_i = {5, 5, s_MacroArgEx_i};
@@ -298,7 +306,7 @@ MacroFuncInfo CSMacroMgr::m_MacroFuncInfoCommandArr[] =
 	{F_CANCEL_MODE,				LTEXT("CancelMode"),		{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //各種モードの取り消し
 
 	/* マクロ系 */
-	{F_EXECEXTMACRO,			LTEXT("ExecExternalMacro"),	{VT_BSTR, VT_BSTR, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //名前を指定してマクロ実行
+	{F_EXECEXTMACRO,			LTEXT("ExecExternalMacro"),	{VT_BSTR, VT_BSTR, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	&s_MacroInfoEx_v2_x}, //名前を指定してマクロ実行
 
 	/* 設定系 */
 	{F_SHOWTOOLBAR,				LTEXT("ShowToolbar"),		{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, /* ツールバーの表示 */
@@ -400,6 +408,12 @@ MacroFuncInfo CSMacroMgr::m_MacroFuncInfoCommandArr[] =
 	{F_CLIPBOARDEMPTY,			LTEXT("ClipboardEmpty"),	{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL},
 	{F_SETVIEWTOP,				L"SetViewTop",				{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, // ビューの上の行数を設定
 	{F_SETVIEWLEFT,				L"SetViewLeft",				{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, // ビューの左端の桁数を設定
+	{F_EXECUSERMACRO,			L"ExecUserMacro",			{VT_I4,    VT_BSTR,  VT_EMPTY, VT_EMPTY},	VT_EMPTY,	&s_MacroInfoEx_v2_x}, // ユーザマクロ実行
+	{F_EXECPLUGINCMD,			L"ExecPluginCmd",			{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	&s_MacroInfoEx_v1_x}, // プラグインコマンド実行
+	{F_ADDRECMACROPARAMINT,		L"AddRecMacroParamInt",		{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //マクロパラメータint追加
+	{F_ADDRECMACROPARAMSTR,		L"AddRecMacroParamStr",		{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //マクロパラメータString追加
+	{F_ADDEXECFUNCARGINT,		L"AddExecFuncArgInt",		{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //マクロ実行用パラメータint追加(PPA用)
+	{F_ADDEXECFUNCARGSTR,		L"AddExecFuncArgStr",		{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //マクロ実行用パラメータString追加(PPA用)
 
 	//	終端
 	//	Jun. 27, 2002 genta
@@ -471,6 +485,8 @@ MacroFuncInfo CSMacroMgr::m_MacroFuncInfoArr[] =
 	{F_GETVIEWLINES,			L"GetViewLines",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_I4,		NULL }, //ビューの行数取得
 	{F_GETVIEWCOLUMNS,			L"GetViewColumns",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_I4,		NULL }, //ビューの列数取得
 	{F_CREATEMENU,				L"CreateMenu",				{VT_I4,    VT_BSTR,  VT_EMPTY, VT_EMPTY},	VT_I4,		NULL }, //メニュー作成
+	{F_GETMACROPARAM,			L"GetMacroParam",			{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_BSTR,	NULL }, //マクロパラメータ取得
+	{F_GETMACROPARAMCOUNT,		L"GetMacroParamCount",		{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_I4,		NULL }, //マクロパラメータ数取得
 
 	//	終端
 	//	Jun. 27, 2002 genta
@@ -585,9 +601,7 @@ BOOL CSMacroMgr::Exec( int idx , HINSTANCE hInstance, CEditView* pcEditView, int
 			SetCurrentIdx( prevmacro );
 			return TRUE;
 		}
-		else {
-			return FALSE;
-		}
+		return FALSE;
 	}
 	if( idx == TEMP_KEYMACRO ){		// 一時マクロ
 		if( m_pTempMacro != NULL ){
@@ -596,9 +610,7 @@ BOOL CSMacroMgr::Exec( int idx , HINSTANCE hInstance, CEditView* pcEditView, int
 			SetCurrentIdx( prevmacro );
 			return TRUE;
 		}
-		else {
-			return FALSE;
-		}
+		return FALSE;
 	}
 	if( idx < 0 || MAX_CUSTMACRO <= idx )	//	範囲チェック
 		return FALSE;

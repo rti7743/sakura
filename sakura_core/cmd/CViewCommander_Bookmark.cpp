@@ -49,8 +49,9 @@ void CViewCommander::Command_JUMP_SRCHSTARTPOS(void)
 /*! 指定行へジャンプダイアログの表示
 	2002.2.2 YAZAKI
 */
-void CViewCommander::Command_JUMP_DIALOG( void )
+void CViewCommander::Command_JUMP_DIALOG( EFunctionFlags flags )
 {
+	GetEditWindow()->m_cDlgJump.m_flags = flags;
 	if( !GetEditWindow()->m_cDlgJump.DoModal(
 		G_AppInstance(), m_pCommanderView->GetHwnd(), (LPARAM)GetDocument()
 	) ){

@@ -42,6 +42,7 @@ F_DUMMY_MAX_CODE    = 10,	//特別10である必要はないけど 10まで予約
 FA_FROMKEYBOARD		 = 0x00010000,	//!< キーボードアクセラレータからのコマンド
 FA_FROMMACRO		 = 0x00020000,	//!< マクロからのコマンド実行
 FA_NONRECORD		 = 0x00040000,	//!< マクロへの記録を抑制する
+FA_FLAGS			 = 0x000F0000,	//!< フラグマスク
 
 F_PLUGCOMMAND_FIRST			= 20000,
 F_PLUGCOMMAND_LAST			= 21999,
@@ -506,6 +507,12 @@ F_APPENDUNDOBUFFERCURSOR	= 32816,	// OpeBlK にカーソル位置を追加
 F_CLIPBOARDEMPTY		= 32817,		// クリップボードクリア
 F_SETVIEWTOP			= 32818,		// ビューの上の行数を設定					CLayoutYInt nLineNumber
 F_SETVIEWLEFT			= 32819,		// ビューの左端の桁数を設定					CLayoutXInt nColumnIndex
+F_EXECUSERMACRO			= 32820,		// ユーザマクロ実行
+F_EXECPLUGINCMD			= 32821,		// プラグインコマンド実行
+F_ADDRECMACROPARAMINT	= 32822,		// マクロパラメータint追加
+F_ADDRECMACROPARAMSTR	= 32823,		// マクロパラメータString追加
+F_ADDEXECFUNCARGINT		= 32824,		// マクロ実行用パラメータint追加(PPA用)
+F_ADDEXECFUNCARGSTR		= 32825,		// マクロ実行用パラメータString追加(PPA用)
 
 
 F_FUNCTION_FIRST	= 40000,	// 2003-02-21 鬼 これ以上だと関数
@@ -567,6 +574,8 @@ F_ISTEXTSELECTINGLOCK	= 40055,	// 選択状態のロックを取得
 F_GETVIEWLINES		= 40056,	// ビューの行数取得
 F_GETVIEWCOLUMNS	= 40057,	// ビューの列数取得
 F_CREATEMENU		= 40058,	// メニュー作成
+F_GETMACROPARAM			= 40059,	// マクロパラメータ取得
+F_GETMACROPARAMCOUNT	= 40060,	// マクロパラメータ数取得
 
 
 //	= 2005,.01.10 genta ISearch用補助コード
