@@ -127,7 +127,7 @@ public:
 	static void SetComboBoxDeleter( HWND hwndCtl, SComboBoxItemDeleter* data );
 public:
 	// 設定フォルダ相対ファイル選択(共有データ,ini位置依存)
-	static BOOL SelectFile(HWND parent, HWND hwndCtl, const TCHAR* filter, bool resolvePath);
+	static BOOL SelectFile(HWND parent, HWND hwndCtl, const TCHAR* filter, bool resolvePath, bool bAddTextFilter = true);
 	static bool DirectoryUp( TCHAR* );
 
 	static bool LoadDlgTemplate( HINSTANCE, int , LPDLGTEMPLATE&, DWORD& );

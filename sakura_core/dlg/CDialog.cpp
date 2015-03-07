@@ -650,7 +650,7 @@ BOOL CDialog::OnCbnDropDown( HWND hwndCtl, bool scrollBar )
 /*! ファイル選択
 	@note 実行ファイルのパスor設定ファイルのパスが含まれる場合は相対パスに変換
 */
-BOOL CDialog::SelectFile(HWND parent, HWND hwndCtl, const TCHAR* filter, bool resolvePath)
+BOOL CDialog::SelectFile(HWND parent, HWND hwndCtl, const TCHAR* filter, bool resolvePath, bool bAddTextFilter)
 {
 	CDlgOpenFile	cDlgOpenFile;
 	TCHAR			szFilePath[_MAX_PATH + 1];
@@ -670,7 +670,7 @@ BOOL CDialog::SelectFile(HWND parent, HWND hwndCtl, const TCHAR* filter, bool re
 		filter,
 		szPath
 	);
-	if( cDlgOpenFile.DoModal_GetOpenFileName( szPath ) ){
+	if( cDlgOpenFile.DoModal_GetOpenFileName(szPath, false, bAddTextFilter) ){
 		const TCHAR* fileName;
 		if( resolvePath ){
 			fileName = GetRelPath( szPath );

@@ -139,7 +139,7 @@ INT_PTR CPropTypesWindow::DispatchEvent(
 			case IDC_BUTTON_BACKIMG_PATH_SEL:
 				{
 					CDialog::SelectFile(hwndDlg, GetDlgItem(hwndDlg, IDC_EDIT_BACKIMG_PATH),
-						_T("*.bmp;*.jpg;*.jpeg"), true );
+						_T("*.bmp;*.jpg;*.jpeg"), true, false );
 				}
 				return TRUE;
 			//	From Here Sept. 10, 2000 JEPRO
