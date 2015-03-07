@@ -655,7 +655,7 @@ void CMacro::Save( HINSTANCE hInstance, CTextOutputStream& out ) const
 			pParam = m_pParamTop;
 			nArgLimit = nArgSizeMin;
 		}
-		out.WriteF( L"S_%ls(", szFuncName );
+		out.WriteF( L"%ls(", szFuncName ); // 2014.12.25 Moca "S_"ÇçÌèú
 		int k = 0;
 		while( pParam && k < nArgLimit ){
 			if( pParam != m_pParamTop ){
