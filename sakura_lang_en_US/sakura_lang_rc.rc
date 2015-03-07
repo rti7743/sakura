@@ -782,7 +782,8 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Direct Tag Jump List"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "DIR",IDC_STATIC_BASEDIR,4,151,276,8,SS_NOPREFIX
+    PUSHBUTTON      "(1)...",IDC_BUTTON_FOLDER,4,147,21,14
+    LTEXT           "DIR",IDC_STATIC_BASEDIR,27,151,268,8,SS_NOPREFIX
     LTEXT           "Keyword(&K)",IDC_STATIC_KEYWORD,4,162,100,8,SS_NOPREFIX
     COMBOBOX        IDC_KEYWORD,3,172,134,180,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
@@ -3822,6 +3823,7 @@ BEGIN
 	STR_DLGTAGJMP_LIST5			"File Name"
 	STR_DLGTAGJMP_LIST6			"Notes"
 	STR_DLGTAGJMP3				"Keyword Searching..."
+	STR_DLGTAGJMP_SELDIR		"Select folder for search tags"
 
 	// CDlgTagsMake.cpp
 	STR_DLGTAGMAK_SELECTDIR		"Select folder for tag creation"

@@ -1240,17 +1240,12 @@ bool IsFuncEnable( const CEditDoc* pcEditDoc, const DLLSHAREDATA* pShareData, EF
 	case F_JUMPHIST_SET:	//	現在位置を移動履歴に登録
 		return true;
 	// 20100402 Moca (無題)もダイレクトタグジャンプできるように
-	case F_DIRECT_TAGJUMP:	//ダイレクトタグジャンプ	//@@@ 2003.04.15 MIK
+	// 2014.12.01 Moca (無題)でダイレクトタグジャンプできるようになってなかった
 	case F_TAGJUMP_KEYWORD:	//キーワードを指定してダイレクトタグジャンプ	//@@@ 2005.03.31 MIK
+	case F_DIRECT_TAGJUMP:	//ダイレクトタグジャンプ	//@@@ 2003.04.15 MIK
 	//	2003.05.12 MIK タグファイル作成先を選べるようにしたので、常に作成可能とする
 //	case F_TAGS_MAKE:	//タグファイルの作成	//@@@ 2003.04.13 MIK
-		if( false == CEditApp::getInstance()->m_pcGrepAgent->m_bGrepMode
-			&& pcEditDoc->m_cDocFile.GetFilePathClass().IsValidPath() ){
-			return true;
-		}else{
-			return false;
-		}
-	
+		return true;
 	//タブモード時はウインドウ並べ替え禁止です。	@@@ 2003.06.12 MIK
 	case F_TILE_H:
 	case F_TILE_V:

@@ -386,10 +386,8 @@ void CDlgFileTree::SetDataInit()
 		CTextWidthCalc calc(GetHwnd(), IDC_STATIC_SETTFING_FROM);
 		RECT rc;
 		GetWindowRect( GetItemHwnd(IDC_STATIC_SETTFING_FROM), &rc);
-		const int xWidth = calc.GetTextWidth(_T("x"));
 		const int ctrlWidth = rc.right - rc.left;
-		int nMaxCch = ctrlWidth / xWidth;
-		CFileNameManager::getInstance()->GetTransformFileNameFast(pFile, szFilePath, _countof(szFilePath), calc.GetDC(), true, nMaxCch);
+		CFileNameManager::getInstance()->GetTransformFileNameFast(pFile, szFilePath, _countof(szFilePath), calc.GetDC(), true, ctrlWidth);
 		wsprintf(szMsg, LS(STR_FILETREE_FROM_FILE), szFilePath);
 		::SetWindowText(GetItemHwnd(IDC_STATIC_SETTFING_FROM), szMsg);
 		bEnableDefIni = FALSE;

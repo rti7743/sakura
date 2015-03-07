@@ -52,7 +52,7 @@
 	@date 2003.01.27 Moca 新規作成
 	@note 連続して呼び出す場合のため、展開済みメタ文字列をキャッシュして高速化している。
 */
-LPTSTR CFileNameManager::GetTransformFileNameFast( LPCTSTR pszSrc, LPTSTR pszDest, int nDestLen, HDC hDC, bool bFitMode, int cchMaxWidth )
+LPTSTR CFileNameManager::GetTransformFileNameFast( LPCTSTR pszSrc, LPTSTR pszDest, int nDestLen, HDC hDC, bool bFitMode, int pxMaxWidth )
 {
 	int i;
 	TCHAR szBuf[_MAX_PATH + 1];
@@ -62,12 +62,14 @@ LPTSTR CFileNameManager::GetTransformFileNameFast( LPCTSTR pszSrc, LPTSTR pszDes
 	}
 
 	int nPxWidth = -1;
-	if( m_pShareData->m_Common.m_sFileName.m_bTransformShortPath && cchMaxWidth != -1 ){
-		if( cchMaxWidth == 0 ){
-			cchMaxWidth = m_pShareData->m_Common.m_sFileName.m_nTransformShortMaxWidth;
+	if( m_pShareData->m_Common.m_sFileName.m_bTransformShortPath && pxMaxWidth != -1 ){
+		if( pxMaxWidth == 0 ){
+			int cchMaxWidth = m_pShareData->m_Common.m_sFileName.m_nTransformShortMaxWidth;
+			CTextWidthCalc calc(hDC);
+			nPxWidth = calc.GetTextWidth(_T("x")) * cchMaxWidth;
+		}else{
+			nPxWidth = pxMaxWidth;
 		}
-		CTextWidthCalc calc(hDC);
-		nPxWidth = calc.GetTextWidth(_T("x")) * cchMaxWidth;
 	}
 
 	if( 0 < m_nTransformFileNameCount ){

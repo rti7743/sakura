@@ -48,6 +48,7 @@
 
 const DWORD p_helpids[] = {
 	IDC_LIST_TAGJUMP,		HIDC_LIST_TAGJUMPLIST,			//ファイル
+	IDC_BUTTON_FOLDER,		HIDC_TAGJUMPLIST_FOLDER,		//フォルダ選択
 	IDOK,					HIDC_TAGJUMPLIST_IDOK,			//OK
 	IDCANCEL,				HIDC_TAGJUMPLIST_IDCANCEL,		//キャンセル
 	IDC_BUTTON_HELP,		HIDC_BUTTON_TAGJUMPLIST_HELP,	//ヘルプ
@@ -61,6 +62,7 @@ const DWORD p_helpids[] = {
 };
 
 static const SAnchorList anchorList[] = {
+	{IDC_BUTTON_FOLDER,		ANCHOR_BOTTOM},
 	{IDC_STATIC_BASEDIR,	ANCHOR_BOTTOM},
 	{IDC_STATIC_KEYWORD,	ANCHOR_BOTTOM},
 	{IDC_KEYWORD,			ANCHOR_BOTTOM},
@@ -516,6 +518,7 @@ BOOL CDlgTagJumpList::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 	// ダイレクトタブジャンプの時は、キーワードを非表示
 	HWND hwndKey = GetItemHwnd( IDC_KEYWORD );
 	int nShowFlag = (IsDirectTagJump() ? SW_HIDE : SW_SHOW);
+	::ShowWindow( GetItemHwnd( IDC_BUTTON_FOLDER ), nShowFlag );
 	::ShowWindow( GetItemHwnd( IDC_STATIC_KEYWORD ), nShowFlag );
 	::ShowWindow( hwndKey, nShowFlag );
 	::ShowWindow( GetItemHwnd( IDC_CHECK_ICASE ), nShowFlag );
@@ -580,6 +583,28 @@ BOOL CDlgTagJumpList::OnBnClicked( int wID )
 		m_nTop = t_max(0, m_nTop - m_pcList->GetCapacity());
 		StopTimer();
 		FindNext( false );
+		return TRUE;
+	// 2014.12.01 フォルダ変更機能追加
+	case IDC_BUTTON_FOLDER:
+		{
+			TCHAR szPath[_MAX_PATH];
+			auto_strcpy(szPath, GetFilePath());
+			szPath[GetFileName() - GetFilePath()] = _T('\0');
+			std::tstring strFile = GetFileName();
+			std::tstring strDlgTitle = LS(STR_DLGTAGJMP_SELDIR);
+			if( SelectDir(GetHwnd(), strDlgTitle.c_str(), szPath, szPath) ){
+				int nLen = auto_strlen(szPath);
+				if( 0 < nLen && szPath[nLen-1] != _T('\\') ){
+					auto_strcat(szPath, _T("\\"));
+				}
+				auto_strcat(szPath, strFile.c_str());
+				SetFileName(szPath);
+				ClearPrevFindInfo();
+				SetTextDir();
+				UpdateData(true);
+				FindNext(true);
+			}
+		}
 		return TRUE;
 	}
 
@@ -1395,7 +1420,14 @@ void CDlgTagJumpList::SetTextDir()
 		if( GetFileName() ){
 			std::tstring strPath = GetFilePath();
 			strPath[ GetFileName() - GetFilePath() ] = _T('\0');
-			DlgItem_SetText( GetHwnd(), IDC_STATIC_BASEDIR, strPath.c_str() );
+			// 2014.12.01 簡易表示
+			TCHAR szFilePath[_MAX_PATH];
+			CTextWidthCalc calc(GetItemHwnd(IDC_STATIC_BASEDIR));
+			RECT rc;
+			::GetWindowRect(GetItemHwnd(IDC_STATIC_BASEDIR), &rc);
+			const int ctrlWidth = rc.right - rc.left;
+			CFileNameManager::getInstance()->GetTransformFileNameFast(strPath.c_str(), szFilePath, _countof(szFilePath), calc.GetDC(), true, ctrlWidth);
+			DlgItem_SetText(GetHwnd(), IDC_STATIC_BASEDIR, szFilePath);
 		}
 	}
 }

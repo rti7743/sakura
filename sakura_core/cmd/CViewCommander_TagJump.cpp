@@ -721,27 +721,37 @@ bool CViewCommander::Sub_PreProcTagJumpByTagsFile( TCHAR* szCurrentPath, int cou
 	if( count ) szCurrentPath[0] = _T('\0');
 
 	// 実行可能確認
-	if( ! GetDocument()->m_cDocFile.GetFilePathClass().IsValidPath() ){
 		// 2010.04.02 (無題)でもタグジャンプできるように
 		// Grep、アウトプットは行番号タグジャンプがあるので無効にする(要検討)
-		if( CEditApp::getInstance()->m_pcGrepAgent->m_bGrepMode ||
-		    CAppMode::getInstance()->IsDebugMode() ){
-		    return false;
-		}
-	}
+		// 2014.12.01 Grep、アウトプットでも実行可能に変更
 	
 	// 基準ファイル名の設定
 	if( GetDocument()->m_cDocFile.GetFilePathClass().IsValidPath() ){
 		auto_strcpy( szCurrentPath, GetDocument()->m_cDocFile.GetFilePath() );
 	}else{
-		if( 0 == ::GetCurrentDirectory( count - _countof(_T("\\dmy")) - MAX_TYPES_EXTS, szCurrentPath ) ){
+		TCHAR szCurDir[_MAX_PATH];
+		DWORD dwRet;
+		dwRet = ::GetCurrentDirectory(_countof(szCurDir), szCurDir);
+		if (dwRet == 0 || _countof(szCurDir) < dwRet) {
 			return false;
 		}
+		int nLen = auto_strlen(szCurDir) + auto_strlen(_T("\\dmy."));
+		if (count <= nLen) {
+			return false;
+		}
+		auto_strcpy(szCurrentPath, szCurDir);
 		// (無題)でもファイル名を要求してくるのでダミーをつける
 		// 現在のタイプ別の1番目の拡張子を拝借
 		TCHAR szExts[MAX_TYPES_EXTS];
 		CDocTypeManager::GetFirstExt(m_pCommanderView->m_pTypeData->m_szTypeExts, szExts, _countof(szExts));
+		if (szExts[0] == '\0') {
+			// cppにしておく
+			auto_strcpy(szExts, _T("cpp"));
+		}
 		int nExtLen = auto_strlen( szExts );
+		if (count <= nLen + nExtLen) {
+			return false;
+		}
 		_tcscat( szCurrentPath, _T("\\dmy") );
 		if( nExtLen ){
 			_tcscat( szCurrentPath, _T(".") );

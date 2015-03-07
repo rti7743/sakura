@@ -93,6 +93,7 @@ private:
 	void	StartTimer( int );
 
 	void	SetData( void );	/* ダイアログデータの設定 */
+	void	SetData( bool bRetry );
 	int		GetData( void );	/* ダイアログデータの取得 */
 	void	UpdateData( bool );	//	@@ 2005.03.31 MIK
 
@@ -158,7 +159,7 @@ private:
 	CRecentTagjumpKeyword	m_cRecentKeyword;
 	
 	POINT	m_ptDefaultSize;
-	RECT	m_rcItems[11];
+	RECT	m_rcItems[12];
 
 private:
 	DISALLOW_COPY_AND_ASSIGN(CDlgTagJumpList);
