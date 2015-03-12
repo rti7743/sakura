@@ -17,6 +17,13 @@ http://mocaskr.web.fc2.com/sakurahelp2/HLP000001.html
 ヘルプのソース・変更履歴は以下にあります  
 https://github.com/mocaskr/sakura_help  
 
+##注意
+比較的枯れてないパッチも混ざっているため、バグに注意してください。  
+本家でも再現するバグは本家のほうへお願いします。  
+私用版固有の問題は、issuesを活用してください。fork/pull requestも歓迎します。
+基本的には、一度pushした物はrebaseしません。本家trunk2のHEADを可能な限り追いかける予定です。
+マージ困難な場合などでtrunk2側を優先し適用済みパッチを削除する可能性もあります。
+
 ## 変更内容
 sakura 2.2.0.1 mocaskr_ver 015.20150312-r4011  
 baseバージョンからの変更点一覧  
