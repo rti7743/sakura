@@ -2020,7 +2020,7 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 						const int nLevel = pcMenuTlb[r].m_nLevel;
 						if( item.m_bAddPrevSeparete ){
 							pcMenu->m_nType    = T_SEPARATOR;
-							pcMenu->m_nFunc    = F_0;
+							pcMenu->m_nFunc    = F_SEPARATOR;
 							pcMenu->m_nLevel   = nLevel;
 							pcMenu->m_sName[0] = L'\0';
 							pcMenu->m_sKey[0]  = L'\0';
@@ -2038,7 +2038,7 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 						if( item.m_bAddNextSeparete ){
 							pcMenu++;
 							pcMenu->m_nType    = T_SEPARATOR;
-							pcMenu->m_nFunc    = F_0;
+							pcMenu->m_nFunc    = F_SEPARATOR;
 							pcMenu->m_nLevel   = nLevel;
 							pcMenu->m_sName[0] = L'\0';
 							pcMenu->m_sKey[0]  = L'\0';
