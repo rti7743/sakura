@@ -12,19 +12,21 @@
 	Copyright (C) 2004, Moca
 	Copyright (C) 2006, ryoji, fon
 	Copyright (C) 2007, genta
+	Copyright (C) 2014, Moca
 
 	This source code is designed for sakura editor.
 	Please contact the copyright holders to use this code for other purpose.
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
+#include "prop/CDlgConfigChildWindow.h"
+#include "prop/CDlgConfig.h"
 #include "dlg/CDlgWinSize.h"	//	2004.05.13 Moca
 #include "util/shell.h"
 #include "util/window.h"
+#include "_main/CProcess.h"
 #include "sakura_rc.h"
 #include "sakura.hh"
-#include "_main/CProcess.h"
 
 //@@@ 2001.02.04 Start by MIK: Popup Help
 static const DWORD p_helpids[] = {	//11200
@@ -58,259 +60,202 @@ static const DWORD p_helpids[] = {	//11200
 };
 //@@@ 2001.02.04 End
 
-//	From Here Jun. 2, 2001 genta
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropWin::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildWindow::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropWin::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg  = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_WIN, 0, SW_SHOW );
 }
-//	To Here Jun. 2, 2001 genta
 
 
-/* メッセージ処理 */
-INT_PTR CPropWin::DispatchEvent(
-	HWND	hwndDlg,	// handle to dialog box
-	UINT	uMsg,	// message
-	WPARAM	wParam,	// first message parameter
-	LPARAM	lParam 	// second message parameter
-)
+BOOL CDlgConfigChildWindow::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-// From Here Sept. 9, 2000 JEPRO
-	WORD		wNotifyCode;
-	WORD		wID;
-// To Here Sept. 9, 2000
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	NMHDR*		pNMHDR;
-	NM_UPDOWN*	pMNUD;
-	int			idCtrl;
-	int			nVal;	//Sept.21, 2000 JEPRO スピン要素を加えたので復活させた
+	/* ユーザーがエディット コントロールに入力できるテキストの長さを制限する */
+	/* ルーラー高さ */
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_nRulerHeight ), 2 );
+	/* ルーラーとテキストの隙間 */
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_nRulerBottomSpace ), 2 );
 
-	switch( uMsg ){
+	return result;
+}
 
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 Window */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
 
-		/* ユーザーがエディット コントロールに入力できるテキストの長さを制限する */
-		/* ルーラー高さ */
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_nRulerHeight ), 2 );
+BOOL CDlgConfigChildWindow::OnNotify( WPARAM wParam, LPARAM lParam )
+{
+	HWND hwndDlg = GetHwnd();
+
+	int			idCtrl = (int)wParam;
+	NMHDR*		pNMHDR = (NMHDR*)lParam;
+	NM_UPDOWN*	pMNUD  = (NM_UPDOWN*)lParam;
+	int nVal;
+	switch( idCtrl ){
+	case IDC_SPIN_nRulerHeight:
+		/* ルーラ－の高さ */
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nRulerHeight, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
+		}
+		if( nVal < IDC_SPIN_nRulerHeight_MIN ){
+			nVal = IDC_SPIN_nRulerHeight_MIN;
+		}
+		if( nVal > IDC_SPIN_nRulerHeight_MAX ){
+			nVal = IDC_SPIN_nRulerHeight_MAX;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_nRulerHeight, nVal, FALSE );
+		return TRUE;
+	case IDC_SPIN_nRulerBottomSpace:
 		/* ルーラーとテキストの隙間 */
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_nRulerBottomSpace ), 2 );
-
-		return TRUE;
-
-	case WM_NOTIFY:
-		idCtrl = (int)wParam;
-		pNMHDR = (NMHDR*)lParam;
-		pMNUD  = (NM_UPDOWN*)lParam;
-		switch( idCtrl ){
-		default:
-			switch( pNMHDR->code ){
-			case PSN_HELP:
-				OnHelp( hwndDlg, IDD_PROP_WIN );
-				return TRUE;
-			case PSN_KILLACTIVE:
-//				MYTRACE( _T("Window PSN_KILLACTIVE\n") );
-				/* ダイアログデータの取得 Window */
-				GetData( hwndDlg );
-				return TRUE;
-//@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			case PSN_SETACTIVE:
-				m_nPageNum = ID_PROPCOM_PAGENUM_WIN;
-				return TRUE;
-			}
-			break;
-		case IDC_SPIN_nRulerHeight:
-			/* ルーラ－の高さ */
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nRulerHeight, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < IDC_SPIN_nRulerHeight_MIN ){
-				nVal = IDC_SPIN_nRulerHeight_MIN;
-			}
-			if( nVal > IDC_SPIN_nRulerHeight_MAX ){
-				nVal = IDC_SPIN_nRulerHeight_MAX;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_nRulerHeight, nVal, FALSE );
-			return TRUE;
-		case IDC_SPIN_nRulerBottomSpace:
-			/* ルーラーとテキストの隙間 */
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nRulerBottomSpace, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 0 ){
-				nVal = 0;
-			}
-			if( nVal > 32 ){
-				nVal = 32;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_nRulerBottomSpace, nVal, FALSE );
-			return TRUE;
-		case IDC_SPIN_nLineNumberRightSpace:
-			/* ルーラーとテキストの隙間 */
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nLineNumberRightSpace, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 0 ){
-				nVal = 0;
-			}
-			if( nVal > 32 ){
-				nVal = 32;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_nLineNumberRightSpace, nVal, FALSE );
-			return TRUE;
-		case IDC_SPIN_FUNCKEYWND_GROUPNUM:
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_FUNCKEYWND_GROUPNUM, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 1 ){
-				nVal = 1;
-			}
-			if( nVal > 12 ){
-				nVal = 12;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_FUNCKEYWND_GROUPNUM, nVal, FALSE );
-			return TRUE;
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nRulerBottomSpace, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
 		}
-		break;
-//****	To Here Sept. 21, 2000
-//	From Here Sept. 9, 2000 JEPRO
-	case WM_COMMAND:
-		wNotifyCode	= HIWORD(wParam);	/* 通知コード */
-		wID			= LOWORD(wParam);	/* 項目ID､ コントロールID､ またはアクセラレータID */
-		switch( wNotifyCode ){
-		/* ボタン／チェックボックスがクリックされた */
-		case BN_CLICKED:
-			switch( wID ){
-			//	ファンクションキーを表示する時だけその位置指定をEnableに設定
-			case IDC_CHECK_DispFUNCKEYWND:
-				EnableWinPropInput( hwndDlg );
-				break;
-
-			// From Here 2004.05.13 Moca 「位置と大きさの設定」ボタン
-			//	ウィンドウ設定ダイアログにて起動時のウィンドウ状態指定
-			case IDC_BUTTON_WINSIZE:
-				{
-					CDlgWinSize cDlgWinSize;
-					RECT rc;
-					rc.right  = m_Common.m_sWindow.m_nWinSizeCX;
-					rc.bottom = m_Common.m_sWindow.m_nWinSizeCY;
-					rc.top    = m_Common.m_sWindow.m_nWinPosX;
-					rc.left   = m_Common.m_sWindow.m_nWinPosY;
-					cDlgWinSize.DoModal(
-						::GetModuleHandle(NULL),
-						hwndDlg,
-						m_Common.m_sWindow.m_eSaveWindowSize,
-						m_Common.m_sWindow.m_eSaveWindowPos,
-						m_Common.m_sWindow.m_nWinSizeType,
-						rc
-					);
-					m_Common.m_sWindow.m_nWinSizeCX = rc.right;
-					m_Common.m_sWindow.m_nWinSizeCY = rc.bottom;
-					m_Common.m_sWindow.m_nWinPosX = rc.top;
-					m_Common.m_sWindow.m_nWinPosY = rc.left;
-				}
-				break;
-			// To Here 2004.05.13 Moca
-			case IDC_CHECK_USE_FONT:
-				if( !::IsDlgButtonChecked(hwndDlg, IDC_CHECK_USE_FONT) ){
-					::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), FALSE);
-					LOGFONT lfDummy;
-					HFONT hFont = SetFontLabel(hwndDlg, IDC_STATIC_FONT, lfDummy, 9, false);
-					if(m_hDialogFont != NULL){
-						::DeleteObject(m_hDialogFont);
-					}
-					m_hDialogFont = hFont;
-				}
-				break;
-			case IDC_BUTTON_FONT:
-				{
-					LOGFONT lf;
-					memset_raw(&lf, 0, sizeof_raw(lf));
-					auto_strcpy(lf.lfFaceName, to_tchar(m_Common.m_sWindow.m_szDialogFont));
-					INT nPointSize = m_Common.m_sWindow.m_nDialogFontSize * 10; // pt => 1/10pt
-					lf.lfHeight = -DpiPointsToPixels(nPointSize, 10); // 1/10pt => px
-					if( MySelectFont(&lf, &nPointSize, hwndDlg, false) ){
-						HFONT hFont = SetFontLabel(hwndDlg, IDC_STATIC_FONT, lf, nPointSize);
-						if (m_hDialogFont != NULL){
-							::DeleteObject(m_hDialogFont);
-						}
-						m_hDialogFont = hFont;
-						m_Common.m_sWindow.m_bCustomFont = true;
-						wcscpy(m_Common.m_sWindow.m_szDialogFont, to_wchar(lf.lfFaceName));
-						m_Common.m_sWindow.m_nDialogFontSize = nPointSize / 10;
-						::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), TRUE);
-						CheckDlgButtonBool(hwndDlg, IDC_CHECK_USE_FONT, true);
-					}
-				}
-				break;
-			case IDC_BUTTON_ALLRESET:
-				if( IDYES == ConfirmMessage( hwndDlg, LS(STR_PROPCOMWIN_ALLRESET) ) ){
-					m_Common.m_sOthers.m_bAllReset = true;
-				}
-				break;
-			}
-			break;
+		if( nVal < 0 ){
+			nVal = 0;
 		}
-		break;
-//	To Here Sept. 9, 2000
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
-		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
+		if( nVal > 32 ){
+			nVal = 32;
 		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_nRulerBottomSpace, nVal, FALSE );
 		return TRUE;
-		/*NOTREACHED*/
-		//break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-	case WM_DESTROY:
-		if (m_hDialogFont != NULL) {
-			::DeleteObject(m_hDialogFont);
-			m_hDialogFont = NULL;
+	case IDC_SPIN_nLineNumberRightSpace:
+		/* ルーラーとテキストの隙間 */
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nLineNumberRightSpace, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
 		}
+		if( nVal < 0 ){
+			nVal = 0;
+		}
+		if( nVal > 32 ){
+			nVal = 32;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_nLineNumberRightSpace, nVal, FALSE );
 		return TRUE;
-
+	case IDC_SPIN_FUNCKEYWND_GROUPNUM:
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_FUNCKEYWND_GROUPNUM, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
+		}
+		if( nVal < 1 ){
+			nVal = 1;
+		}
+		if( nVal > 12 ){
+			nVal = 12;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_FUNCKEYWND_GROUPNUM, nVal, FALSE );
+		return TRUE;
 	}
 	return FALSE;
 }
 
-/* ダイアログデータの設定 */
-void CPropWin::SetData( HWND hwndDlg )
+
+BOOL CDlgConfigChildWindow::OnBnClicked( int wID )
 {
-//	BOOL	bRet;
+	HWND hwndDlg = GetHwnd();
+
+	switch( wID ){
+	//	ファンクションキーを表示する時だけその位置指定をEnableに設定
+	case IDC_CHECK_DispFUNCKEYWND:
+		EnableWinPropInput();
+		break;
+
+	// From Here 2004.05.13 Moca 「位置と大きさの設定」ボタン
+	//	ウィンドウ設定ダイアログにて起動時のウィンドウ状態指定
+	case IDC_BUTTON_WINSIZE:
+		{
+			CDlgWinSize cDlgWinSize;
+			RECT rc;
+			rc.right  = m_Common.m_sWindow.m_nWinSizeCX;
+			rc.bottom = m_Common.m_sWindow.m_nWinSizeCY;
+			rc.top    = m_Common.m_sWindow.m_nWinPosX;
+			rc.left   = m_Common.m_sWindow.m_nWinPosY;
+			cDlgWinSize.DoModal(
+				::GetModuleHandle(NULL),
+				GetHwnd(),
+				m_Common.m_sWindow.m_eSaveWindowSize,
+				m_Common.m_sWindow.m_eSaveWindowPos,
+				m_Common.m_sWindow.m_nWinSizeType,
+				rc
+			);
+			m_Common.m_sWindow.m_nWinSizeCX = rc.right;
+			m_Common.m_sWindow.m_nWinSizeCY = rc.bottom;
+			m_Common.m_sWindow.m_nWinPosX = rc.top;
+			m_Common.m_sWindow.m_nWinPosY = rc.left;
+		}
+		break;
+	// To Here 2004.05.13 Moca
+	case IDC_CHECK_USE_FONT:
+		if( !::IsDlgButtonChecked(hwndDlg, IDC_CHECK_USE_FONT) ){
+			::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), FALSE);
+			LOGFONT lfDummy;
+			HFONT hFont = SetFontLabel(IDC_STATIC_FONT, lfDummy, 9, false);
+			if(m_hDialogFont != NULL){
+				::DeleteObject(m_hDialogFont);
+			}
+			m_hDialogFont = hFont;
+		}
+		break;
+	case IDC_BUTTON_FONT:
+		{
+			LOGFONT lf;
+			memset_raw(&lf, 0, sizeof_raw(lf));
+			auto_strcpy(lf.lfFaceName, to_tchar(m_Common.m_sWindow.m_szDialogFont));
+			INT nPointSize = m_Common.m_sWindow.m_nDialogFontSize * 10; // pt => 1/10pt
+			lf.lfHeight = -DpiPointsToPixels(nPointSize, 10); // 1/10pt => px
+			if( MySelectFont(&lf, &nPointSize, hwndDlg, false) ){
+				HFONT hFont = SetFontLabel(IDC_STATIC_FONT, lf, nPointSize);
+				if (m_hDialogFont != NULL){
+					::DeleteObject(m_hDialogFont);
+				}
+				m_hDialogFont = hFont;
+				m_Common.m_sWindow.m_bCustomFont = true;
+				wcscpy(m_Common.m_sWindow.m_szDialogFont, to_wchar(lf.lfFaceName));
+				m_Common.m_sWindow.m_nDialogFontSize = nPointSize / 10;
+				::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), TRUE);
+				CheckDlgButtonBool(hwndDlg, IDC_CHECK_USE_FONT, true);
+			}
+		}
+		break;
+	case IDC_BUTTON_ALLRESET:
+		if( IDYES == ConfirmMessage( hwndDlg, LS(STR_PROPCOMWIN_ALLRESET) ) ){
+			m_Common.m_sOthers.m_bAllReset = true;
+		}
+		break;
+	}
+	return FALSE;
+}
+
+
+BOOL CDlgConfigChildWindow::OnDestroy()
+{
+	if (m_hDialogFont != NULL) {
+		::DeleteObject(m_hDialogFont);
+		m_hDialogFont = NULL;
+	}
+	return CDlgConfigChild::OnDestroy();
+}
+
+
+/* ダイアログデータの設定 */
+void CDlgConfigChildWindow::SetData()
+{
+	HWND hwndDlg = GetHwnd();
 
 	/* 次回ウィンドウを開いたときツールバーを表示する */
 	::CheckDlgButton( hwndDlg, IDC_CHECK_DispTOOLBAR, m_Common.m_sWindow.m_bDispTOOLBAR );
@@ -373,7 +318,7 @@ void CPropWin::SetData( HWND hwndDlg )
 
 	//	Fronm Here Sept. 9, 2000 JEPRO
 	//	ファンクションキーを表示する時だけその位置指定をEnableに設定
-	EnableWinPropInput( hwndDlg );
+	EnableWinPropInput();
 	//	To Here Sept. 9, 2000
 
 	// 言語選択
@@ -397,7 +342,7 @@ void CPropWin::SetData( HWND hwndDlg )
 	lf.lfHeight = -DpiPointsToPixels(nPointSize, 10); // 1/10pt => px
 
 	CheckDlgButtonBool(hwndDlg, IDC_CHECK_USE_FONT, m_Common.m_sWindow.m_bCustomFont);
-	m_hDialogFont = SetFontLabel(hwndDlg, IDC_STATIC_FONT, lf, nPointSize, m_Common.m_sWindow.m_bCustomFont);
+	m_hDialogFont = SetFontLabel(IDC_STATIC_FONT, lf, nPointSize, m_Common.m_sWindow.m_bCustomFont);
 	if( m_Common.m_sWindow.m_bCustomFont == false ){
 		::EnableWindow(::GetDlgItem(hwndDlg, IDC_CHECK_USE_FONT), FALSE);
 	}
@@ -410,8 +355,9 @@ void CPropWin::SetData( HWND hwndDlg )
 
 
 /* ダイアログデータの取得 */
-int CPropWin::GetData( HWND hwndDlg )
+int CDlgConfigChildWindow::GetData()
 {
+	HWND hwndDlg = GetHwnd();
 	/* 次回ウィンドウを開いたときツールバーを表示する */
 	m_Common.m_sWindow.m_bDispTOOLBAR = ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DispTOOLBAR );
 
@@ -500,7 +446,7 @@ int CPropWin::GetData( HWND hwndDlg )
 	if ( _tcscmp( m_Common.m_sWindow.m_szLanguageDll, psLangInfo->szDllName ) != 0 ) {
 		_tcsncpy( m_Common.m_sWindow.m_szLanguageDll, psLangInfo->szDllName, _countof(m_Common.m_sWindow.m_szLanguageDll) );
 	}
-	
+
 	m_Common.m_sWindow.m_bCustomFont = IsDlgButtonCheckedBool(hwndDlg, IDC_CHECK_USE_FONT);
 
 	return TRUE;
@@ -513,8 +459,10 @@ int CPropWin::GetData( HWND hwndDlg )
 //	From Here Sept. 9, 2000 JEPRO
 //	チェック状態に応じてダイアログボックス要素のEnable/Disableを
 //	適切に設定する
-void CPropWin::EnableWinPropInput( HWND hwndDlg )
+void CDlgConfigChildWindow::EnableWinPropInput()
 {
+	HWND hwndDlg = GetHwnd();
+
 	//	ファクションキーを表示するかどうか
 	if( ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DispFUNCKEYWND ) ){
 		::EnableWindow( ::GetDlgItem( hwndDlg, IDC_EDIT_FUNCKEYWND_GROUPNUM ), TRUE );	// IDC_GROUP_FUNCKEYWND_POSITION->IDC_EDIT_FUNCKEYWND_GROUPNUM 2008/7/4 Uchi
@@ -529,4 +477,7 @@ void CPropWin::EnableWinPropInput( HWND hwndDlg )
 //	To Here Sept. 9, 2000
 
 
-
+LPVOID CDlgConfigChildWindow::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
+}

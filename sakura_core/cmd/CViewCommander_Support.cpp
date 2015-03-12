@@ -223,7 +223,7 @@ retry:;
 			LS(STR_ERR_CEDITVIEW_CMD01)
 		) ){
 			/* 共通設定 プロパティシート */
-			if( !CEditApp::getInstance()->OpenPropertySheet( ID_PROPCOM_PAGENUM_HELPER ) ){
+			if( !CEditApp::getInstance()->OpenPropertySheet( ID_PROPCOM_PAGENUM_SUPPORT ) ){
 				return;
 			}
 			goto retry;
@@ -294,7 +294,7 @@ void CViewCommander::Command_EXTHTMLHELP( const WCHAR* _helpfile, const WCHAR* k
 				return;
 			}
 			/* 共通設定 プロパティシート */
-			if( !CEditApp::getInstance()->OpenPropertySheet( ID_PROPCOM_PAGENUM_HELPER ) ){
+			if( !CEditApp::getInstance()->OpenPropertySheet( ID_PROPCOM_PAGENUM_SUPPORT ) ){
 				return;
 			}
 		}

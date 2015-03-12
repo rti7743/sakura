@@ -24,6 +24,7 @@
 #include "CPropTypes.h"
 #include "env/CShareData.h"
 #include "typeprop/CImpExpManager.h"	// 2010/4/23 Uchi
+#include "prop/CDlgConfig.h"
 #include "CDlgSameColor.h"
 #include "CDlgKeywordSelect.h"
 #include "view/colors/EColorIndexType.h"
@@ -32,7 +33,6 @@
 #include "util/window.h"
 #include "sakura_rc.h"
 #include "sakura.hh"
-#include "prop/CPropCommon.h"
 
 using namespace std;
 
@@ -461,25 +461,15 @@ INT_PTR CPropTypesColor::DispatchEvent(
 			//強調キーワードの選択
 			case IDC_BUTTON_EDITKEYWORD:
 				{
-					CPropKeyword* pPropKeyword = new CPropKeyword;
-					CPropCommon* pCommon = (CPropCommon*)pPropKeyword;
-					pCommon->m_hwndParent = ::GetParent(hwndDlg);
-					pCommon->InitData();
-					pCommon->m_nKeywordSet1 = m_nSet[0];
-					INT_PTR res = ::DialogBoxParam(
-						CSelectLang::getLangRsrcInstance(),
-						MAKEINTRESOURCE( IDD_PROP_KEYWORD ),
-						hwndDlg,
-						CPropKeyword::DlgProc_dialog,
-						(LPARAM)pPropKeyword
-					);
-					if( res == IDOK ){
-						CShareDataLockCounter::WaitLock( pCommon->m_hwndParent );
-						pCommon->ApplyData();
+					CDlgConfig cDlgConfig;
+					cDlgConfig.m_pDlgConfigArg->m_nKeywordSet1 = m_nSet[0];
+					cDlgConfig.SetKeywordChildDialog();
+					if( cDlgConfig.DoModal( CSelectLang::getLangRsrcInstance(), hwndDlg, NULL, NULL, 0, true ) ){
+						CShareDataLockCounter::WaitLock( hwndDlg );
+						cDlgConfig.ApplyData();
 						SetData(hwndDlg);
 						m_bChangeKeyWordSet = true;
 					}
-					delete pPropKeyword;
 					return TRUE;
 				}
 			case IDC_CHECK_STRINGLINEONLY:

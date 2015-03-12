@@ -11,13 +11,15 @@
 	Copyright (C) 2003, KEITA
 	Copyright (C) 2006, ryoji
 	Copyright (C) 2007, genta, ryoji
+	Copyright (C) 2014, Moca
 
 	This source code is designed for sakura editor.
 	Please contact the copyright holders to use this code for other purpose.
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
+#include "prop/CDlgConfigChildEdit.h"
+#include "prop/CDlgConfig.h"
 #include "env/DLLSHAREDATA.h"
 #include "env/CFileNameManager.h"
 #include "util/shell.h"
@@ -37,7 +39,7 @@ static const DWORD p_helpids[] = {	//10210
 	IDC_CHECK_bOverWriteFixMode,		HIDC_CHECK_bOverWriteFixMode,			//文字幅に合わせてスペースを詰める
 	IDC_CHECK_bOverWriteBoxDelete,		HIDC_CHECK_bOverWriteBoxDelete,			//矩形入力で選択範囲を削除する
 	//	2007.02.11 genta クリッカブルURLをこのページに移動
-	IDC_CHECK_bSelectClickedURL,	HIDC_CHECK_bSelectClickedURL,	//クリッカブルURL
+	IDC_CHECK_bSelectClickedURL,		HIDC_CHECK_bSelectClickedURL,	//クリッカブルURL
 	IDC_CHECK_CONVERTEOLPASTE,			HIDC_CHECK_CONVERTEOLPASTE,			//改行コードを変換して貼り付ける
 	IDC_RADIO_CURDIR,					HIDC_RADIO_CURDIR,						//カレントフォルダ
 	IDC_RADIO_MRUDIR,					HIDC_RADIO_MRUDIR,						//最近使ったフォルダ
@@ -51,129 +53,67 @@ static const DWORD p_helpids[] = {	//10210
 };
 //@@@ 2001.02.04 End
 
-//	From Here Jun. 2, 2001 genta
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropEdit::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildEdit::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropEdit::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_EDIT, 0, SW_SHOW );
 }
-//	To Here Jun. 2, 2001 genta
 
-/* メッセージ処理 */
-INT_PTR CPropEdit::DispatchEvent(
-    HWND		hwndDlg,	// handle to dialog box
-    UINT		uMsg,		// message
-    WPARAM		wParam,		// first message parameter
-    LPARAM		lParam 		// second message parameter
-)
+
+BOOL CDlgConfigChildEdit::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-	WORD		wNotifyCode;
-	WORD		wID;
-	NMHDR*		pNMHDR;
-//	int			nVal;
-//	LPDRAWITEMSTRUCT pDis;
+	BOOL result = CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	switch( uMsg ){
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_FILEOPENDIR ), _MAX_PATH - 1 );
 
-	case WM_INITDIALOG:
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_FILEOPENDIR ), _MAX_PATH - 1 );
-		/* ダイアログデータの設定 Edit */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
+	return result;
+}
 
-		/* ユーザーがエディット コントロールに入力できるテキストの長さを制限する */
 
+BOOL CDlgConfigChildEdit::OnBnClicked( int wID )
+{
+	HWND hwndDlg = GetHwnd();
+
+	switch( wID ){
+	case IDC_CHECK_DRAGDROP:	/* タスクトレイを使う */
+		if( ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DRAGDROP ) ){
+			::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_DROPSOURCE ), TRUE );
+		}
+		else{
+			::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_DROPSOURCE ), FALSE );
+		}
 		return TRUE;
-	case WM_COMMAND:
-		wNotifyCode	= HIWORD(wParam);	/* 通知コード */
-		wID			= LOWORD(wParam);	/* 項目ID､ コントロールID､ またはアクセラレータID */
-		switch( wNotifyCode ){
-		/* ボタン／チェックボックスがクリックされた */
-		case BN_CLICKED:
-			switch( wID ){
-			case IDC_CHECK_DRAGDROP:	/* タスクトレイを使う */
-				if( ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DRAGDROP ) ){
-					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_DROPSOURCE ), TRUE );
-				}
-				else{
-					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_DROPSOURCE ), FALSE );
-				}
-				return TRUE;
-			case IDC_RADIO_CURDIR:
-			case IDC_RADIO_MRUDIR:
-			case IDC_RADIO_SELDIR:
-				EnableEditPropInput( hwndDlg );
-				return TRUE;
-			case IDC_BUTTON_FILEOPENDIR:
-				{
-					TCHAR szMetaPath[_MAX_PATH];
-					TCHAR szPath[_MAX_PATH];
-					::DlgItem_GetText( hwndDlg, IDC_EDIT_FILEOPENDIR, szMetaPath, _countof(szMetaPath) );
-					CFileNameManager::ExpandMetaToFolder( szMetaPath, szPath, _countof(szPath) );
-					if( SelectDir( hwndDlg, LS(STR_PROPEDIT_SELECT_DIR), szPath, szPath ) ){
-						CNativeT cmem(szPath);
-						cmem.Replace(_T("%"), _T("%%"));
-						::DlgItem_SetText( hwndDlg, IDC_EDIT_FILEOPENDIR, cmem.GetStringPtr() );
-					}
-				}
-				return TRUE;
-			}
-			break;
-		}
-		break;
-
-	case WM_NOTIFY:
-		pNMHDR = (NMHDR*)lParam;
-		switch( pNMHDR->code ){
-		case PSN_HELP:
-			OnHelp( hwndDlg, IDD_PROP_EDIT );
-			return TRUE;
-		case PSN_KILLACTIVE:
-			DEBUG_TRACE( _T("Edit PSN_KILLACTIVE\n") );
-
-			/* ダイアログデータの取得 Edit */
-			GetData( hwndDlg );
-			return TRUE;
-
-		case PSN_SETACTIVE: //@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			m_nPageNum = ID_PROPCOM_PAGENUM_EDIT;
-			return TRUE;
-		}
-		break;	/* WM_NOTIFY */
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
+	case IDC_RADIO_CURDIR:
+	case IDC_RADIO_MRUDIR:
+	case IDC_RADIO_SELDIR:
+		EnableEditPropInput();
+		return TRUE;
+	case IDC_BUTTON_FILEOPENDIR:
 		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
+			TCHAR szMetaPath[_MAX_PATH];
+			TCHAR szPath[_MAX_PATH];
+			::DlgItem_GetText( hwndDlg, IDC_EDIT_FILEOPENDIR, szMetaPath, _countof(szMetaPath) );
+			CFileNameManager::ExpandMetaToFolder( szMetaPath, szPath, _countof(szPath) );
+			if( SelectDir( hwndDlg, LS(STR_PROPEDIT_SELECT_DIR), szPath, szPath ) ){
+				CNativeT cmem(szPath);
+				cmem.Replace(_T("%"), _T("%%"));
+				::DlgItem_SetText( hwndDlg, IDC_EDIT_FILEOPENDIR, cmem.GetStringPtr() );
+			}
 		}
 		return TRUE;
-		/*NOTREACHED*/
-		//break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-
 	}
-	return FALSE;
+	return true;
 }
 
 
 /* ダイアログデータの設定 */
-void CPropEdit::SetData( HWND hwndDlg )
+void CDlgConfigChildEdit::SetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* ドラッグ & ドロップ編集 */
 	::CheckDlgButton( hwndDlg, IDC_CHECK_DRAGDROP, m_Common.m_sEdit.m_bUseOLE_DragDrop );
 	if( ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DRAGDROP ) ){
@@ -230,14 +170,15 @@ void CPropEdit::SetData( HWND hwndDlg )
 	// 矩形選択移動で選択をロックする
 	CheckDlgButtonBool( hwndDlg, IDC_CHECK_BOXSELECTLOCK, m_Common.m_sEdit.m_bBoxSelectLock );
 
-	EnableEditPropInput( hwndDlg );
+	EnableEditPropInput();
 }
 
 
-
 /* ダイアログデータの取得 */
-int CPropEdit::GetData( HWND hwndDlg )
+int CDlgConfigChildEdit::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* ドラッグ & ドロップ編集 */
 	m_Common.m_sEdit.m_bUseOLE_DragDrop = ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DRAGDROP );
 	/* DropSource */
@@ -289,6 +230,7 @@ int CPropEdit::GetData( HWND hwndDlg )
 	return TRUE;
 }
 
+
 /*!	チェック状態に応じてダイアログボックス要素のEnable/Disableを
 	適切に設定する
 
@@ -296,8 +238,9 @@ int CPropEdit::GetData( HWND hwndDlg )
 
 	@date 2013.03.31 novice 新規作成
 */
-void CPropEdit::EnableEditPropInput( HWND hwndDlg )
+void CDlgConfigChildEdit::EnableEditPropInput()
 {
+	HWND hwndDlg = GetHwnd();
 	// 指定フォルダ
 	if( ::IsDlgButtonChecked( hwndDlg, IDC_RADIO_SELDIR ) ){
 		::EnableWindow( ::GetDlgItem( hwndDlg, IDC_EDIT_FILEOPENDIR ), TRUE );
@@ -309,3 +252,7 @@ void CPropEdit::EnableEditPropInput( HWND hwndDlg )
 }
 
 
+LPVOID CDlgConfigChildEdit::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
+}

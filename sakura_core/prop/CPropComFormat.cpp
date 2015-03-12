@@ -10,13 +10,15 @@
 	Copyright (C) 2002, YAZAKI, MIK, aroka
 	Copyright (C) 2003, KEITA
 	Copyright (C) 2006, ryoji
+	Copyright (C) 2014, Moca
 
 	This source code is designed for sakura editor.
 	Please contact the copyright holder to use this code for other purpose.
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
+#include "prop/CDlgConfigChildFormat.h"
+#include "prop/CDlgConfig.h"
 #include "util/shell.h"
 #include "env/DLLSHAREDATA.h" // CFormatManager.hより前に必要
 #include "env/CFormatManager.h"
@@ -71,24 +73,44 @@ static const char *p_time_form[] = {
 };
 //@@@ 2002.01.12 add end
 
-//	From Here Jun. 2, 2001 genta
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropFormat::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
-{
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropFormat::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
-}
-//	To Here Jun. 2, 2001 genta
 
-void CPropFormat::ChangeDateExample( HWND hwndDlg )
+HWND CDlgConfigChildFormat::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg  = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_FORMAT, 0, SW_SHOW );
+}
+
+
+BOOL CDlgConfigChildFormat::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
+{
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
+
+	ChangeDateExample();
+	ChangeTimeExample();
+
+	/* 見出し記号 */
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_MIDASHIKIGOU ), _countof(m_Common.m_sFormat.m_szMidashiKigou) - 1 );
+
+	/* 引用符 */
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_INYOUKIGOU ), _countof(m_Common.m_sFormat.m_szInyouKigou) - 1 );
+
+	/* 日付書式 */
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_DFORM ), _countof(m_Common.m_sFormat.m_szDateFormat) - 1 );
+
+	/* 時刻書式 */
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_TFORM ), _countof(m_Common.m_sFormat.m_szTimeFormat) - 1 );
+
+	return result;
+}
+
+
+void CDlgConfigChildFormat::ChangeDateExample()
+{
+	HWND hwndDlg = GetHwnd();
 	/* ダイアログデータの取得 Format */
-	GetData( hwndDlg );
+	GetData();
 
 	/* 日付をフォーマット */
 	TCHAR szText[1024];
@@ -98,10 +120,13 @@ void CPropFormat::ChangeDateExample( HWND hwndDlg )
 	::DlgItem_SetText( hwndDlg, IDC_EDIT_DFORM_EX, szText );
 	return;
 }
-void CPropFormat::ChangeTimeExample( HWND hwndDlg )
+
+
+void CDlgConfigChildFormat::ChangeTimeExample()
 {
+	HWND hwndDlg = GetHwnd();
 	/* ダイアログデータの取得 Format */
-	GetData( hwndDlg );
+	GetData();
 
 	/* 時刻をフォーマット */
 	TCHAR szText[1024];
@@ -113,151 +138,51 @@ void CPropFormat::ChangeTimeExample( HWND hwndDlg )
 }
 
 
-/* Format メッセージ処理 */
-INT_PTR CPropFormat::DispatchEvent(
-	HWND	hwndDlg,	// handle to dialog box
-	UINT	uMsg,	// message
-	WPARAM	wParam,	// first message parameter
-	LPARAM	lParam 	// second message parameter
-)
+BOOL CDlgConfigChildFormat::OnEnChange( HWND hwndCtl, int wID )
 {
-	WORD		wNotifyCode;
-	WORD		wID;
-	NMHDR*		pNMHDR;
-//	NM_UPDOWN*	pMNUD;
-//	int			idCtrl;
-//	int			nVal;
-
-	switch( uMsg ){
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 Format */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
-
-		ChangeDateExample( hwndDlg );
-		ChangeTimeExample( hwndDlg );
-
-		/* 見出し記号 */
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_MIDASHIKIGOU ), _countof(m_Common.m_sFormat.m_szMidashiKigou) - 1 );
-
-		/* 引用符 */
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_INYOUKIGOU ), _countof(m_Common.m_sFormat.m_szInyouKigou) - 1 );
-
-		/* 日付書式 */
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_DFORM ), _countof(m_Common.m_sFormat.m_szDateFormat) - 1 );
-
-		/* 時刻書式 */
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_TFORM ), _countof(m_Common.m_sFormat.m_szTimeFormat) - 1 );
-
-
-
-		return TRUE;
-	case WM_COMMAND:
-		wNotifyCode	= HIWORD(wParam);	/* 通知コード */
-		wID			= LOWORD(wParam);	/* 項目ID､ コントロールID､ またはアクセラレータID */
-		switch( wNotifyCode ){
-		case EN_CHANGE:
-			if( IDC_EDIT_DFORM == wID ){
-				ChangeDateExample( hwndDlg );
-				return 0;
-			}
-			if( IDC_EDIT_TFORM == wID  ){
-				ChangeTimeExample( hwndDlg );
-				return 0;
-			}
-			break;
-
-		/* ボタン／チェックボックスがクリックされた */
-		case BN_CLICKED:
-			switch( wID ){
-			case IDC_RADIO_DFORM_0:
-			case IDC_RADIO_DFORM_1:
-				ChangeDateExample( hwndDlg );
-			//	From Here Sept. 10, 2000 JEPRO
-			//	日付書式 0=標準 1=カスタム
-			//	日付書式をカスタムにするときだけ書式指定文字入力をEnableに設定
-				EnableFormatPropInput( hwndDlg );
-			//	To Here Sept. 10, 2000
-				return 0;
-			case IDC_RADIO_TFORM_0:
-			case IDC_RADIO_TFORM_1:
-				ChangeTimeExample( hwndDlg );
-			//	From Here Sept. 10, 2000 JEPRO
-			//	時刻書式 0=標準 1=カスタム
-			//	時刻書式をカスタムにするときだけ書式指定文字入力をEnableに設定
-				EnableFormatPropInput( hwndDlg );
-			//	To Here Sept. 10, 2000
-				return 0;
-
-
-
-
-			}
-			break;	/* BN_CLICKED */
-		}
-		break;	/* WM_COMMAND */
-	case WM_NOTIFY:
-//		idCtrl = (int)wParam;
-		pNMHDR = (NMHDR*)lParam;
-//		pMNUD  = (NM_UPDOWN*)lParam;
-//		switch( idCtrl ){
-//		case ???????:
-//			return 0L;
-//		default:
-			switch( pNMHDR->code ){
-			case PSN_HELP:
-				OnHelp( hwndDlg, IDD_PROP_FORMAT );
-				return TRUE;
-			case PSN_KILLACTIVE:
-//				MYTRACE( _T("Format PSN_KILLACTIVE\n") );
-				/* ダイアログデータの取得 Format */
-				GetData( hwndDlg );
-				return TRUE;
-//@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			case PSN_SETACTIVE:
-				m_nPageNum = ID_PROPCOM_PAGENUM_FORMAT;
-				return TRUE;
-			}
-//			break;	/* default */
-//		}
-
-//		MYTRACE( _T("pNMHDR->hwndFrom=%xh\n"), pNMHDR->hwndFrom );
-//		MYTRACE( _T("pNMHDR->idFrom  =%xh\n"), pNMHDR->idFrom );
-//		MYTRACE( _T("pNMHDR->code    =%xh\n"), pNMHDR->code );
-//		MYTRACE( _T("pMNUD->iPos    =%d\n"), pMNUD->iPos );
-//		MYTRACE( _T("pMNUD->iDelta  =%d\n"), pMNUD->iDelta );
-		break;	/* WM_NOTIFY */
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
-		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		}
-		return TRUE;
-		/*NOTREACHED*/
-		break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-
+	if( IDC_EDIT_DFORM == wID ){
+		ChangeDateExample();
+		return FALSE;
+	}
+	if( IDC_EDIT_TFORM == wID  ){
+		ChangeTimeExample();
+		return FALSE;
 	}
 	return FALSE;
 }
 
 
-
+BOOL CDlgConfigChildFormat::OnBnClicked( int wID )
+{
+	/* ボタン／チェックボックスがクリックされた */
+	switch( wID ){
+	case IDC_RADIO_DFORM_0:
+	case IDC_RADIO_DFORM_1:
+		ChangeDateExample();
+	//	From Here Sept. 10, 2000 JEPRO
+	//	日付書式 0=標準 1=カスタム
+	//	日付書式をカスタムにするときだけ書式指定文字入力をEnableに設定
+		EnableFormatPropInput();
+	//	To Here Sept. 10, 2000
+		return 0;
+	case IDC_RADIO_TFORM_0:
+	case IDC_RADIO_TFORM_1:
+		ChangeTimeExample();
+	//	From Here Sept. 10, 2000 JEPRO
+	//	時刻書式 0=標準 1=カスタム
+	//	時刻書式をカスタムにするときだけ書式指定文字入力をEnableに設定
+		EnableFormatPropInput();
+	//	To Here Sept. 10, 2000
+		return 0;
+	}
+	return FALSE;
+}
 
 
 /* ダイアログデータの設定 Format */
-void CPropFormat::SetData( HWND hwndDlg )
+void CDlgConfigChildFormat::SetData()
 {
+	HWND hwndDlg = GetHwnd();
 
 	/* 見出し記号 */
 	::DlgItem_SetText( hwndDlg, IDC_EDIT_MIDASHIKIGOU, m_Common.m_sFormat.m_szMidashiKigou );
@@ -287,7 +212,7 @@ void CPropFormat::SetData( HWND hwndDlg )
 	//	From Here Sept. 10, 2000 JEPRO
 	//	日付/時刻書式 0=標準 1=カスタム
 	//	日付/時刻書式をカスタムにするときだけ書式指定文字入力をEnableに設定
-	EnableFormatPropInput( hwndDlg );
+	EnableFormatPropInput();
 	//	To Here Sept. 10, 2000
 
 	return;
@@ -297,8 +222,10 @@ void CPropFormat::SetData( HWND hwndDlg )
 
 
 /* ダイアログデータの取得 Format */
-int CPropFormat::GetData( HWND hwndDlg )
+int CDlgConfigChildFormat::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* 見出し記号 */
 	::DlgItem_GetText( hwndDlg, IDC_EDIT_MIDASHIKIGOU, m_Common.m_sFormat.m_szMidashiKigou, _countof(m_Common.m_sFormat.m_szMidashiKigou) );
 
@@ -341,8 +268,9 @@ int CPropFormat::GetData( HWND hwndDlg )
 //	From Here Sept. 10, 2000 JEPRO
 //	チェック状態に応じてダイアログボックス要素のEnable/Disableを
 //	適切に設定する
-void CPropFormat::EnableFormatPropInput( HWND hwndDlg )
+void CDlgConfigChildFormat::EnableFormatPropInput()
 {
+	HWND hwndDlg = GetHwnd();
 	//	日付書式をカスタムにするかどうか
 	if( ::IsDlgButtonChecked( hwndDlg, IDC_RADIO_DFORM_1 ) ){
 		::EnableWindow( ::GetDlgItem( hwndDlg, IDC_LABEL_DFORM ), TRUE );
@@ -364,4 +292,7 @@ void CPropFormat::EnableFormatPropInput( HWND hwndDlg )
 //	To Here Sept. 10, 2000
 
 
-
+LPVOID CDlgConfigChildFormat::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
+}

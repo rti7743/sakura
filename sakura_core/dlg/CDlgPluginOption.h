@@ -33,7 +33,7 @@
 #include "dlg/CDialog.h"
 #include "plugin/CPluginManager.h"
 
-class CPropPlugin;
+class CDlgConfigChildPlugin;
 
 /*!	@brief 「プラグイン設定」ダイアログ
 
@@ -64,7 +64,7 @@ public:
 	/*
 	||  Attributes & Operations
 	*/
-	int DoModal( HINSTANCE, HWND, CPropPlugin*, int );	/* モーダルダイアログの表示 */
+	int DoModal( HINSTANCE, HWND, CDlgConfigChildPlugin*, int );	/* モーダルダイアログの表示 */
 
 protected:
 	/*
@@ -91,7 +91,7 @@ protected:
 
 private:
 	CPlugin*		m_cPlugin;
-	CPropPlugin*	m_cPropPlugin;
+	CDlgConfigChildPlugin*	m_cConfigPlugin;
 	int 			m_ID;			// プラグイン番号（エディタがふる番号）
 	int				m_Line;			// 現在編集中のオプション行番号
 	std::tstring	m_sReadMeName;	// ReadMe ファイル名

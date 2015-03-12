@@ -9,13 +9,15 @@
 	Copyright (C) 2002, YAZAKI, MIK
 	Copyright (C) 2003, KEITA
 	Copyright (C) 2006, ryoji
+	Copyright (C) 2014, Moca
 
 	This source code is designed for sakura editor.
 	Please contact the copyright holder to use this code for other purpose.
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
+#include "prop/CDlgConfigChildSearch.h"
+#include "prop/CDlgConfig.h"
 #include "extmodule/CBregexp.h"	// 2007.08/12 genta バージョン取得
 #include "util/shell.h"
 #include "util/window.h"
@@ -40,86 +42,29 @@ static const DWORD p_helpids[] = {	//10500
 };
 //@@@ 2001.02.04 End
 
-//	From Here Jun. 2, 2001 genta
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropGrep::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildSearch::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropGrep::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg  = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_GREP, 0, SW_SHOW );
 }
-//	To Here Jun. 2, 2001 genta
 
-/* メッセージ処理 */
-INT_PTR CPropGrep::DispatchEvent( HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+BOOL CDlgConfigChildSearch::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-//	WORD		wNotifyCode;
-//	WORD		wID;
-//	HWND		hwndCtl;
-	NMHDR*		pNMHDR;
-//	int			nVal;
-//    LPDRAWITEMSTRUCT pDis;
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	switch( uMsg ){
+	return result;
+}
 
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 Grep */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
 
-		/* ユーザーがエディット コントロールに入力できるテキストの長さを制限する */
-
-		return TRUE;
-	case WM_NOTIFY:
-		pNMHDR = (NMHDR*)lParam;
-//		switch( idCtrl ){
-//		default:
-			switch( pNMHDR->code ){
-			case PSN_HELP:
-				OnHelp( hwndDlg, IDD_PROP_GREP );
-				return TRUE;
-			case PSN_KILLACTIVE:
-				/* ダイアログデータの取得 Grep */
-				GetData( hwndDlg );
-				return TRUE;
-//@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			case PSN_SETACTIVE:
-				m_nPageNum = ID_PROPCOM_PAGENUM_GREP;
-				return TRUE;
-			}
-//			break;	/* default */
-//		}
-		break;	/* WM_NOTIFY */
-	case WM_COMMAND:
-		//	2007.08.12 genta 正規表現DLLの変更に応じてVersionを再取得する
-		if( wParam == MAKEWPARAM( IDC_EDIT_REGEXPLIB, EN_KILLFOCUS )){
-			SetRegexpVersion( hwndDlg );
-		}
-		break;
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
-		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		}
-		return TRUE;
-		/*NOTREACHED*/
-		//break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-
+BOOL CDlgConfigChildSearch::OnEnKillFocus( HWND hwndCtl, int wID )
+{
+	//	2007.08.12 genta 正規表現DLLの変更に応じてVersionを再取得する
+	if( wID == IDC_EDIT_REGEXPLIB ){
+		SetRegexpVersion();
 	}
 	return FALSE;
 }
@@ -130,8 +75,10 @@ struct tagTagJumpMode{
 };
 
 /* ダイアログデータの設定 */
-void CPropGrep::SetData( HWND hwndDlg )
+void CDlgConfigChildSearch::SetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* 2006.08.23 ryoji カーソル位置の文字列をデフォルトの検索文字列にする */
 	::CheckDlgButton( hwndDlg, IDC_CHECK_bCaretTextForSearch, m_Common.m_sSearch.m_bCaretTextForSearch );
 
@@ -153,7 +100,7 @@ void CPropGrep::SetData( HWND hwndDlg )
 	//	2007.08.12 genta 正規表現DLL
 	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_REGEXPLIB ), _countof(m_Common.m_sSearch.m_szRegexpLib ) - 1 );
 	::DlgItem_SetText( hwndDlg, IDC_EDIT_REGEXPLIB, m_Common.m_sSearch.m_szRegexpLib);
-	SetRegexpVersion( hwndDlg );
+	SetRegexpVersion();
 
 	struct tagTagJumpMode TagJumpMode1Arr[] ={
 		{ 0, STR_TAGJUMP_0 },
@@ -198,8 +145,10 @@ void CPropGrep::SetData( HWND hwndDlg )
 
 
 /* ダイアログデータの取得 */
-int CPropGrep::GetData( HWND hwndDlg )
+int CDlgConfigChildSearch::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* 2006.08.23 ryoji カーソル位置の文字列をデフォルトの検索文字列にする */
 	m_Common.m_sSearch.m_bCaretTextForSearch = ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_bCaretTextForSearch );
 
@@ -231,8 +180,9 @@ int CPropGrep::GetData( HWND hwndDlg )
 	return TRUE;
 }
 
-void CPropGrep::SetRegexpVersion( HWND hwndDlg )
+void CDlgConfigChildSearch::SetRegexpVersion()
 {
+	HWND hwndDlg = GetHwnd();
 	TCHAR regexp_dll[_MAX_PATH];
 	
 	::DlgItem_GetText( hwndDlg, IDC_EDIT_REGEXPLIB, regexp_dll, _countof( regexp_dll ));
@@ -245,4 +195,7 @@ void CPropGrep::SetRegexpVersion( HWND hwndDlg )
 }
 
 
-
+LPVOID CDlgConfigChildSearch::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
+}

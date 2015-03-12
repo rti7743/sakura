@@ -258,6 +258,7 @@ plugin/CPluginManager.o \
 plugin/CWSHPlugin.o \
 print/CPrint.o \
 print/CPrintPreview.o \
+prop/CDlgConfig.o \
 prop/CPropComBackup.o \
 prop/CPropComCustmenu.o \
 prop/CPropComEdit.o \
@@ -271,7 +272,6 @@ prop/CPropComKeybind.o \
 prop/CPropComKeyword.o \
 prop/CPropComMacro.o \
 prop/CPropComMainMenu.o \
-prop/CPropCommon.o \
 prop/CPropComPlugin.o \
 prop/CPropComStatusbar.o \
 prop/CPropComTab.o \

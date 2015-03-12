@@ -19,7 +19,8 @@
 	Please contact the copyright holder to use this code for other purpose.
 */
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
+#include "prop/CDlgConfigChildBackup.h"
+#include "prop/CDlgConfig.h"
 #include "util/shell.h"
 #include "util/window.h"
 #include "sakura_rc.h"
@@ -57,169 +58,113 @@ static const DWORD p_helpids[] = {	//10000
 };
 //@@@ 2001.02.04 End
 
-//	From Here Jun. 2, 2001 genta
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropBackup::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildBackup::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropBackup::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_BACKUP, 0, SW_SHOW );
 }
-//	To Here Jun. 2, 2001 genta
 
 
-/* メッセージ処理 */
-INT_PTR CPropBackup::DispatchEvent( HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+BOOL CDlgConfigChildBackup::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-	WORD		wNotifyCode;
-	WORD		wID;
-	NMHDR*		pNMHDR;
-	NM_UPDOWN*	pMNUD;
-	int			idCtrl;
-//	int			nVal;
-	int			nVal;	//Sept.21, 2000 JEPRO スピン要素を加えたので復活させた
-//	int			nDummy;
-//	int			nCharChars;
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	switch( uMsg ){
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_BACKUPFOLDER ), _countof2(m_Common.m_sBackup.m_szBackUpFolder) - 1 - 1 );
+	EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_BACKUPFILE ), _countof2(m_Common.m_sBackup.m_szBackUpPathAdvanced) - 1 - 1 );
 
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 Backup */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
+	return result;
+}
 
-		/* ユーザーがエディット コントロールに入力できるテキストの長さを制限する */
-		//	Oct. 5, 2002 genta バックアップフォルダ名の入力サイズを指定
-		//	Oct. 8, 2002 genta 最後に付加される\の領域を残すためバッファサイズ-1しか入力させない
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_BACKUPFOLDER ), _countof2(m_Common.m_sBackup.m_szBackUpFolder) - 1 - 1 );
-		// 20051107 aroka
-		EditCtl_LimitText( ::GetDlgItem( hwndDlg, IDC_EDIT_BACKUPFILE ), _countof2(m_Common.m_sBackup.m_szBackUpPathAdvanced) - 1 - 1 );
-		return TRUE;
 
-	case WM_NOTIFY:
-		idCtrl = (int)wParam;
-		pNMHDR = (NMHDR*)lParam;
-		pMNUD  = (NM_UPDOWN*)lParam;
-		switch( idCtrl ){
-		default:
-			switch( pNMHDR->code ){
-			case PSN_HELP:
-				OnHelp( hwndDlg, IDD_PROP_BACKUP );
-				return TRUE;
-			case PSN_KILLACTIVE:
-				/* ダイアログデータの取得 Backup */
-				GetData( hwndDlg );
-				return TRUE;
-//@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			case PSN_SETACTIVE:
-				m_nPageNum = ID_PROPCOM_PAGENUM_BACKUP;
-				return TRUE;
-			}
-			break;
-
-		case IDC_SPIN_BACKUP_GENS:
-			/* バックアップファイルの世代数 */
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_BACKUP_3, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 1 ){
-				nVal = 1;
-			}
-			if( nVal > 99 ){
-				nVal = 99;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_BACKUP_3, nVal, FALSE );
-			return TRUE;
+BOOL CDlgConfigChildBackup::OnNotify( WPARAM wParam, LPARAM lParam )
+{
+	HWND hwndDlg = GetHwnd();
+	int			idCtrl = (int)wParam;
+	NMHDR*		pNMHDR = (NMHDR*)lParam;
+	NM_UPDOWN*	pMNUD  = (NM_UPDOWN*)lParam;
+	int nVal;
+	switch( idCtrl ){
+	case IDC_SPIN_BACKUP_GENS:
+		/* バックアップファイルの世代数 */
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_BACKUP_3, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
 		}
-//****	To Here Sept. 21, 2000 JEPRO ダイアログ要素にスピンを入れるので以下のWM_NOTIFYをコメントアウトにし下に修正を置いた
+		if( nVal < 1 ){
+			nVal = 1;
+		}
+		if( nVal > 99 ){
+			nVal = 99;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_BACKUP_3, nVal, FALSE );
 		break;
-
-	case WM_COMMAND:
-		wNotifyCode	= HIWORD(wParam);	/* 通知コード */
-		wID			= LOWORD(wParam);	/* 項目ID､ コントロールID､ またはアクセラレータID */
-		switch( wNotifyCode ){
-		/* ボタン／チェックボックスがクリックされた */
-		case BN_CLICKED:
-			switch( wID ){
-			case IDC_RADIO_BACKUP_TYPE1:
-				//	Aug. 16, 2000 genta
-				//	バックアップ方式追加
-			case IDC_RADIO_BACKUP_TYPE3:
-			case IDC_CHECK_BACKUP:
-			case IDC_CHECK_BACKUPFOLDER:
-				//	Aug. 21, 2000 genta
-			case IDC_CHECK_AUTOSAVE:
-			//	Jun.  5, 2004 genta IDC_RADIO_BACKUP_TYPE2を廃止して，
-			//	IDC_RADIO_BACKUP_DATETYPE1, IDC_RADIO_BACKUP_DATETYPE2を同列に持ってきた
-			case IDC_RADIO_BACKUP_DATETYPE1:
-			case IDC_RADIO_BACKUP_DATETYPE2:
-			// 20051107 aroka
-			case IDC_CHECK_BACKUP_ADVANCED:
-				GetData( hwndDlg );
-				UpdateBackupFile( hwndDlg );
-				EnableBackupInput(hwndDlg);
-				return TRUE;
-			case IDC_BUTTON_BACKUP_FOLDER_REF:	/* フォルダ参照 */
-				{
-					/* バックアップを作成するフォルダ */
-					TCHAR		szFolder[_MAX_PATH];
-					::DlgItem_GetText( hwndDlg, IDC_EDIT_BACKUPFOLDER, szFolder, _countof( szFolder ));
-
-					if( SelectDir( hwndDlg, LS(STR_PROPCOMBK_SEL_FOLDER), szFolder, szFolder ) ){
-						_tcscpy( m_Common.m_sBackup.m_szBackUpFolder, szFolder );
-						::DlgItem_SetText( hwndDlg, IDC_EDIT_BACKUPFOLDER, m_Common.m_sBackup.m_szBackUpFolder );
-					}
-					UpdateBackupFile( hwndDlg );
-				}
-				return TRUE;
-			default: // 20051107 aroka Default節 追加
-				GetData( hwndDlg );
-				UpdateBackupFile( hwndDlg );
-			}
-			break;	/* BN_CLICKED */
-		case EN_CHANGE: // 20051107 aroka フォルダが変更されたらリアルタイムにエディットボックス内を更新
-			switch( wID ){
-			case IDC_EDIT_BACKUPFOLDER:
-				// 2009.02.21 ryoji 後ろに\が追加されるので，1文字余裕をみる必要がある．
-				::DlgItem_GetText( hwndDlg, IDC_EDIT_BACKUPFOLDER, m_Common.m_sBackup.m_szBackUpFolder, _countof2(m_Common.m_sBackup.m_szBackUpFolder) - 1 );
-				UpdateBackupFile( hwndDlg );
-				break;
-			}
-			break;	/* EN_CHANGE */
-		}
-		break;	/* WM_COMMAND */
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
-		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		}
-		return TRUE;
-		/*NOTREACHED*/
-		//break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-
 	}
-	return FALSE;
+	return CDlgConfigChild::OnNotify( wParam, lParam );
 }
 
+BOOL CDlgConfigChildBackup::OnBnClicked( int wID )
+{
+	HWND hwndDlg = GetHwnd();
+
+	switch( wID ){
+	case IDC_RADIO_BACKUP_TYPE1:
+		//	Aug. 16, 2000 genta
+		//	バックアップ方式追加
+	case IDC_RADIO_BACKUP_TYPE3:
+	case IDC_CHECK_BACKUP:
+	case IDC_CHECK_BACKUPFOLDER:
+		//	Aug. 21, 2000 genta
+	case IDC_CHECK_AUTOSAVE:
+	//	Jun.  5, 2004 genta IDC_RADIO_BACKUP_TYPE2を廃止して，
+	//	IDC_RADIO_BACKUP_DATETYPE1, IDC_RADIO_BACKUP_DATETYPE2を同列に持ってきた
+	case IDC_RADIO_BACKUP_DATETYPE1:
+	case IDC_RADIO_BACKUP_DATETYPE2:
+	// 20051107 aroka
+	case IDC_CHECK_BACKUP_ADVANCED:
+		GetData();
+		UpdateBackupFile();
+		EnableBackupInput();
+		return TRUE;
+	case IDC_BUTTON_BACKUP_FOLDER_REF:	/* フォルダ参照 */
+		{
+			/* バックアップを作成するフォルダ */
+			TCHAR		szFolder[_MAX_PATH];
+			::DlgItem_GetText( hwndDlg, IDC_EDIT_BACKUPFOLDER, szFolder, _countof( szFolder ));
+
+			if( SelectDir( hwndDlg, LS(STR_PROPCOMBK_SEL_FOLDER), szFolder, szFolder ) ){
+				_tcscpy( m_Common.m_sBackup.m_szBackUpFolder, szFolder );
+				::DlgItem_SetText( hwndDlg, IDC_EDIT_BACKUPFOLDER, m_Common.m_sBackup.m_szBackUpFolder );
+			}
+			UpdateBackupFile();
+		}
+		return TRUE;
+	default: // 20051107 aroka Default節 追加
+		GetData();
+		UpdateBackupFile();
+	}
+	return TRUE;
+}
+
+BOOL CDlgConfigChildBackup::OnEnChange( HWND hwndCtl, int wID )
+{
+	HWND hwndDlg = GetHwnd();
+
+	// 20051107 aroka フォルダが変更されたらリアルタイムにエディットボックス内を更新
+	switch( wID ){
+	case IDC_EDIT_BACKUPFOLDER:
+		// 2009.02.21 ryoji 後ろに\が追加されるので，1文字余裕をみる必要がある．
+		::DlgItem_GetText( hwndDlg, IDC_EDIT_BACKUPFOLDER, m_Common.m_sBackup.m_szBackUpFolder, _countof2(m_Common.m_sBackup.m_szBackUpFolder) - 1 );
+		UpdateBackupFile();
+		break;
+	}
+	return TRUE;
+}
 
 /*! ダイアログデータの設定
 	@date 2004.06.05 genta 元の拡張子を残す設定を追加．
@@ -227,12 +172,9 @@ INT_PTR CPropBackup::DispatchEvent( HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 		IDC_RADIO_BACKUP_TYPE2
 		を廃止してレイアウト変更
 */
-void CPropBackup::SetData( HWND hwndDlg )
+void CDlgConfigChildBackup::SetData()
 {
-//	BOOL	bRet;
-
-//	BOOL				m_bGrepExitConfirm;	/* Grepモードで保存確認するか */
-
+	HWND hwndDlg = GetHwnd();
 
 	/* バックアップの作成 */
 	::CheckDlgButtonBool( hwndDlg, IDC_CHECK_BACKUP, m_Common.m_sBackup.m_bBackUp );
@@ -316,9 +258,9 @@ void CPropBackup::SetData( HWND hwndDlg )
 	::SetDlgItemInt( hwndDlg, IDC_EDIT_BACKUP_3, nN, FALSE );	//	Oct. 29, 2001 genta
 	//	To Here Aug. 16, 2000 genta
 
-	UpdateBackupFile( hwndDlg );
+	UpdateBackupFile();
 
-	EnableBackupInput(hwndDlg);
+	EnableBackupInput();
 	return;
 }
 
@@ -330,8 +272,10 @@ void CPropBackup::SetData( HWND hwndDlg )
 
 
 /* ダイアログデータの取得 */
-int CPropBackup::GetData( HWND hwndDlg )
+int CDlgConfigChildBackup::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* バックアップの作成 */
 	m_Common.m_sBackup.m_bBackUp = ::IsDlgButtonCheckedBool( hwndDlg, IDC_CHECK_BACKUP );
 	/* バックアップの作成前に確認 */
@@ -451,8 +395,10 @@ static inline void ShowEnable(HWND hWnd, BOOL bShow, BOOL bEnable)
 	::EnableWindow( hWnd, bEnable && bShow );		// bShow=false,bEnable=trueの場合ショートカットキーが変な動きをするので修正	2010/5/27 Uchi
 }
 
-void CPropBackup::EnableBackupInput(HWND hwndDlg)
+void CDlgConfigChildBackup::EnableBackupInput()
 {
+	HWND hwndDlg = GetHwnd();
+	
 	#define SHOWENABLE(id, show, enable) ShowEnable( ::GetDlgItem( hwndDlg, id ), show, enable )
 
 	BOOL bBackup = ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_BACKUP );
@@ -509,8 +455,10 @@ void CPropBackup::EnableBackupInput(HWND hwndDlg)
 	@note 詳細設定切り替え時のデフォルトをオプションに合わせるため、
 		m_szBackUpPathAdvanced を更新する
 */
-void CPropBackup::UpdateBackupFile(HWND hwndDlg)	//	バックアップファイルの詳細設定
+void CDlgConfigChildBackup::UpdateBackupFile()
 {
+	HWND hwndDlg = GetHwnd();
+
 	wchar_t temp[MAX_PATH];
 	/* バックアップを作成するファイル */ // 20051107 aroka
 	if( !m_Common.m_sBackup.m_bBackUp ){
@@ -576,3 +524,8 @@ void CPropBackup::UpdateBackupFile(HWND hwndDlg)	//	バックアップファイルの詳細設
 	return;
 }
 
+
+LPVOID CDlgConfigChildBackup::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
+}

@@ -1672,6 +1672,69 @@
 			<Filter
 				Name="prop">
 				<File
+					RelativePath="..\sakura_core\prop\CDlgConfig.cpp">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfig.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChild.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildBackup.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildCustMenu.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildEdit.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildFile.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildFileName.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildFormat.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildGeneral.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildKeybind.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildKeyword.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildMacro.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildMainMenu.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildPlugin.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildSearch.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildStatusbar.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildSupport.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildTab.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildToolbar.h">
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildWindow.h">
+				</File>
+				<File
 					RelativePath="..\sakura_core\prop\CPropComBackup.cpp">
 				</File>
 				<File
@@ -2383,12 +2446,10 @@
 			<Filter
 				Name="outline">
 				<File
-					RelativePath="..\sakura_core\outline\CDlgFileTree.cpp"
-					>
+					RelativePath="..\sakura_core\outline\CDlgFileTree.cpp">
 				</File>
 				<File
-					RelativePath="..\sakura_core\outline\CDlgFileTree.h"
-					>
+					RelativePath="..\sakura_core\outline\CDlgFileTree.h">
 				</File>
 				<File
 					RelativePath="..\sakura_core\outline\CDlgFuncList.cpp">

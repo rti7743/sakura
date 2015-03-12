@@ -42,6 +42,7 @@ BOOL GetSpecialFolderPath( int nFolder, LPTSTR pszPath );	// “ÁêƒtƒHƒ‹ƒ_‚ÌƒpƒX‚
 
 
 
+void CommandSettingFolderMenu( HWND hwndParent, HWND hwndBtn );
 INT_PTR MyPropertySheet( LPPROPSHEETHEADER lppsph );	// “Æ©Šg’£ƒvƒƒpƒeƒBƒV[ƒg	// 2007.05.24 ryoji
 
 

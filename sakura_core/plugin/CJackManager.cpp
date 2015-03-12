@@ -27,7 +27,6 @@
 */
 #include "StdAfx.h"
 #include "CJackManager.h"
-#include "CPropertyManager.h"
 #include "typeprop/CPropTypes.h"
 
 //コンストラクタ

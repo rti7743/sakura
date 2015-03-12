@@ -164,81 +164,6 @@ static LRESULT CALLBACK PropSheetWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, L
 		// 追加ボタンが押された時はその処理を行う
 		if( HIWORD( wParam ) == BN_CLICKED && LOWORD( wParam ) == 0x02000 ){
 			HWND hwndBtn = ::GetDlgItem( hwnd, 0x2000 );
-			RECT rc;
-			POINT pt;
-
-			// メニューを表示する
-			::GetWindowRect( hwndBtn, &rc );
-			pt.x = rc.left;
-			pt.y = rc.bottom;
-			GetMonitorWorkRect( pt, &rc );	// モニタのワークエリア
-
-			HMENU hMenu = ::CreatePopupMenu();
-			::InsertMenu( hMenu, 0, MF_BYPOSITION | MF_STRING, 100, LS(STR_SHELL_MENU_OPEN) );
-			::InsertMenu( hMenu, 1, MF_BYPOSITION | MF_STRING, 101, LS(STR_SHELL_MENU_IMPEXP) );
-
-			int nId = ::TrackPopupMenu( hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_RETURNCMD,
-										( pt.x > rc.left )? pt.x: rc.left,
-										( pt.y < rc.bottom )? pt.y: rc.bottom,
-										0, hwnd, NULL );
-			::DestroyMenu( hMenu );
-
-			// 選択されたメニューの処理
-			switch( nId ){
-			case 100:	// 設定フォルダを開く
-				TCHAR szPath[_MAX_PATH];
-				GetInidir( szPath );
-
-				// フォルダの ITEMIDLIST を取得して ShellExecuteEx() で開く
-				// Note. MSDN の ShellExecute() の解説にある方法でフォルダを開こうとした場合、
-				//       フォルダと同じ場所に <フォルダ名>.exe があるとうまく動かない。
-				//       verbが"open"やNULLではexeのほうが実行され"explore"では失敗する
-				//       （フォルダ名の末尾に'\\'を付加してもWindows 2000では付加しないのと同じ動作になってしまう）
-				LPSHELLFOLDER pDesktopFolder;
-				if( SUCCEEDED(::SHGetDesktopFolder(&pDesktopFolder)) ){
-					LPMALLOC pMalloc;
-					if( SUCCEEDED(::SHGetMalloc(&pMalloc)) ){
-						LPITEMIDLIST pIDL;
-						WCHAR pwszDisplayName[_MAX_PATH];
-						_tcstowcs(pwszDisplayName, szPath, _countof(pwszDisplayName));
-//#ifdef _UNICODE
-//						pwszDisplayName = szPath;
-//#else
-//						WCHAR wszPath[_MAX_PATH];
-//						::MultiByteToWideChar( CP_ACP, 0, szPath, -1, wszPath, _MAX_PATH );
-//						pwszDisplayName = wszPath;
-//#endif
-						if( SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, pwszDisplayName, NULL, &pIDL, NULL)) ){
-							SHELLEXECUTEINFO si;
-							::ZeroMemory( &si, sizeof(si) );
-							si.cbSize   = sizeof(si);
-							si.fMask    = SEE_MASK_IDLIST;
-							si.lpVerb   = _T("open");
-							si.lpIDList = pIDL;
-							si.nShow    = SW_SHOWNORMAL;
-							::ShellExecuteEx( &si );	// フォルダを開く
-							pMalloc->Free( (void*)pIDL );
-						}
-						pMalloc->Release();
-					}
-					pDesktopFolder->Release();
-				}
-				break;
-			case 101:	// インポート／エクスポートの起点リセット（起点を設定フォルダにする）
-				int nMsgResult = MYMESSAGEBOX(
-					hwnd,
-					MB_OKCANCEL | MB_ICONINFORMATION,
-					GSTR_APPNAME,
-					LS(STR_SHELL_IMPEXPDIR)
-				);
-				if( IDOK == nMsgResult )
-				{
-					DLLSHAREDATA *pShareData = &GetDllShareData();
-					GetInidir( pShareData->m_sHistory.m_szIMPORTFOLDER );
-					AddLastChar( pShareData->m_sHistory.m_szIMPORTFOLDER, _countof2(pShareData->m_sHistory.m_szIMPORTFOLDER), _T('\\') );
-				}
-				break;
-			}
 		}
 		break;
 
@@ -248,6 +173,85 @@ static LRESULT CALLBACK PropSheetWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, L
 	}
 
 	return ::CallWindowProc( s_pOldPropSheetWndProc, hwnd, uMsg, wParam, lParam );
+}
+
+void CommandSettingFolderMenu(HWND hwndParent, HWND hwndBtn)
+{
+	RECT rc;
+	POINT pt;
+
+	// メニューを表示する
+	::GetWindowRect( hwndBtn, &rc );
+	pt.x = rc.left;
+	pt.y = rc.bottom;
+	GetMonitorWorkRect( pt, &rc );	// モニタのワークエリア
+
+	HMENU hMenu = ::CreatePopupMenu();
+	::InsertMenu( hMenu, 0, MF_BYPOSITION | MF_STRING, 100, LS(STR_SHELL_MENU_OPEN) );
+	::InsertMenu( hMenu, 1, MF_BYPOSITION | MF_STRING, 101, LS(STR_SHELL_MENU_IMPEXP) );
+
+	int nId = ::TrackPopupMenu( hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_RETURNCMD,
+								( pt.x > rc.left )? pt.x: rc.left,
+								( pt.y < rc.bottom )? pt.y: rc.bottom,
+								0, hwndParent, NULL );
+	::DestroyMenu( hMenu );
+
+	// 選択されたメニューの処理
+	switch( nId ){
+	case 100:	// 設定フォルダを開く
+		TCHAR szPath[_MAX_PATH];
+		GetInidir( szPath );
+
+		// フォルダの ITEMIDLIST を取得して ShellExecuteEx() で開く
+		// Note. MSDN の ShellExecute() の解説にある方法でフォルダを開こうとした場合、
+		//       フォルダと同じ場所に <フォルダ名>.exe があるとうまく動かない。
+		//       verbが"open"やNULLではexeのほうが実行され"explore"では失敗する
+		//       （フォルダ名の末尾に'\\'を付加してもWindows 2000では付加しないのと同じ動作になってしまう）
+		LPSHELLFOLDER pDesktopFolder;
+		if( SUCCEEDED(::SHGetDesktopFolder(&pDesktopFolder)) ){
+			LPMALLOC pMalloc;
+			if( SUCCEEDED(::SHGetMalloc(&pMalloc)) ){
+				LPITEMIDLIST pIDL;
+				WCHAR pwszDisplayName[_MAX_PATH];
+				_tcstowcs(pwszDisplayName, szPath, _countof(pwszDisplayName));
+//#ifdef _UNICODE
+//				pwszDisplayName = szPath;
+//#else
+//				WCHAR wszPath[_MAX_PATH];
+//				::MultiByteToWideChar( CP_ACP, 0, szPath, -1, wszPath, _MAX_PATH );
+//				pwszDisplayName = wszPath;
+//#endif
+				if( SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, pwszDisplayName, NULL, &pIDL, NULL)) ){
+					SHELLEXECUTEINFO si;
+					::ZeroMemory( &si, sizeof(si) );
+					si.cbSize   = sizeof(si);
+					si.fMask    = SEE_MASK_IDLIST;
+					si.lpVerb   = _T("open");
+					si.lpIDList = pIDL;
+					si.nShow    = SW_SHOWNORMAL;
+					::ShellExecuteEx( &si );	// フォルダを開く
+					pMalloc->Free( (void*)pIDL );
+				}
+				pMalloc->Release();
+			}
+			pDesktopFolder->Release();
+		}
+		break;
+	case 101:	// インポート／エクスポートの起点リセット（起点を設定フォルダにする）
+		int nMsgResult = MYMESSAGEBOX(
+			hwndParent,
+			MB_OKCANCEL | MB_ICONINFORMATION,
+			GSTR_APPNAME,
+			LS(STR_SHELL_IMPEXPDIR)
+		);
+		if( IDOK == nMsgResult )
+		{
+			DLLSHAREDATA *pShareData = &GetDllShareData();
+			GetInidir( pShareData->m_sHistory.m_szIMPORTFOLDER );
+			AddLastChar( pShareData->m_sHistory.m_szIMPORTFOLDER, _countof2(pShareData->m_sHistory.m_szIMPORTFOLDER), _T('\\') );
+		}
+		break;
+	}
 }
 
 static bool s_bPropSheetPrivate;

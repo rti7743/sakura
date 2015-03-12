@@ -9,14 +9,16 @@
 	Copyright (C) 2002, YAZAKI, MIK, aroka, hor
 	Copyright (C) 2004, genta, ryoji
 	Copyright (C) 2006, ryoji
+	Copyright (C) 2014, Moca
 
 	This source code is designed for sakura editor.
 	Please contact the copyright holders to use this code for other purpose.
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
-#include "CPropertyManager.h"
+#include "prop/CDlgConfig.h"
+#include "prop/CDlgConfigChildFile.h"
+#include "typeprop/CPropTypes.h" // TYPE_NAME_ID
 #include "util/shell.h"
 #include "util/window.h"
 #include "sakura_rc.h"
@@ -54,208 +56,130 @@ TYPE_NAME_ID<EShareMode> ShareModeArr[] = {
 	{ SHAREMODE_DENY_READWRITE,	STR_EXCLU_DENY_READWRITE },	//_T("読み書きを禁止する") },
 };
 
-//	From Here Jun. 2, 2001 genta
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropFile::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildFile::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropFile::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg  = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_FILE, 0, SW_SHOW );
 }
-//	To Here Jun. 2, 2001 genta
 
-/*! ファイルページ メッセージ処理 */
-INT_PTR CPropFile::DispatchEvent(
-	HWND	hwndDlg,	//!< handle to dialog box
-	UINT	uMsg,	//!< message
-	WPARAM	wParam,	//!< first message parameter
-	LPARAM	lParam 	//!< second message parameter
-)
+
+BOOL CDlgConfigChildFile::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-	WORD		wNotifyCode;
-	WORD		wID;
-	NMHDR*		pNMHDR;
-	NM_UPDOWN*	pMNUD;
-	int			idCtrl;
-//	int			nVal;
-	int			nVal;	//Sept.21, 2000 JEPRO スピン要素を加えたので復活させた
-//	char		szFolder[_MAX_PATH];
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	switch( uMsg ){
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 File */
-		SetData( hwndDlg );
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
+	return result;
+}
 
+
+BOOL CDlgConfigChildFile::OnNotify( WPARAM wParam, LPARAM lParam )
+{
+	HWND hwndDlg = GetHwnd();
+	int			idCtrl = (int)wParam;
+	NMHDR*		pNMHDR = (NMHDR*)lParam;
+	NM_UPDOWN*	pMNUD  = (NM_UPDOWN*)lParam;
+	int nVal;
+	switch( idCtrl ){
+	case IDC_SPIN_AUTOLOAD_DELAY:
+		// 自動読込時遅延
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_AUTOLOAD_DELAY, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
+		}
+		if( nVal < 0 ){
+			nVal = 0;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_AUTOLOAD_DELAY, nVal, FALSE );
 		return TRUE;
-//****	From Here Sept. 21, 2000 JEPRO ダイアログ要素にスピンを入れるので以下のWM_NOTIFYをコメントアウトにし下に修正を置いた
-//	case WM_NOTIFY:
-//		idCtrl = (int)wParam;
-//		pNMHDR = (NMHDR*)lParam;
-//		pMNUD  = (NM_UPDOWN*)lParam;
-////		switch( idCtrl ){
-////		default:
-//			switch( pNMHDR->code ){
-//			case PSN_HELP:
-//				OnHelp( hwndDlg, IDD_PROP_FILE );
-//				return TRUE;
-//			case PSN_KILLACTIVE:
-////				MYTRACE( _T("p2 PSN_KILLACTIVE\n") );
-//				/* ダイアログデータの取得 p2 */
-//				GetData_p2( hwndDlg );
-//				return TRUE;
-//			}
-////		}
-//		break;
-
-	case WM_NOTIFY:
-		idCtrl = (int)wParam;
-		pNMHDR = (NMHDR*)lParam;
-		pMNUD  = (NM_UPDOWN*)lParam;
-		switch( idCtrl ){
-		default:
-			switch( pNMHDR->code ){
-			case PSN_HELP:
-				OnHelp( hwndDlg, IDD_PROP_FILE );
-				return TRUE;
-			case PSN_KILLACTIVE:
-//				MYTRACE( _T("File PSN_KILLACTIVE\n") );
-				/* ダイアログデータの取得 File */
-				GetData( hwndDlg );
-				return TRUE;
-//@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			case PSN_SETACTIVE:
-				m_nPageNum = ID_PROPCOM_PAGENUM_FILE;
-				return TRUE;
-			}
-			break;
-		case IDC_SPIN_AUTOLOAD_DELAY:
-			// 自動読込時遅延
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_AUTOLOAD_DELAY, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 0 ){
-				nVal = 0;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_AUTOLOAD_DELAY, nVal, FALSE );
-			return TRUE;
-		case IDC_SPIN_nDropFileNumMax:
-			/* 一度にドロップ可能なファイル数 */
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nDropFileNumMax, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 1 ){
-				nVal = 1;
-			}
-			if( nVal > 99 ){
-				nVal = 99;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_nDropFileNumMax, nVal, FALSE );
-			return TRUE;
+	case IDC_SPIN_nDropFileNumMax:
+		/* 一度にドロップ可能なファイル数 */
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_nDropFileNumMax, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
+		}
+		if( nVal < 1 ){
+			nVal = 1;
+		}
+		if( nVal > 99 ){
+			nVal = 99;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_nDropFileNumMax, nVal, FALSE );
+		return TRUE;
 //@@@ 2001.03.21 Start by MIK
-			/*NOTREACHED*/
-//			break;
-		case IDC_SPIN_AUTOBACKUP_INTERVAL:
-			/* バックアップ間隔 */
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_AUTOBACKUP_INTERVAL, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 1 ){
-				nVal = 1;
-			}
-			if( nVal > 35791 ){
-				nVal = 35791;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_AUTOBACKUP_INTERVAL, nVal, FALSE );
-			return TRUE;
-		case IDC_SPIN_ALERT_FILESIZE:
-			/* ファイルの警告サイズ */
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_ALERT_FILESIZE, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else 
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 1 ){
-				nVal = 1;
-			}
-			if( nVal > 2048 ){
-				nVal = 2048;  // 最大 2GB まで
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_ALERT_FILESIZE, nVal, FALSE );
-			return TRUE;
-			/*NOTREACHED*/
-//			break;
-//@@@ 2001.03.21 End by MIK
+		/*NOTREACHED*/
+//		break;
+	case IDC_SPIN_AUTOBACKUP_INTERVAL:
+		/* バックアップ間隔 */
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_AUTOBACKUP_INTERVAL, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
 		}
-//****	To Here Sept. 21, 2000 JEPRO ダイアログ要素にスピンを入れるのでWM_NOTIFYをコメントアウトにしその下に修正を置いた
-		break;
-
-	case WM_COMMAND:
-		wNotifyCode	= HIWORD(wParam);	/* 通知コード */
-		wID			= LOWORD(wParam);	/* 項目ID､ コントロールID､ またはアクセラレータID */
-
-		if( wID == IDC_COMBO_FILESHAREMODE && wNotifyCode == CBN_SELCHANGE ){	// コンボボックスの選択変更
-			EnableFilePropInput(hwndDlg);
-			break;
+		if( nVal < 1 ){
+			nVal = 1;
 		}
-
-		switch( wNotifyCode ){
-		/* ボタン／チェックボックスがクリックされた */
-		case BN_CLICKED:
-			switch( wID ){
-			case IDC_CHECK_bCheckFileTimeStamp:	// 更新の監視
-			case IDC_CHECK_bDropFileAndClose:/* ファイルをドロップしたときは閉じて開く */
-			case IDC_CHECK_AUTOSAVE:
-			case IDC_CHECK_ALERT_IF_LARGEFILE:
-				EnableFilePropInput(hwndDlg);
-				break;
-			}
-			break;
+		if( nVal > 35791 ){
+			nVal = 35791;
 		}
-		break;
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
-		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_AUTOBACKUP_INTERVAL, nVal, FALSE );
+		return TRUE;
+	case IDC_SPIN_ALERT_FILESIZE:
+		/* ファイルの警告サイズ */
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_ALERT_FILESIZE, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else 
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
 		}
+		if( nVal < 1 ){
+			nVal = 1;
+		}
+		if( nVal > 2048 ){
+			nVal = 2048;  // 最大 2GB まで
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_ALERT_FILESIZE, nVal, FALSE );
 		return TRUE;
 		/*NOTREACHED*/
 //		break;
-//@@@ 2001.02.04 End
+//@@@ 2001.03.21 End by MIK
+	}
+	return TRUE;
+}
 
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
 
+BOOL CDlgConfigChildFile::OnCbnSelChange( HWND hwndCtl, int wID )
+{
+	// コンボボックスの選択変更
+	if( wID == IDC_COMBO_FILESHAREMODE ){
+		EnableFilePropInput();
 	}
 	return FALSE;
 }
 
 
-
+BOOL CDlgConfigChildFile::OnBnClicked( int wID )
+{
+	switch( wID ){
+	case IDC_CHECK_bCheckFileTimeStamp:	// 更新の監視
+	case IDC_CHECK_bDropFileAndClose:/* ファイルをドロップしたときは閉じて開く */
+	case IDC_CHECK_AUTOSAVE:
+	case IDC_CHECK_ALERT_IF_LARGEFILE:
+		EnableFilePropInput();
+		break;
+	}
+	return FALSE;
+}
 
 
 /*! ファイルページ: ダイアログデータの設定
@@ -264,10 +188,10 @@ INT_PTR CPropFile::DispatchEvent(
 	@par バックアップ世代数が妥当な値かどうかのチェックも行う。不適切な値の時は
 	最も近い適切な値を設定する。
 
-	@param hwndDlg プロパティページのWindow Handle
 */
-void CPropFile::SetData( HWND hwndDlg )
+void CDlgConfigChildFile::SetData()
 {
+	HWND hwndDlg = GetHwnd();
 	/*--- File ---*/
 	/* ファイルの排他制御モード */
 	HWND	hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_FILESHAREMODE );
@@ -331,7 +255,7 @@ void CPropFile::SetData( HWND hwndDlg )
 	::CheckDlgButtonBool( hwndDlg, IDC_CHECK_NoFilterSaveNew, m_Common.m_sFile.m_bNoFilterSaveNew );	// 新規から保存時は全ファイル表示
 	::CheckDlgButtonBool( hwndDlg, IDC_CHECK_NoFilterSaveFile, m_Common.m_sFile.m_bNoFilterSaveFile );	// 新規以外から保存時は全ファイル表示
 
-	EnableFilePropInput(hwndDlg);
+	EnableFilePropInput();
 	return;
 }
 
@@ -341,11 +265,12 @@ void CPropFile::SetData( HWND hwndDlg )
 	@par バックアップ世代数が妥当な値かどうかのチェックも行う。不適切な値の時は
 	最も近い適切な値を設定する。
 
-	@param hwndDlg プロパティページのWindow Handle
 	@return 常にTRUE
 */
-int CPropFile::GetData( HWND hwndDlg )
+int CDlgConfigChildFile::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* ファイルの排他制御モード */
 	HWND	hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_FILESHAREMODE );
 	int		nSelPos = Combo_GetCurSel( hwndCombo );
@@ -428,11 +353,10 @@ int CPropFile::GetData( HWND hwndDlg )
 //	From Here Aug. 21, 2000 genta
 /*!	チェック状態に応じてダイアログボックス要素のEnable/Disableを
 	適切に設定する
-
-	@param hwndDlg プロパティシートのWindow Handle
 */
-void CPropFile::EnableFilePropInput(HWND hwndDlg)
+void CDlgConfigChildFile::EnableFilePropInput()
 {
+	HWND hwndDlg = GetHwnd();
 
 	//	Drop時の動作
 	if( ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_bDropFileAndClose ) ){
@@ -494,3 +418,7 @@ void CPropFile::EnableFilePropInput(HWND hwndDlg)
 
 
 
+LPVOID CDlgConfigChildFile::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
+}

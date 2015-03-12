@@ -6,14 +6,16 @@
 */
 /*
 	Copyright (C) 2010, Uchi
+	Copyright (C) 2014, Moca
 
 	This source code is designed for sakura editor.
 	Please contact the copyright holders to use this code for other purpose.
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
-#include "CPropertyManager.h"
+#include "prop/CDlgConfigChildGeneral.h"
+#include "prop/CDlgConfig.h"
+#include "typeprop/CPropTypes.h" // TYPE_NAME_ID
 #include "recent/CMRUFile.h"
 #include "recent/CMRUFolder.h"
 #include "util/shell.h"
@@ -61,243 +63,181 @@ static const DWORD p_helpids[] = {	//10900
 };
 //@@@ 2001.02.04 End
 
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropGeneral::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildGeneral::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropGeneral::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg  = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_GENERAL, 0, SW_SHOW );
 }
 
 
-/* General メッセージ処理 */
-INT_PTR CPropGeneral::DispatchEvent(
-	HWND	hwndDlg,	// handle to dialog box
-	UINT	uMsg,		// message
-	WPARAM	wParam,		// first message parameter
-	LPARAM	lParam 		// second message parameter
-)
+BOOL CDlgConfigChildGeneral::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-	WORD		wNotifyCode;
-	WORD		wID;
-//	HWND		hwndCtl;
-	NMHDR*		pNMHDR;
-	NM_UPDOWN*	pMNUD;
-	int			idCtrl;
-	int			nVal;
-//	LPDRAWITEMSTRUCT pDis;
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	switch( uMsg ){
+	return result;
+}
 
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 General */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
 
-		/* ユーザーがエディット コントロールに入力できるテキストの長さを制限する */
+BOOL CDlgConfigChildGeneral::OnBnClicked( int wID )
+{
+	HWND hwndDlg = GetHwnd();
 
+	switch( wID ){
+	case IDC_CHECK_USETRAYICON:	/* タスクトレイを使う */
+	// From Here 2001.12.03 hor
+	//		操作しにくいって評判だったのでタスクトレイ関係のEnable制御をやめました
+	//@@@ YAZAKI 2001.12.31 IDC_CHECKSTAYTASKTRAYのアクティブ、非アクティブのみ制御。
+		if( ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_USETRAYICON ) ){
+			::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_STAYTASKTRAY ), TRUE );
+		}else{
+			::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_STAYTASKTRAY ), FALSE );
+		}
+	// To Here 2001.12.03 hor
 		return TRUE;
-	case WM_COMMAND:
-		wNotifyCode	= HIWORD(wParam);	/* 通知コード */
-		wID			= LOWORD(wParam);	/* 項目ID､ コントロールID､ またはアクセラレータID */
-//		hwndCtl		= (HWND) lParam;	/* コントロールのハンドル */
-		switch( wNotifyCode ){
-		/* ボタン／チェックボックスがクリックされた */
-		case BN_CLICKED:
-			switch( wID ){
 
-			case IDC_CHECK_USETRAYICON:	/* タスクトレイを使う */
-			// From Here 2001.12.03 hor
-			//		操作しにくいって評判だったのでタスクトレイ関係のEnable制御をやめました
-			//@@@ YAZAKI 2001.12.31 IDC_CHECKSTAYTASKTRAYのアクティブ、非アクティブのみ制御。
-				if( ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_USETRAYICON ) ){
-					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_STAYTASKTRAY ), TRUE );
-				}else{
-					::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_STAYTASKTRAY ), FALSE );
-				}
-			// To Here 2001.12.03 hor
-				return TRUE;
+	case IDC_CHECK_STAYTASKTRAY:	/* タスクトレイに常駐 */
+		return TRUE;
 
-			case IDC_CHECK_STAYTASKTRAY:	/* タスクトレイに常駐 */
-				return TRUE;
-
-			case IDC_BUTTON_CLEAR_MRU_FILE:
-				/* ファイルの履歴をクリア */
-				if( IDCANCEL == ::MYMESSAGEBOX( hwndDlg, MB_OKCANCEL | MB_ICONQUESTION, GSTR_APPNAME,
-					LS(STR_PROPCOMGEN_FILE1) ) ){
-					return TRUE;
-				}
+	case IDC_BUTTON_CLEAR_MRU_FILE:
+		/* ファイルの履歴をクリア */
+		if( IDCANCEL == ::MYMESSAGEBOX( hwndDlg, MB_OKCANCEL | MB_ICONQUESTION, GSTR_APPNAME,
+			LS(STR_PROPCOMGEN_FILE1) ) ){
+			return TRUE;
+		}
 //@@@ 2001.12.26 YAZAKI MRUリストは、CMRUに依頼する
 //				m_pShareData->m_sHistory.m_nMRUArrNum = 0;
-				{
-					CMRUFile cMRU;
-					cMRU.ClearAll();
-				}
-				InfoMessage( hwndDlg, LS(STR_PROPCOMGEN_FILE2) );
-				return TRUE;
-			case IDC_BUTTON_CLEAR_MRU_FOLDER:
-				/* フォルダの履歴をクリア */
-				if( IDCANCEL == ::MYMESSAGEBOX( hwndDlg, MB_OKCANCEL | MB_ICONQUESTION, GSTR_APPNAME,
-					LS(STR_PROPCOMGEN_DIR1) ) ){
-					return TRUE;
-				}
+		{
+			CMRUFile cMRU;
+			cMRU.ClearAll();
+		}
+		InfoMessage( hwndDlg, LS(STR_PROPCOMGEN_FILE2) );
+		return TRUE;
+	case IDC_BUTTON_CLEAR_MRU_FOLDER:
+		/* フォルダの履歴をクリア */
+		if( IDCANCEL == ::MYMESSAGEBOX( hwndDlg, MB_OKCANCEL | MB_ICONQUESTION, GSTR_APPNAME,
+			LS(STR_PROPCOMGEN_DIR1) ) ){
+			return TRUE;
+		}
 //@@@ 2001.12.26 YAZAKI OPENFOLDERリストは、CMRUFolderにすべて依頼する
 //				m_pShareData->m_sHistory.m_nOPENFOLDERArrNum = 0;
-				{
-					CMRUFolder cMRUFolder;	//	MRUリストの初期化。ラベル内だと問題あり？
-					cMRUFolder.ClearAll();
-				}
-				InfoMessage( hwndDlg, LS(STR_PROPCOMGEN_DIR2) );
-				return TRUE;
-
-			}
-			break;	/* BN_CLICKED */
-		// 2009.01.12 nasukoji	コンボボックスのリストの項目が選択された
-		case CBN_SELENDOK:
-			HWND	hwndCombo;
-			int		nSelPos;
-
-			switch( wID ){
-			// 組み合わせてホイール操作した時ページスクロールする
-			case IDC_COMBO_WHEEL_PAGESCROLL:
-				hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_PAGESCROLL );
-				nSelPos = Combo_GetCurSel( hwndCombo );
-				hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_HSCROLL );
-				if( nSelPos && nSelPos == Combo_GetCurSel( hwndCombo ) ){
-					Combo_SetCurSel( hwndCombo, 0 );
-				}
-				return TRUE;
-			// 組み合わせてホイール操作した時横スクロールする
-			case IDC_COMBO_WHEEL_HSCROLL:
-				hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_HSCROLL );
-				nSelPos = Combo_GetCurSel( hwndCombo );
-				hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_PAGESCROLL );
-				if( nSelPos && nSelPos == Combo_GetCurSel( hwndCombo ) ){
-					Combo_SetCurSel( hwndCombo, 0 );
-				}
-				return TRUE;
-			}
-			break;	// CBN_SELENDOK
-		}
-		break;	/* WM_COMMAND */
-	case WM_NOTIFY:
-		idCtrl = (int)wParam;
-		pNMHDR = (NMHDR*)lParam;
-		pMNUD  = (NM_UPDOWN*)lParam;
-		switch( idCtrl ){
-		case IDC_SPIN_REPEATEDSCROLLLINENUM:
-			/* キーリピート時のスクロール行数 */
-//			MYTRACE( _T("IDC_SPIN_REPEATEDSCROLLLINENUM\n") );
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_REPEATEDSCROLLLINENUM, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 1 ){
-				nVal = 1;
-			}
-			if( nVal > 10 ){
-				nVal = 10;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_REPEATEDSCROLLLINENUM, nVal, FALSE );
-			return TRUE;
-		case IDC_SPIN_MAX_MRU_FILE:
-			/* ファイルの履歴MAX */
-//			MYTRACE( _T("IDC_SPIN_MAX_MRU_FILE\n") );
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FILE, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 0 ){
-				nVal = 0;
-			}
-			if( nVal > MAX_MRU ){
-				nVal = MAX_MRU;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FILE, nVal, FALSE );
-			return TRUE;
-		case IDC_SPIN_MAX_MRU_FOLDER:
-			/* フォルダの履歴MAX */
-//			MYTRACE( _T("IDC_SPIN_MAX_MRU_FOLDER\n") );
-			nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FOLDER, NULL, FALSE );
-			if( pMNUD->iDelta < 0 ){
-				++nVal;
-			}else
-			if( pMNUD->iDelta > 0 ){
-				--nVal;
-			}
-			if( nVal < 0 ){
-				nVal = 0;
-			}
-			if( nVal > MAX_OPENFOLDER ){
-				nVal = MAX_OPENFOLDER;
-			}
-			::SetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FOLDER, nVal, FALSE );
-			return TRUE;
-		default:
-			switch( pNMHDR->code ){
-			case PSN_HELP:
-				OnHelp( hwndDlg, IDD_PROP_GENERAL );
-				return TRUE;
-			case PSN_KILLACTIVE:
-//				MYTRACE( _T("General PSN_KILLACTIVE\n") );
-				/* ダイアログデータの取得 General */
-				GetData( hwndDlg );
-				return TRUE;
-//@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			case PSN_SETACTIVE:
-				m_nPageNum = ID_PROPCOM_PAGENUM_GENERAL;	//Oct. 25, 2000 JEPRO ZENPAN1→ZENPAN に変更(参照しているのはCPropCommon.cppのみの1箇所)
-				return TRUE;
-			}
-			break;
-		}
-
-//		MYTRACE( _T("pNMHDR->hwndFrom=%xh\n"), pNMHDR->hwndFrom );
-//		MYTRACE( _T("pNMHDR->idFrom  =%xh\n"), pNMHDR->idFrom );
-//		MYTRACE( _T("pNMHDR->code    =%xh\n"), pNMHDR->code );
-//		MYTRACE( _T("pMNUD->iPos    =%d\n"), pMNUD->iPos );
-//		MYTRACE( _T("pMNUD->iDelta  =%d\n"), pMNUD->iDelta );
-		break;
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
 		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
+			CMRUFolder cMRUFolder;	//	MRUリストの初期化。ラベル内だと問題あり？
+			cMRUFolder.ClearAll();
 		}
+		InfoMessage( hwndDlg, LS(STR_PROPCOMGEN_DIR2) );
 		return TRUE;
-		/*NOTREACHED*/
-//		break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-
 	}
 	return FALSE;
 }
 
 
 
+BOOL CDlgConfigChildGeneral::OnCbnSelEndOk( HWND hwndCtl, int wID )
+{
+	// 2009.01.12 nasukoji	コンボボックスのリストの項目が選択された
+	HWND hwndDlg = GetHwnd();
+	HWND	hwndCombo;
+	int		nSelPos;
+
+	switch( wID ){
+	// 組み合わせてホイール操作した時ページスクロールする
+	case IDC_COMBO_WHEEL_PAGESCROLL:
+		hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_PAGESCROLL );
+		nSelPos = Combo_GetCurSel( hwndCombo );
+		hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_HSCROLL );
+		if( nSelPos && nSelPos == Combo_GetCurSel( hwndCombo ) ){
+			Combo_SetCurSel( hwndCombo, 0 );
+		}
+		return TRUE;
+	// 組み合わせてホイール操作した時横スクロールする
+	case IDC_COMBO_WHEEL_HSCROLL:
+		hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_HSCROLL );
+		nSelPos = Combo_GetCurSel( hwndCombo );
+		hwndCombo = ::GetDlgItem( hwndDlg, IDC_COMBO_WHEEL_PAGESCROLL );
+		if( nSelPos && nSelPos == Combo_GetCurSel( hwndCombo ) ){
+			Combo_SetCurSel( hwndCombo, 0 );
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+BOOL CDlgConfigChildGeneral::OnNotify( WPARAM wParam, LPARAM lParam )
+{
+	HWND hwndDlg = GetHwnd();
+	int			idCtrl = (int)wParam;
+	NMHDR*		pNMHDR = (NMHDR*)lParam;
+	NM_UPDOWN*	pMNUD  = (NM_UPDOWN*)lParam;
+	int nVal;
+
+	switch( idCtrl ){
+	case IDC_SPIN_REPEATEDSCROLLLINENUM:
+		/* キーリピート時のスクロール行数 */
+//			MYTRACE( _T("IDC_SPIN_REPEATEDSCROLLLINENUM\n") );
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_REPEATEDSCROLLLINENUM, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
+		}
+		if( nVal < 1 ){
+			nVal = 1;
+		}
+		if( nVal > 10 ){
+			nVal = 10;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_REPEATEDSCROLLLINENUM, nVal, FALSE );
+		return TRUE;
+	case IDC_SPIN_MAX_MRU_FILE:
+		/* ファイルの履歴MAX */
+//			MYTRACE( _T("IDC_SPIN_MAX_MRU_FILE\n") );
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FILE, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
+		}
+		if( nVal < 0 ){
+			nVal = 0;
+		}
+		if( nVal > MAX_MRU ){
+			nVal = MAX_MRU;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FILE, nVal, FALSE );
+		return TRUE;
+	case IDC_SPIN_MAX_MRU_FOLDER:
+		/* フォルダの履歴MAX */
+//			MYTRACE( _T("IDC_SPIN_MAX_MRU_FOLDER\n") );
+		nVal = ::GetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FOLDER, NULL, FALSE );
+		if( pMNUD->iDelta < 0 ){
+			++nVal;
+		}else
+		if( pMNUD->iDelta > 0 ){
+			--nVal;
+		}
+		if( nVal < 0 ){
+			nVal = 0;
+		}
+		if( nVal > MAX_OPENFOLDER ){
+			nVal = MAX_OPENFOLDER;
+		}
+		::SetDlgItemInt( hwndDlg, IDC_EDIT_MAX_MRU_FOLDER, nVal, FALSE );
+		return TRUE;
+	}
+	return FALSE;
+}
 
 
 /* ダイアログデータの設定 General */
-void CPropGeneral::SetData( HWND hwndDlg )
+void CDlgConfigChildGeneral::SetData()
 {
+	HWND hwndDlg = GetHwnd();
 
 	/* カーソルのタイプ 0=win 1=dos  */
 	if( 0 == m_Common.m_sGeneral.GetCaretType() ){
@@ -395,8 +335,10 @@ void CPropGeneral::SetData( HWND hwndDlg )
 
 
 /* ダイアログデータの取得 General */
-int CPropGeneral::GetData( HWND hwndDlg )
+int CDlgConfigChildGeneral::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	/* カーソルのタイプ 0=win 1=dos  */
 	if( ::IsDlgButtonChecked( hwndDlg, IDC_RADIO_CARETTYPE0 ) ){
 		m_Common.m_sGeneral.SetCaretType(0);
@@ -499,4 +441,10 @@ int CPropGeneral::GetData( HWND hwndDlg )
 	m_Common.m_sGeneral.m_wTrayMenuHotKeyMods = HIBYTE( lResult );
 
 	return TRUE;
+}
+
+
+LPVOID CDlgConfigChildGeneral::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
 }

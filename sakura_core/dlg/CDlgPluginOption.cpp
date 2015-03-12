@@ -31,7 +31,7 @@
 #include "StdAfx.h"
 #include <limits.h>
 #include "dlg/CDlgPluginOption.h"
-#include "prop/CPropCommon.h"
+#include "prop/CDlgConfigChildPlugin.h"
 #include "util/shell.h"
 #include "util/window.h"
 #include "util/string_ex2.h"
@@ -87,14 +87,14 @@ CDlgPluginOption::~CDlgPluginOption()
 int CDlgPluginOption::DoModal(
 	HINSTANCE	hInstance,
 	HWND		hwndParent,
-	CPropPlugin*	cPropPlugin,
+	CDlgConfigChildPlugin*	cConfigPlugin,
 	int 		ID
 )
 {
 	// プラグイン番号（エディタがふる番号）
 	m_ID = ID;
 	m_cPlugin = CPluginManager::getInstance()->GetPlugin( m_ID );
-	m_cPropPlugin = cPropPlugin;
+	m_cConfigPlugin = cConfigPlugin;
 
 	if( m_cPlugin == NULL ){
 		::ErrorMessage( hwndParent, LS(STR_DLGPLUGINOPT_LOAD) );
@@ -209,7 +209,7 @@ void CDlgPluginOption::SetData( void )
 	}
 
 	// ReadMe Button
-	m_sReadMeName = m_cPropPlugin->GetReadMeFile(to_tchar(m_pShareData->m_Common.m_sPlugin.m_PluginTable[m_ID].m_szName));
+	m_sReadMeName = m_cConfigPlugin->GetReadMeFile(to_tchar(m_pShareData->m_Common.m_sPlugin.m_PluginTable[m_ID].m_szName));
 	::EnableWindow( ::GetDlgItem( GetHwnd(), IDC_PLUGIN_README ), !m_sReadMeName.empty() );
 	return;
 }
@@ -403,7 +403,7 @@ BOOL CDlgPluginOption::OnBnClicked( int wID )
 		// ReadMe
 		{
 			if (!m_sReadMeName.empty()) {
-				if (!m_cPropPlugin->BrowseReadMe(m_sReadMeName)) {
+				if (!m_cConfigPlugin->BrowseReadMe(m_sReadMeName)) {
 					WarningMessage( GetHwnd(), LS(STR_PROPCOMPLG_ERR2) );
 				}
 			}else{

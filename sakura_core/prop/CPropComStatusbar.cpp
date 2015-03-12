@@ -12,13 +12,15 @@
 	Copyright (C) 2006, ryoji
 	Copyright (C) 2007, genta
 	Copyright (C) 2007, Uchi
+	Copyright (C) 2014, Moca
 
 	This source code is designed for sakura editor.
 	Please contact the copyright holders to use this code for other purpose.
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
+#include "prop/CDlgConfigChildStatusbar.h"
+#include "prop/CDlgConfig.h"
 #include "util/shell.h"
 #include "sakura_rc.h"
 #include "sakura.hh"
@@ -34,85 +36,29 @@ static const DWORD p_helpids[] = {
 	0, 0
 };
 
-/*!
-	@param hwndDlg ダイアログボックスのWindow Handle
-	@param uMsg メッセージ
-	@param wParam パラメータ1
-	@param lParam パラメータ2
-*/
-INT_PTR CALLBACK CPropStatusbar::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildStatusbar::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropStatusbar::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_STATUSBAR, 0, SW_SHOW );
 }
 
-/* メッセージ処理 */
-INT_PTR CPropStatusbar::DispatchEvent(
-    HWND		hwndDlg,	// handle to dialog box
-    UINT		uMsg,		// message
-    WPARAM		wParam,		// first message parameter
-    LPARAM		lParam 		// second message parameter
-)
+
+BOOL CDlgConfigChildStatusbar::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-	NMHDR*		pNMHDR;
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	switch( uMsg ){
-
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
-
-		return TRUE;
-	case WM_COMMAND:
-		break;
-
-	case WM_NOTIFY:
-		pNMHDR = (NMHDR*)lParam;
-		switch( pNMHDR->code ){
-		case PSN_HELP:
-			OnHelp( hwndDlg, IDD_PROP_STATUSBAR );
-			return TRUE;
-		case PSN_KILLACTIVE:
-			DEBUG_TRACE( _T("statusbar PSN_KILLACTIVE\n") );
-
-			/* ダイアログデータの取得 */
-			GetData( hwndDlg );
-			return TRUE;
-
-		case PSN_SETACTIVE: //@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			m_nPageNum = ID_PROPCOM_PAGENUM_STATUSBAR;
-			return TRUE;
-		}
-		break;	/* WM_NOTIFY */
-
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
-		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		}
-		return TRUE;
-		/*NOTREACHED*/
-		//break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-
-	}
-	return FALSE;
+	return result;
 }
 
 
 /* ダイアログデータの設定 */
-void CPropStatusbar::SetData( HWND hwndDlg )
+void CDlgConfigChildStatusbar::SetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	// 示文字コードの指定
 	// SJISで文字コード値をUnicodeで出力する
 	::CheckDlgButton( hwndDlg, IDC_CHECK_DISP_UNICODE_IN_SJIS, m_Common.m_sStatusbar.m_bDispUniInSjis );
@@ -131,8 +77,10 @@ void CPropStatusbar::SetData( HWND hwndDlg )
 
 
 /* ダイアログデータの取得 */
-int CPropStatusbar::GetData( HWND hwndDlg )
+int CDlgConfigChildStatusbar::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	// 示文字コードの指定
 	// SJISで文字コード値をUnicodeで出力する
 	m_Common.m_sStatusbar.m_bDispUniInSjis		= ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DISP_UNICODE_IN_SJIS );
@@ -148,4 +96,10 @@ int CPropStatusbar::GetData( HWND hwndDlg )
 	m_Common.m_sStatusbar.m_bDispSelCountByByte	= ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DISP_SELCOUNT_BY_BYTE );
 
 	return TRUE;
+}
+
+
+LPVOID CDlgConfigChildStatusbar::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
 }

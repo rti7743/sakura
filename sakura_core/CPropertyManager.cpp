@@ -24,6 +24,8 @@
 
 #include "StdAfx.h"
 #include "CPropertyManager.h"
+#include "prop/CDlgConfig.h"
+#include "typeprop/CPropTypes.h"
 #include "env/DLLSHAREDATA.h"
 #include "env/CDocTypeManager.h"
 #include <memory>
@@ -42,19 +44,16 @@ void CPropertyManager::Create( HWND hwndOwner, CImageListMgr* pImageList, CMenuD
 bool CPropertyManager::OpenPropertySheet( HWND hWnd, int nPageNum, bool bTrayProc )
 {
 	bool bRet;
-	CPropCommon* pcPropCommon = new CPropCommon();
-	pcPropCommon->Create( m_hwndOwner, m_pImageList, m_pMenuDrawer );
+	CDlgConfig cDlgConfig;
 
-	// 2002.12.11 Moca この部分で行われていたデータのコピーをCPropCommonに移動・関数化
-	// 共通設定の一時設定領域にSharaDataをコピーする
-	pcPropCommon->InitData();
+	cDlgConfig.SetDefaultChildDialog();
 
-	if( nPageNum != -1 ){
+	if( nPageNum != ID_PROPCOM_PAGENUM_NONE ){
 		m_nPropComPageNum = nPageNum;
 	}
 
 	/* プロパティシートの作成 */
-	if( pcPropCommon->DoPropertySheet( m_nPropComPageNum, bTrayProc ) ){
+	if( cDlgConfig.DoModal( G_AppInstance(), hWnd, m_pImageList, m_pMenuDrawer, m_nPropComPageNum, bTrayProc ) ){
 
 		// 2002.12.11 Moca この部分で行われていたデータのコピーをCPropCommonに移動・関数化
 		// ShareData に 設定を適用・コピーする
@@ -63,9 +62,9 @@ bool CPropertyManager::OpenPropertySheet( HWND hWnd, int nPageNum, bool bTrayPro
 
 		// 印刷中にキーワードを上書きしないように
 		CShareDataLockCounter* pLock = NULL;
-		CShareDataLockCounter::WaitLock( pcPropCommon->m_hwndParent, &pLock );
+		CShareDataLockCounter::WaitLock( hWnd, &pLock );
 
-		pcPropCommon->ApplyData();
+		cDlgConfig.ApplyData();
 		// note: 基本的にここで適用しないで、MYWM_CHANGESETTINGからたどって適用してください。
 		// 自ウィンドウには最後に通知されます。大抵は、OnChangeSetting にあります。
 		// ここでしか適用しないと、ほかのウィンドウが変更されません。
@@ -93,9 +92,7 @@ bool CPropertyManager::OpenPropertySheet( HWND hWnd, int nPageNum, bool bTrayPro
 	}
 
 	// 最後にアクセスしたシートを覚えておく
-	m_nPropComPageNum = pcPropCommon->GetPageNum();
-
-	delete pcPropCommon;
+	m_nPropComPageNum = cDlgConfig.GetPageNum();
 
 	return bRet;
 }

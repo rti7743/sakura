@@ -26,7 +26,6 @@
 #include "dlg/CDlgFavorite.h"	//—š—ğ‚ÌŠÇ—	//@@@ 2003.04.08 MIK
 #include "CEditApp.h"
 #include "util/shell.h"
-#include "CPropertyManager.h"
 #include "util/window.h"
 
 

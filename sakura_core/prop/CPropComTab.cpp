@@ -14,6 +14,7 @@
 	Copyright (C) 2007, genta, ryoji
 	Copyright (C) 2012, Moca
 	Copyright (C) 2013, Uchi
+	Copyright (C) 2014, Moca
 
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
@@ -37,8 +38,9 @@
 */
 
 #include "StdAfx.h"
-#include "prop/CPropCommon.h"
-#include "CPropertyManager.h"
+#include "prop/CDlgConfigChildTab.h"
+#include "prop/CDlgConfig.h"
+#include "typeprop/CPropTypes.h"
 #include "util/shell.h"
 #include "util/window.h"
 #include "sakura_rc.h"
@@ -78,121 +80,69 @@ TYPE_NAME_ID<ETabPosition> TabPosArr[] = {
 #endif
 };
 
-//	From Here Jun. 2, 2001 genta
-/*!
-	@param hwndDlg[in] ダイアログボックスのWindow Handle
-	@param uMsg[in] メッセージ
-	@param wParam[in] パラメータ1
-	@param lParam[in] パラメータ2
-*/
-INT_PTR CALLBACK CPropTab::DlgProc_page(
-	HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+HWND CDlgConfigChildTab::DoModeless( HINSTANCE hInstance, HWND hwndParent, SDlgConfigArg* pDlgConfigArg, int nTypeIndex )
 {
-	return DlgProc( reinterpret_cast<pDispatchPage>(&CPropTab::DispatchEvent), hwndDlg, uMsg, wParam, lParam );
+	m_nCurrentTypeIndex = nTypeIndex;
+	m_pDlgConfigArg = pDlgConfigArg;
+
+	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_TAB, 0, SW_SHOW );
 }
-//	To Here Jun. 2, 2001 genta
 
-/* メッセージ処理 */
-INT_PTR CPropTab::DispatchEvent( HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+BOOL CDlgConfigChildTab::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
-	NMHDR*		pNMHDR;
-//	int			idCtrl;
+	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
 
-	switch( uMsg ){
+	return result;
+}
 
-	case WM_INITDIALOG:
-		/* ダイアログデータの設定 Tab */
-		SetData( hwndDlg );
-		// Modified by KEITA for WIN64 2003.9.6
-		::SetWindowLongPtr( hwndDlg, DWLP_USER, lParam );
 
-		/* ユーザーがエディット コントロールに入力できるテキストの長さを制限する */
+BOOL CDlgConfigChildTab::OnBnClicked( int wID )
+{
+	HWND hwndDlg = GetHwnd();
 
-		return TRUE;
-	case WM_NOTIFY:
-//		idCtrl = (int)wParam;
-		pNMHDR = (NMHDR*)lParam;
-//		switch( idCtrl ){
-//		default:
-			switch( pNMHDR->code ){
-			case PSN_HELP:
-				OnHelp( hwndDlg, IDD_PROP_TAB );
-				return TRUE;
-			case PSN_KILLACTIVE:
-				/* ダイアログデータの取得 Tab */
-				GetData( hwndDlg );
-				return TRUE;
-//@@@ 2002.01.03 YAZAKI 最後に表示していたシートを正しく覚えていないバグ修正
-			case PSN_SETACTIVE:
-				m_nPageNum = ID_PROPCOM_PAGENUM_TAB;
-				return TRUE;
+	switch( wID ){
+	case IDC_CHECK_DispTabWnd:
+	case IDC_CHECK_DispTabWndMultiWin:
+		EnableTabPropInput();
+		break;
+	case IDC_BUTTON_TABFONT:
+		LOGFONT   lf = m_Common.m_sTabBar.m_lf;
+		INT nPointSize = m_Common.m_sTabBar.m_nPointSize;
+
+		if( MySelectFont( &lf, &nPointSize, hwndDlg, false) ){
+			m_Common.m_sTabBar.m_lf = lf;
+			m_Common.m_sTabBar.m_nPointSize = nPointSize;
+			// タブ フォント表示	// 2013/4/24 Uchi
+			HFONT hFont = SetFontLabel( IDC_STATIC_TABFONT, m_Common.m_sTabBar.m_lf, m_Common.m_sTabBar.m_nPointSize);
+			if (m_hTabFont != NULL){
+				::DeleteObject( m_hTabFont );
 			}
-//			break;	/* default */
-//		}
-		break;	/* WM_NOTIFY */
-
-	case WM_COMMAND:
-		{
-			WORD wNotifyCode = HIWORD(wParam);	/* 通知コード */
-			WORD wID = LOWORD(wParam);	/* 項目ID､ コントロールID､ またはアクセラレータID */
-			if( wNotifyCode == BN_CLICKED ){
-				switch( wID ){
-				case IDC_CHECK_DispTabWnd:
-				case IDC_CHECK_DispTabWndMultiWin:
-					EnableTabPropInput( hwndDlg );
-					break;
-				case IDC_BUTTON_TABFONT:
-					LOGFONT   lf = m_Common.m_sTabBar.m_lf;
-					INT nPointSize = m_Common.m_sTabBar.m_nPointSize;
-
-					if( MySelectFont( &lf, &nPointSize, hwndDlg, false) ){
-						m_Common.m_sTabBar.m_lf = lf;
-						m_Common.m_sTabBar.m_nPointSize = nPointSize;
-						// タブ フォント表示	// 2013/4/24 Uchi
-						HFONT hFont = SetFontLabel( hwndDlg, IDC_STATIC_TABFONT, m_Common.m_sTabBar.m_lf, m_Common.m_sTabBar.m_nPointSize);
-						if (m_hTabFont != NULL){
-							::DeleteObject( m_hTabFont );
-						}
-						m_hTabFont = hFont;
-					}
-					break;
-				}
-			}
+			m_hTabFont = hFont;
 		}
 		break;
-//@@@ 2001.02.04 Start by MIK: Popup Help
-	case WM_HELP:
-		{
-			HELPINFO *p = (HELPINFO *)lParam;
-			MyWinHelp( (HWND)p->hItemHandle, HELP_WM_HELP, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		}
-		return TRUE;
-		/*NOTREACHED*/
-		//break;
-//@@@ 2001.02.04 End
-
-//@@@ 2001.12.22 Start by MIK: Context Menu Help
-	//Context Menu
-	case WM_CONTEXTMENU:
-		MyWinHelp( hwndDlg, HELP_CONTEXTMENU, (ULONG_PTR)(LPVOID)p_helpids );	// 2006.10.10 ryoji MyWinHelpに変更に変更
-		return TRUE;
-//@@@ 2001.12.22 End
-
-	case WM_DESTROY:
-		// タブ フォント破棄	// 2013/4/24 Uchi
-		if (m_hTabFont != NULL) {
-			::DeleteObject( m_hTabFont );
-			m_hTabFont = NULL;
-		}
-		return TRUE;
 	}
 	return FALSE;
 }
 
 
-/* ダイアログデータの設定 */
-void CPropTab::SetData( HWND hwndDlg )
+BOOL CDlgConfigChildTab::OnDestroy()
 {
+	// キーワードヘルプ フォント破棄	// 2013/4/24 Uchi
+	if (m_hTabFont != NULL) {
+		::DeleteObject( m_hTabFont );
+		m_hTabFont = NULL;
+	}
+	return CDlgConfigChild::OnDestroy();
+}
+
+
+/* ダイアログデータの設定 */
+void CDlgConfigChildTab::SetData()
+{
+	HWND hwndDlg = GetHwnd();
+
 	//	Feb. 11, 2007 genta「ウィンドウ」シートより移動
 	::CheckDlgButton( hwndDlg, IDC_CHECK_DispTabWnd, m_Common.m_sTabBar.m_bDispTabWnd );	//@@@ 2003.05.31 MIK
 	::CheckDlgButton( hwndDlg, IDC_CHECK_SameTabWidth, m_Common.m_sTabBar.m_bSameTabWidth );	//@@@ 2006.01.28 ryoji
@@ -232,14 +182,16 @@ void CPropTab::SetData( HWND hwndDlg )
 	::CheckDlgButton( hwndDlg, IDC_CHECK_OpenNewWin, m_Common.m_sTabBar.m_bNewWindow ); // 2009.06.17
 
 	// タブ フォント	// 2013/4/24 Uchi
-	m_hTabFont = SetFontLabel( hwndDlg, IDC_STATIC_TABFONT, m_Common.m_sTabBar.m_lf, m_Common.m_sTabBar.m_nPointSize);
+	m_hTabFont = SetFontLabel( IDC_STATIC_TABFONT, m_Common.m_sTabBar.m_lf, m_Common.m_sTabBar.m_nPointSize);
 
-	EnableTabPropInput(hwndDlg);
+	EnableTabPropInput();
 }
 
 /* ダイアログデータの取得 */
-int CPropTab::GetData( HWND hwndDlg )
+int CDlgConfigChildTab::GetData()
 {
+	HWND hwndDlg = GetHwnd();
+
 	//	Feb. 11, 2007 genta「ウィンドウ」シートより移動
 	m_Common.m_sTabBar.m_bDispTabWnd = ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DispTabWnd );
 
@@ -272,8 +224,10 @@ int CPropTab::GetData( HWND hwndDlg )
 
 	@date 2007.02.12 genta 新規作成
 */
-void CPropTab::EnableTabPropInput(HWND hwndDlg)
+void CDlgConfigChildTab::EnableTabPropInput()
 {
+	HWND hwndDlg = GetHwnd();
+
 	BOOL bTabWnd = ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DispTabWnd );
 	BOOL bMultiWin = FALSE;
 	if( bTabWnd ){
@@ -296,4 +250,10 @@ void CPropTab::EnableTabPropInput(HWND hwndDlg)
 	::EnableWindow( ::GetDlgItem( hwndDlg, IDC_COMBO_TAB_POSITION       ), bTabWnd );
 	::EnableWindow( ::GetDlgItem( hwndDlg, IDC_TABWND_CAPTION           ), bTabWnd );
 	::EnableWindow( ::GetDlgItem( hwndDlg, IDC_CHECK_ChgWndByWheel      ), bTabWnd );	// 2007.04.03 ryoji
+}
+
+
+LPVOID CDlgConfigChildTab::GetHelpIdTable()
+{
+	return (LPVOID)p_helpids;
 }

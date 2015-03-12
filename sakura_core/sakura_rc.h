@@ -807,6 +807,8 @@
 #define IDC_LIST_WINDOW                 1737
 #define IDC_BUTTON_SAVE                 1738
 #define IDC_BUTTON_CLOSE                1739
+#define IDC_CONFIGTREE                  1740
+#define IDC_BUTTON_CONFIGFOLDER         1741
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -841,6 +843,7 @@
 #define IDD_PLUGIN_OPTION               5221
 #define IDD_PROFILEMGR                  5222
 #define IDD_FILETREE                    5223
+#define IDD_CONFIG                      5224
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -849,7 +852,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1740
+#define _APS_NEXT_CONTROL_VALUE         1742
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
