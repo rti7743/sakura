@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2008, kobake
+	Copyright (C) 2014, Moca
 
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
@@ -22,21 +22,13 @@
 		   distribution.
 */
 
-#include "StdAfx.h"
-#include "types/CType.h"
-#include "doc/CDocOutline.h"
-#include "view/colors/EColorIndexType.h"
+#ifndef SAKURA_CTYPEINIT_H_
+#define SAKURA_CTYPEINIT_H_
 
-void CType_Basis::InitTypeConfigImp(STypeConfig* pType)
-{
-	//名前と拡張子
-	_tcscpy( pType->m_szTypeName, _T("基本") );
-	_tcscpy( pType->m_szTypeExts, _T("") );
+// 内蔵キーワードを定義するにはこれを定義してください
+// #define BUILD_OPT_IMPKEYWORD 1
 
-	//設定
-	pType->m_nMaxLineKetas = CKetaXInt(MAXLINEKETAS);			// 折り返し桁数
-	pType->m_eDefaultOutline = OUTLINE_TEXT;					// アウトライン解析方法
-	pType->m_ColorInfoArr[COLORIDX_SSTRING].m_bDisp = false;	// シングルクォーテーション文字列を色分け表示しない	//Oct. 17, 2000 JEPRO
-	pType->m_ColorInfoArr[COLORIDX_WSTRING].m_bDisp = false;	// ダブルクォーテーション文字列を色分け表示しない	//Sept. 4, 2000 JEPRO
-	pType->m_bUseHokanByKeyword = false;						// 強調キーワードから入力補完
-}
+void RegexAdd(STypeConfig* pType, int& keywordPos, int idx, int colorIdx, const wchar_t* keyword );
+void SetColorInfoBC(STypeConfig* pType, int index, bool bBold, COLORREF color);
+
+#endif // SAKURA_CTYPEINIT_H_

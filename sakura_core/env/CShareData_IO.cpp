@@ -94,6 +94,9 @@ bool CShareData_IO::ShareData_IO_2( bool bRead )
 	if( bRead ){
 		if( !cProfile.ReadProfile( szIniFileName ) ){
 			/* 設定ファイルが存在しない */
+
+			// キーワードファイルのインポート
+			pcShare->InitKeyword( &GetDllShareData(), true );
 			return false;
 		}
 
@@ -1796,6 +1799,9 @@ void CShareData_IO::ShareData_IO_KeyWords( CDataProfile& cProfile )
 					pCKeyWordSetMgr->SetKeyWordArr( i, nKeyWordNum, sValue.c_str() );
 				}
 			}
+		}else{
+			// キーワードファイルのインポート
+			CShareData::getInstance()->InitKeyword( &GetDllShareData(), true );
 		}
 	}else{
 		int nSize = pCKeyWordSetMgr->m_nKeyWordSetNum;

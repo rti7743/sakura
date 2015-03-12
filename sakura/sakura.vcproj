@@ -1881,6 +1881,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\sakura_core\types\CType_Csharp.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\types\CType_Css.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\sakura_core\types\CType_Dos.cpp"
 					>
 				</File>
@@ -1901,6 +1909,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\sakura_core\types\CType_JavaScript.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\sakura_core\types\CType_Others.cpp"
 					>
 				</File>
@@ -1913,11 +1925,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\sakura_core\types\CType_Php.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\sakura_core\types\CType_Python.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\sakura_core\types\CType_Rich.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\types\CType_Ruby.cpp"
 					>
 				</File>
 				<File
@@ -1934,6 +1954,14 @@
 				</File>
 				<File
 					RelativePath="..\sakura_core\types\CType_Vb.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\types\CType_Xml.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\types\CTypeInit.h"
 					>
 				</File>
 				<File
