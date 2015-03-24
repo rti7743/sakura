@@ -267,6 +267,9 @@ void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* p
 			szInitDir
 		);
 		if( !cDlgOpenFile.DoModal_GetOpenFileName( szPath ) ){
+			if( GetSaveResultParam() ){
+				GetMacroResultVal().SetIntParam( -1 );
+			}
 			return;
 		}
 		pszPath = szPath;
@@ -300,8 +303,14 @@ void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* p
 	);
 	if ( !bLoadResult ){
 		ErrorMessage( m_pCommanderView->GetHwnd(), LS(STR_ERR_MACROERR1), pszPath );
+		if( GetSaveResultParam() ){
+			GetMacroResultVal().SetIntParam( -2 );
+		}
 	}
 	else {
+		if( GetSaveResultParam() ){
+			GetMacroResultVal().SetIntParam( 0 );
+		}
 		m_pcSMacroMgr->Exec( TEMP_KEYMACRO, G_AppInstance(), m_pCommanderView, FA_NONRECORD | FA_FROMMACRO );
 	}
 
@@ -309,6 +318,16 @@ void CViewCommander::Command_EXECEXTMACRO( const WCHAR* pszPathW, const WCHAR* p
 	m_pcSMacroMgr->Clear( TEMP_KEYMACRO );
 	if ( oldMacro != NULL ) {
 		m_pcSMacroMgr->SetTempMacro( oldMacro );
+	}
+
+	if( bLoadResult ){
+		if( GetSaveResultParam() ){
+			GetMacroResultParam().AddStringParam( pszPath );
+			GetMacroResultParam().AddStringParam( L"" ); //ext
+			// マクロ自身のパラメータをコピー
+			GetMacroResultParam().AddParamCopyFromCMacro( &GetEditWindow()->m_cRecMacroParam );
+			// GetMacroResultVal().SetIntParam( 0 ); // ここでは設定しない
+		}
 	}
 
 	// キーマクロ記録中だった場合は再開する
@@ -336,12 +355,17 @@ void CViewCommander::Command_EXECCOMMAND_DIALOG( EFunctionFlags flags )
 
 	/* モードレスダイアログの表示 */
 	if( !cDlgExec.DoModal( G_AppInstance(), m_pCommanderView->GetHwnd(), 0 ) ){
+		if( GetSaveResultParam() ){
+			GetMacroResultVal().SetIntParam( 0 );
+		}
 		return;
 	}
 
 	m_pCommanderView->AddToCmdArr( cDlgExec.m_szCommand );
-	const WCHAR* cmd_string = to_wchar(cDlgExec.m_szCommand);
-	const WCHAR* curDir = to_wchar(cDlgExec.m_szCurDir);
+	std::wstring strCmd = to_wchar(cDlgExec.m_szCommand);
+	std::wstring strDir = to_wchar(cDlgExec.m_szCurDir);
+	const WCHAR* cmd_string = strCmd.c_str();
+	const WCHAR* curDir = strDir.c_str();
 	const WCHAR* pszDir = curDir;
 	if( curDir[0] == L'\0' ){
 		pszDir = NULL;
@@ -351,8 +375,15 @@ void CViewCommander::Command_EXECCOMMAND_DIALOG( EFunctionFlags flags )
 		cRecentCurDir.Terminate();
 	}
 
+	int nOpt = GetDllShareData().m_nExecFlgOpt;
 	//HandleCommand( F_EXECMD, true, (LPARAM)cmd_string, 0, 0, 0);	//	外部コマンド実行コマンドの発行
-	HandleCommand( static_cast<EFunctionCode>(F_EXECMD | flags), true, (LPARAM)cmd_string, (LPARAM)(GetDllShareData().m_nExecFlgOpt), (LPARAM)pszDir, 0);	//	外部コマンド実行コマンドの発行
+	HandleCommand( static_cast<EFunctionCode>(F_EXECMD | flags), true, (LPARAM)cmd_string, (LPARAM)(nOpt), (LPARAM)pszDir, 0);	//	外部コマンド実行コマンドの発行
+	if( GetSaveResultParam() ){
+		GetMacroResultParam().AddStringParam( strCmd.c_str() );
+		GetMacroResultParam().AddIntParam( nOpt );
+		GetMacroResultParam().AddStringParam( curDir );
+		GetMacroResultVal().SetIntParam( 1 );
+	}
 }
 
 

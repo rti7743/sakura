@@ -35,6 +35,7 @@ class CColorStrategy;
 class CColorStrategyPool;
 class CSMacroMgr;
 class CMacro;
+struct CMacroParam;
 #include "CEol.h"
 
 enum EFunctionFlags {
@@ -57,6 +58,9 @@ public:
 	void SetOpeBlk(COpeBlk* p);
 	CLayoutRange& GetSelect();
 	CCaret& GetCaret();
+	bool GetSaveResultParam();
+	CMacro& GetMacroResultParam();
+	CMacroParam& GetMacroResultVal();
 
 private:
 	CEditView*		m_pCommanderView;
@@ -279,6 +283,10 @@ public:
 	void Command_REPLACE_DIALOG( void );				/* 置換(置換ダイアログ) */
 	void Command_REPLACE( HWND hwndParent );			/* 置換(実行) 2002/04/08 YAZAKI 親ウィンドウを指定するように変更 */
 	void Command_REPLACE_ALL();							/* すべて置換(実行) */
+	int Command_SEARCH_NEXT_core( bool, bool, bool, HWND, const WCHAR*, CLogicRange* = NULL );	// 次を検索
+	int Command_SEARCH_PREV_core( bool bReDraw, HWND );		// 前を検索
+	int Command_REPLACE_core( HWND hwndParent );			// 置換(実行)
+	int Command_REPLACE_ALL_core();							// すべて置換(実行)
 	void Command_SEARCH_CLEARMARK( void );				/* 検索マークのクリア */
 	void Command_JUMP_SRCHSTARTPOS( void );				/* 検索開始位置へ戻る */	// 02/06/26 ai
 
@@ -418,6 +426,7 @@ public:
 	CLogicInt ConvertEol(const wchar_t* pszText, CLogicInt nTextLen, wchar_t* pszConvertedText);
 	void Sub_BoxSelectLock( int flags );
 
+	static void SetGrepParams(CMacro& params, const CEditView* pcEditView, bool bReplace);
 };
 
 #endif /* SAKURA_CVIEWCOMMANDER_5F4F7A80_2BEC_4B1D_A637_B922375FF14C9_H_ */

@@ -64,5 +64,13 @@ void CViewCommander::Command_CtrlCode_Dialog( EFunctionFlags flags )
 		// 2013.06.11 Command_WCHAR -> HandleCommand ƒ}ƒNƒ‹L˜^‘Î‰ž
 		// 2013.12.12 F_WCHAR -> F_CTRL_CODE
 		HandleCommand( static_cast<EFunctionCode>(F_CTRL_CODE | flags), true, cDlgCtrlCode.GetCharCode(), 0, 0, 0 );
+		if( GetSaveResultParam() ){
+			GetMacroResultParam().AddIntParam( cDlgCtrlCode.GetCharCode() );
+			GetMacroResultVal().SetIntParam( 1 );
+		}
+	}else{
+		if( GetSaveResultParam() ){
+			GetMacroResultVal().SetIntParam( 0 );
+		}
 	}
 }

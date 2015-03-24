@@ -80,6 +80,11 @@ BOOL CViewCommander::HandleCommand(
 	m_pCommanderView->TranslateCommand_grep( nCommand, bRedraw, lparam1, lparam2, lparam3, lparam4 );
 	m_pCommanderView->TranslateCommand_isearch( nCommand, bRedraw, lparam1, lparam2, lparam3, lparam4 );
 
+	if( GetSaveResultParam() ){
+		GetMacroResultParam().ClearMacroParam();
+		GetMacroResultVal().Clear();
+	}
+
 	// 2013.09.23 novice 機能が利用可能か調べる
 	if( !IsFuncEnable( GetDocument(), &GetDllShareData(), nCommand ) ){
 		return TRUE;

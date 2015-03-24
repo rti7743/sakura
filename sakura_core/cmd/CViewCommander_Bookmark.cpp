@@ -52,9 +52,18 @@ void CViewCommander::Command_JUMP_SRCHSTARTPOS(void)
 void CViewCommander::Command_JUMP_DIALOG( EFunctionFlags flags )
 {
 	GetEditWindow()->m_cDlgJump.m_flags = flags;
-	if( !GetEditWindow()->m_cDlgJump.DoModal(
+	int nRet = GetEditWindow()->m_cDlgJump.DoModal(
 		G_AppInstance(), m_pCommanderView->GetHwnd(), (LPARAM)GetDocument()
-	) ){
+	);
+	if( GetSaveResultParam() ){
+		if( nRet == 1 ){
+			GetMacroResultParam().AddIntParam( GetEditWindow()->m_cDlgJump.m_nLineNum );
+			LPARAM lFlag = 0x00;
+			lFlag |= GetDllShareData().m_bLineNumIsCRLF_ForJump		? 0x01 : 0x00;
+			lFlag |= GetEditWindow()->m_cDlgJump.m_bPLSQL	? 0x02 : 0x00;
+			GetMacroResultParam().AddIntParam( lFlag );
+		}
+		GetMacroResultVal().SetIntParam( nRet );
 		return;
 	}
 }

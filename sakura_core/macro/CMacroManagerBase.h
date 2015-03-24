@@ -50,6 +50,7 @@ public:
 	int m_nOpeBlkCount;
 	bool m_bDrawSwitchOld;
 	CMacroInstanceData* m_pcMacroInstanceDataOld;
+	bool m_bSaveResultParentOld;
 };
 
 class CMacroBeforeAfter {

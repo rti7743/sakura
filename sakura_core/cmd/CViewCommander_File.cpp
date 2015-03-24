@@ -153,7 +153,14 @@ void CViewCommander::Command_FILEOPEN( const WCHAR* filename, ECodeType nCharCod
 	}
 
 	//開く
-	GetDocument()->m_cDocFileOperation.FileLoad( &sLoadInfo );
+	bool bRet = GetDocument()->m_cDocFileOperation.FileLoad( &sLoadInfo );
+
+	if( GetSaveResultParam() ){
+		GetMacroResultParam().AddStringParam( sLoadInfo.cFilePath );
+		GetMacroResultParam().AddIntParam( sLoadInfo.eCharCode );
+		GetMacroResultParam().AddIntParam( sLoadInfo.bViewMode );
+		GetMacroResultVal().SetIntParam( bRet );
+	}
 }
 
 
@@ -174,9 +181,17 @@ bool CViewCommander::Command_FILESAVE( bool warnbeep, bool askname )
 
 	//ファイル名が指定されていない場合は「名前を付けて保存」のフローへ遷移
 	if( !GetDocument()->m_cDocFile.GetFilePathClass().IsValidPath() ){
-		if( !askname )
+		if( !askname ){
+			if( GetSaveResultParam() ){
+				GetMacroResultVal().SetIntParam( false );
+			}
 			return false;	// 保存しない
-		return pcDoc->m_cDocFileOperation.FileSaveAs();
+		}
+		bool bRet = pcDoc->m_cDocFileOperation.FileSaveAs();
+		if( GetSaveResultParam() ){
+			GetMacroResultVal().SetIntParam( bRet );
+		}
+		return bRet;
 	}
 
 	//セーブ情報
@@ -190,6 +205,10 @@ bool CViewCommander::Command_FILESAVE( bool warnbeep, bool askname )
 	bool bRet = pcDoc->m_cDocFileOperation.DoSaveFlow(&sSaveInfo);
 	if(!warnbeep)CEditApp::getInstance()->m_cSoundSet.MuteOff();
 
+	if( GetSaveResultParam() ){
+		GetMacroResultVal().SetIntParam( bRet );
+	}
+
 	return bRet;
 }
 
@@ -198,7 +217,17 @@ bool CViewCommander::Command_FILESAVE( bool warnbeep, bool askname )
 /* 名前を付けて保存ダイアログ */
 bool CViewCommander::Command_FILESAVEAS_DIALOG(const WCHAR* fileNameDef,ECodeType eCodeType, EEolType eEolType)
 {
-	return 	GetDocument()->m_cDocFileOperation.FileSaveAs(fileNameDef, eCodeType, eEolType, true);
+	SSaveInfo sSaveInfo;
+	bool bRet = GetDocument()->m_cDocFileOperation.FileSaveAs(&sSaveInfo, fileNameDef, eCodeType, eEolType, true);
+	if( GetSaveResultParam() ){
+		if( bRet ){
+			GetMacroResultParam().AddStringParam( sSaveInfo.cFilePath );
+			GetMacroResultParam().AddIntParam( sSaveInfo.eCharCode );
+			GetMacroResultParam().AddIntParam( sSaveInfo.cEol.GetType() );
+		}
+		GetMacroResultVal().SetIntParam( bRet );
+	}
+	return bRet;
 }
 
 
@@ -208,7 +237,7 @@ bool CViewCommander::Command_FILESAVEAS_DIALOG(const WCHAR* fileNameDef,ECodeTyp
 */
 BOOL CViewCommander::Command_FILESAVEAS( const WCHAR* filename, EEolType eEolType )
 {
-	return 	GetDocument()->m_cDocFileOperation.FileSaveAs(filename, CODE_NONE, eEolType, false);
+	return 	GetDocument()->m_cDocFileOperation.FileSaveAs(NULL, filename, CODE_NONE, eEolType, false);
 }
 
 

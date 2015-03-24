@@ -78,14 +78,18 @@ void CViewCommander::Command_CHG_CHARSET(
 	bool		bBom		// [in] 設定するBOM(Unicode系以外は無視)
 )
 {
+	int nRet = 1;
 	if (eCharSet == CODE_NONE || eCharSet ==  CODE_AUTODETECT) {
 		// 文字コードが指定されていないならば
 		// 文字コードの確認
 		eCharSet = GetDocument()->GetDocumentEncoding();	// 設定する文字コードセット
 		bBom     = GetDocument()->GetDocumentBomExist();	// 設定するBOM
-		int nRet = GetEditWindow()->m_cDlgSetCharSet.DoModal( G_AppInstance(), m_pCommanderView->GetHwnd(), 
+		nRet = GetEditWindow()->m_cDlgSetCharSet.DoModal( G_AppInstance(), m_pCommanderView->GetHwnd(), 
 						&eCharSet, &bBom );
 		if (!nRet) {
+			if( GetSaveResultParam() ){
+				GetMacroResultVal().SetIntParam( nRet );
+			}
 			return;
 		}
 	}
@@ -95,6 +99,12 @@ void CViewCommander::Command_CHG_CHARSET(
 
 	// ステータス表示
 	GetCaret().ShowCaretPosInfo();
+
+	if( GetSaveResultParam() ){
+		GetMacroResultParam().AddIntParam( eCharSet );
+		GetMacroResultParam().AddIntParam( bBom ? 1: 0 );
+		GetMacroResultVal().SetIntParam( nRet );
+	}
 }
 
 

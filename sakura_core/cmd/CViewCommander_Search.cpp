@@ -70,12 +70,34 @@ void CViewCommander::Command_SEARCH_DIALOG( void )
 
 
 
+void CViewCommander::Command_SEARCH_NEXT(
+	bool			bChangeCurRegexp,
+	bool			bRedraw,
+	bool			bReplaceAll,
+	HWND			hwndParent,
+	const WCHAR*	pszNotFoundMessage,
+	CLogicRange*	pcSelectLogic
+)
+{
+	int nRet = Command_SEARCH_NEXT_core(
+		bChangeCurRegexp,
+		bRedraw,
+		bReplaceAll,
+		hwndParent,
+		pszNotFoundMessage,
+		pcSelectLogic
+	);
+	if( GetSaveResultParam() ){
+		GetMacroResultVal().SetIntParam( nRet );
+	}
+}
+
 /*! 次を検索
 	@param bChangeCurRegexp 共有データの検索文字列を使う
 	@date 2003.05.22 かろと 無限マッチ対策．行頭・行末処理見直し．
 	@date 2004.05.30 Moca bChangeCurRegexp=trueで従来通り。falseで、CEditViewの現在設定されている検索パターンを使う
 */
-void CViewCommander::Command_SEARCH_NEXT(
+int CViewCommander::Command_SEARCH_NEXT_core(
 	bool			bChangeCurRegexp,
 	bool			bRedraw,
 	bool			bReplaceAll,
@@ -115,7 +137,7 @@ void CViewCommander::Command_SEARCH_NEXT(
 	// 2002.01.16 hor
 	// 共通部分のくくりだし
 	// 2004.05.30 Moca CEditViewの現在設定されている検索パターンを使えるように
-	if(bChangeCurRegexp && !m_pCommanderView->ChangeCurRegexp())return;
+	if(bChangeCurRegexp && !m_pCommanderView->ChangeCurRegexp()) return -1;
 	if( 0 == m_pCommanderView->m_strCurSearchKey.size() ){
 		goto end_of_func;
 	}
@@ -323,12 +345,21 @@ end_of_func:;
 			AlertNotFound(hwndParent, bReplaceAll, _T("%ls"), pszNotFoundMessage);
 		}
 	}
+	return bFound ? 1 : 0;
 }
 
 
 
-/* 前を検索 */
 void CViewCommander::Command_SEARCH_PREV( bool bReDraw, HWND hwndParent )
+{
+	int nRet = Command_SEARCH_PREV_core(bReDraw, hwndParent);
+	if( GetSaveResultParam() ){
+		GetMacroResultVal().SetIntParam( nRet );
+	}
+}
+
+/* 前を検索 */
+int CViewCommander::Command_SEARCH_PREV_core( bool bReDraw, HWND hwndParent )
 {
 	bool		bSelecting;
 	bool		bSelectingLock_Old = false;
@@ -351,7 +382,7 @@ void CViewCommander::Command_SEARCH_PREV( bool bReDraw, HWND hwndParent )
 	// 2002.01.16 hor
 	// 共通部分のくくりだし
 	if(!m_pCommanderView->ChangeCurRegexp()){
-		return;
+		return -1;
 	}
 	if( 0 == m_pCommanderView->m_strCurSearchKey.size() ){
 		goto end_of_func;
@@ -479,7 +510,7 @@ end_of_func:;
 			KeyName.GetStringPtr()
 		);
 	}
-	return;
+	return bFound ? 1 : 0;
 }
 
 
@@ -529,13 +560,21 @@ void CViewCommander::Command_REPLACE_DIALOG( void )
 
 
 
+void CViewCommander::Command_REPLACE( HWND hwndParent )
+{
+	int nRet = Command_REPLACE_core( hwndParent );
+	if( GetSaveResultParam() ){
+		GetMacroResultVal().SetIntParam( nRet );
+	}
+}
+
 /*! 置換実行
 	
 	@date 2002/04/08 親ウィンドウを指定するように変更。
 	@date 2003.05.17 かろと 長さ０マッチの無限置換回避など
 	@date 2011.12.18 Moca オプション・検索キーをDllShareDataからm_cDlgReplace/EditViewベースに変更。文字列長制限の撤廃
 */
-void CViewCommander::Command_REPLACE( HWND hwndParent )
+int CViewCommander::Command_REPLACE_core( HWND hwndParent )
 {
 	if ( hwndParent == NULL ){	//	親ウィンドウが指定されていなければ、CEditViewが親。
 		hwndParent = m_pCommanderView->GetHwnd();
@@ -554,7 +593,7 @@ void CViewCommander::Command_REPLACE( HWND hwndParent )
 		OkMessage( hwndParent, LS(STR_ERR_CEDITVIEW_CMD10) );
 		::CheckDlgButton( GetEditWindow()->m_cDlgReplace.GetHwnd(), IDC_CHK_PASTE, FALSE );
 		::EnableWindow( ::GetDlgItem( GetEditWindow()->m_cDlgReplace.GetHwnd(), IDC_COMBO_TEXT2 ), TRUE );
-		return;	//	失敗return;
+		return -1;	//	失敗return;
 	}
 
 	// 2002.01.09 hor
@@ -583,10 +622,12 @@ void CViewCommander::Command_REPLACE( HWND hwndParent )
 	const CNativeW	cMemRepKey( GetEditWindow()->m_cDlgReplace.m_strText2.c_str() );
 
 	/* 次を検索 */
-	Command_SEARCH_NEXT( true, true, false, hwndParent, NULL );
+	Command_SEARCH_NEXT_core( true, true, false, hwndParent, NULL );
 
 	BOOL	bRegularExp = m_pCommanderView->m_sCurSearchOption.bRegularExp;
 	int 	nFlag       = m_pCommanderView->m_sCurSearchOption.bLoHiCase ? 0x01 : 0x00;
+
+	int nRet = 0;
 
 	/* テキストが選択されているか */
 	if( m_pCommanderView->GetSelectionInfo().IsTextSelected() ){
@@ -635,7 +676,7 @@ void CViewCommander::Command_REPLACE( HWND hwndParent )
 			CBregexp cRegexp;
 
 			if( !InitRegexp( m_pCommanderView->GetHwnd(), cRegexp, true ) ){
-				return;	//	失敗return;
+				return -1;	//	失敗
 			}
 
 			// 物理行、物理行長、物理行での検索マッチ位置
@@ -707,12 +748,22 @@ void CViewCommander::Command_REPLACE( HWND hwndParent )
 		m_pCommanderView->Redraw();
 
 		/* 次を検索 */
-		Command_SEARCH_NEXT( true, true, false, hwndParent, LSW(STR_ERR_CEDITVIEW_CMD11) );
+		Command_SEARCH_NEXT_core( true, true, false, hwndParent, LSW(STR_ERR_CEDITVIEW_CMD11) );
+		nRet = 1;
+	}else{
+		nRet = 0;
 	}
+	return nRet;
 }
 
 
 
+void CViewCommander::Command_REPLACE_ALL(){
+	int nRet = Command_REPLACE_ALL_core();
+	if( GetSaveResultParam() ){
+		GetMacroResultVal().SetIntParam( nRet );
+	}
+}
 /*! すべて置換実行
 
 	@date 2003.05.22 かろと 無限マッチ対策．行頭・行末処理など見直し
@@ -723,12 +774,12 @@ void CViewCommander::Command_REPLACE( HWND hwndParent )
 	@date 2011.12.18 Moca オプション・検索キーをDllShareDataからm_cDlgReplace/EditViewベースに変更。文字列長制限の撤廃
 	@date 2013.05.10 Moca fastMode
 */
-void CViewCommander::Command_REPLACE_ALL()
+int CViewCommander::Command_REPLACE_ALL_core()
 {
 
 	// m_sSearchOption選択のための先に適用
 	if( !m_pCommanderView->ChangeCurRegexp() ){
-		return;
+		return -1;
 	}
 
 	//2002.02.10 hor
@@ -750,7 +801,7 @@ void CViewCommander::Command_REPLACE_ALL()
 		OkMessage( m_pCommanderView->GetHwnd(), LS(STR_ERR_CEDITVIEW_CMD10) );
 		::CheckDlgButton( GetEditWindow()->m_cDlgReplace.GetHwnd(), IDC_CHK_PASTE, FALSE );
 		::EnableWindow( ::GetDlgItem( GetEditWindow()->m_cDlgReplace.GetHwnd(), IDC_COMBO_TEXT2 ), TRUE );
-		return;	// TRUE;
+		return -1;
 	}
 	// To Here 2001.12.03 hor
 
@@ -852,7 +903,7 @@ void CViewCommander::Command_REPLACE_ALL()
 
 	CLogicRange cSelectLogic;	// 置換文字列GetSelect()のLogic単位版
 	/* 次を検索 */
-	Command_SEARCH_NEXT( true, bDisplayUpdate, true, 0, NULL, bFastMode ? &cSelectLogic : NULL );
+	Command_SEARCH_NEXT_core( true, bDisplayUpdate, true, 0, NULL, bFastMode ? &cSelectLogic : NULL );
 	// To Here 2001.12.03 hor
 
 	//<< 2002/03/26 Azumaiya
@@ -876,7 +927,7 @@ void CViewCommander::Command_REPLACE_ALL()
 			::EnableWindow( m_pCommanderView->GetHwnd(), TRUE );
 			::EnableWindow( ::GetParent( m_pCommanderView->GetHwnd() ), TRUE );
 			::EnableWindow( ::GetParent( ::GetParent( m_pCommanderView->GetHwnd() ) ), TRUE );
-			return;
+			return -1;
 		}
 
 		// 矩形貼り付けが許可されていて、クリップボードのデータが矩形選択のとき。
@@ -890,7 +941,7 @@ void CViewCommander::Command_REPLACE_ALL()
 				::EnableWindow( m_pCommanderView->GetHwnd(), TRUE );
 				::EnableWindow( ::GetParent( m_pCommanderView->GetHwnd() ), TRUE );
 				::EnableWindow( ::GetParent( ::GetParent( m_pCommanderView->GetHwnd() ) ), TRUE );
-				return;
+				return -1;
 			}
 
 			// 現在のフォントは固定幅フォントである
@@ -900,7 +951,7 @@ void CViewCommander::Command_REPLACE_ALL()
 				::EnableWindow( m_pCommanderView->GetHwnd(), TRUE );
 				::EnableWindow( ::GetParent( m_pCommanderView->GetHwnd() ), TRUE );
 				::EnableWindow( ::GetParent( ::GetParent( m_pCommanderView->GetHwnd() ) ), TRUE );
-				return;
+				return -1;
 			}
 		}
 		else
@@ -955,7 +1006,7 @@ void CViewCommander::Command_REPLACE_ALL()
 			::EnableWindow( m_pCommanderView->GetHwnd(), TRUE );
 			::EnableWindow( ::GetParent( m_pCommanderView->GetHwnd() ), TRUE );
 			::EnableWindow( ::GetParent( ::GetParent( m_pCommanderView->GetHwnd() ) ), TRUE );
-			return;
+			return -1;
 		}
 
 		// Nov. 9, 2005 かろと 正規表現で選択始点・終点への挿入方法を変更(再)
@@ -1005,7 +1056,7 @@ void CViewCommander::Command_REPLACE_ALL()
 			::EnableWindow( m_pCommanderView->GetHwnd(), TRUE );
 			::EnableWindow( ::GetParent( m_pCommanderView->GetHwnd() ), TRUE );
 			::EnableWindow( ::GetParent( ::GetParent( m_pCommanderView->GetHwnd() ) ), TRUE );
-			return;// -1;
+			return -1;
 		}
 
 		nLoopCnt++;
@@ -1072,7 +1123,7 @@ void CViewCommander::Command_REPLACE_ALL()
 					//次の検索開始位置へシフト
 					GetCaret().SetCaretLayoutPos(CLayoutPoint(sRangeA.GetFrom().x,CLayoutInt(linNext)));
 					// 2004.05.30 Moca 現在の検索文字列を使って検索する
-					Command_SEARCH_NEXT( false, bDisplayUpdate, true, 0, NULL );
+					Command_SEARCH_NEXT_core( false, bDisplayUpdate, true, 0, NULL );
 					colDif=(0);
 					continue;
 				}
@@ -1395,7 +1446,7 @@ void CViewCommander::Command_REPLACE_ALL()
 
 		/* 次を検索 */
 		// 2004.05.30 Moca 現在の検索文字列を使って検索する
-		Command_SEARCH_NEXT( false, bDisplayUpdate, true, 0, NULL, bFastMode ? &cSelectLogic : NULL );
+		Command_SEARCH_NEXT_core( false, bDisplayUpdate, true, 0, NULL, bFastMode ? &cSelectLogic : NULL );
 	}
 
 	if( bFastMode ){
@@ -1469,6 +1520,7 @@ void CViewCommander::Command_REPLACE_ALL()
 	GetEditWindow()->m_cDlgReplace.m_nReplaceCnt=nReplaceNum;
 	m_pCommanderView->SetDrawSwitch(bDrawSwitchOld);
 	ActivateFrameWindow( GetMainWindow() );
+	return nReplaceNum;
 }
 
 

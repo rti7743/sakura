@@ -47,6 +47,9 @@ void CMacroBeforeAfter::ExecKeyMacroBefore( class CEditView* pcEditView, int fla
 	vars->m_bDrawSwitchOld = pcEditView->GetDrawSwitch();
 	vars->m_pcMacroInstanceDataOld = pcEditView->m_pcEditWnd->m_pcMacroInstanceData;
 	pcEditView->m_pcEditWnd->m_pcMacroInstanceData = CMacro::CreateCMacroInstanceData();
+	vars->m_bSaveResultParentOld = pcEditView->m_pcEditWnd->m_bSaveResultParamParent;
+	pcEditView->m_pcEditWnd->m_bSaveResultParamParent = pcEditView->m_pcEditWnd->m_bSaveResultParam;
+	pcEditView->m_pcEditWnd->m_bSaveResultParam = false;
 }
 
 void CMacroBeforeAfter::ExecKeyMacroAfter( class CEditView* pcEditView, int flags, bool bRet, CMacroExecVars* vars )
@@ -69,6 +72,8 @@ void CMacroBeforeAfter::ExecKeyMacroAfter( class CEditView* pcEditView, int flag
 	pcEditView->m_pcEditWnd->SetDrawSwitchOfAllViews(vars->m_bDrawSwitchOld);
 	CMacro::DeleteCMacroInstanceData(pcEditView->m_pcEditWnd->m_pcMacroInstanceData);
 	pcEditView->m_pcEditWnd->m_pcMacroInstanceData = vars->m_pcMacroInstanceDataOld;
+	pcEditView->m_pcEditWnd->m_bSaveResultParam = pcEditView->m_pcEditWnd->m_bSaveResultParamParent;
+	pcEditView->m_pcEditWnd->m_bSaveResultParamParent = vars->m_bSaveResultParentOld;
 }
 
 // CMacroManagerBase

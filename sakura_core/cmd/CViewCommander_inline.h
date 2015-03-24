@@ -60,5 +60,20 @@ inline CCaret& CViewCommander::GetCaret()
 	return m_pCommanderView->GetCaret();
 }
 
+inline bool CViewCommander::GetSaveResultParam()
+{
+	return GetEditWindow()->m_bSaveResultParam;
+}
+
+inline CMacro& CViewCommander::GetMacroResultParam()
+{
+	return GetEditWindow()->m_cMacroResultParam;
+}
+
+inline CMacroParam& CViewCommander::GetMacroResultVal()
+{
+	return GetEditWindow()->m_cMacroResultVal;
+}
+
 #endif /* SAKURA_CVIEWCOMMANDER_INLINE_265ADE2D_61EE_450A_9B9B_92C5762690A4_H_ */
 /*[EOF]*/

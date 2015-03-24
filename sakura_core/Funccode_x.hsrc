@@ -303,7 +303,7 @@ F_JUMP_SRCHSTARTPOS	= 30909,	//検索開始位置へ戻る							なし
 F_SEARCH_BOX		= 30908,	//検索(ボックス)								なし
 F_GREP_DIALOG		= 30910,	//Grep											なし
 F_GREP				= 30911,	//Grep											なし
-F_GREP_REPLACE_DLG	= 30912,	//Grep置換										なし
+F_GREP_REPLACE_DLG	= 30912,	//Grep置換(ダイアログ)							なし
 F_GREP_REPLACE		= 30913,	//Grep置換										なし
 F_JUMP_DIALOG		= 30920,	//指定行へジャンプ								なし
 F_JUMP				= 30921,	//指定行へジャンプ								なし
@@ -514,6 +514,8 @@ F_ADDRECMACROPARAMINT	= 32822,		// マクロパラメータint追加
 F_ADDRECMACROPARAMSTR	= 32823,		// マクロパラメータString追加
 F_ADDEXECFUNCARGINT		= 32824,		// マクロ実行用パラメータint追加(PPA用)
 F_ADDEXECFUNCARGSTR		= 32825,		// マクロ実行用パラメータString追加(PPA用)
+F_SETSAVERESULT			= 32826,		// マクロ実行結果の保存を設定
+F_SETRESULTVAL			= 32827,		// マクロ結果を設定
 
 
 F_FUNCTION_FIRST	= 40000,	// 2003-02-21 鬼 これ以上だと関数
@@ -577,6 +579,9 @@ F_GETVIEWCOLUMNS	= 40057,	// ビューの列数取得
 F_CREATEMENU		= 40058,	// メニュー作成
 F_GETMACROPARAM			= 40059,	// マクロパラメータ取得
 F_GETMACROPARAMCOUNT	= 40060,	// マクロパラメータ数取得
+F_GETRESULTVAL			= 40061,	// マクロ結果を取得
+F_GETRESULTPARAM		= 40062,	// マクロパラメータを取得
+F_GETRESULTPARAMCOUNT	= 40063,	// マクロパラメータの数を取得
 
 
 //	= 2005,.01.10 genta ISearch用補助コード

@@ -283,44 +283,7 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 	case F_GREP_REPLACE:
 	case F_GREP:
 		{
-			CDlgGrep* pcDlgGrep;
-			CDlgGrepReplace* pcDlgGrepRep;
-			if( F_GREP == m_nFuncID ){
-				pcDlgGrep = &pcEditView->m_pcEditWnd->m_cDlgGrep;
-				pcDlgGrepRep = NULL;
-				AddStringParam( pcDlgGrep->m_strText.c_str() );
-			}else{
-				pcDlgGrep = pcDlgGrepRep = &pcEditView->m_pcEditWnd->m_cDlgGrepReplace;
-				AddStringParam( pcDlgGrep->m_strText.c_str() );
-				AddStringParam( pcEditView->m_pcEditWnd->m_cDlgGrepReplace.m_strText2.c_str() );
-			}
-			AddStringParam( GetDllShareData().m_sSearchKeywords.m_aGrepFiles[0] );	//	lParamを追加。
-			AddStringParam( GetDllShareData().m_sSearchKeywords.m_aGrepFolders[0] );	//	lParamを追加。
-
-			LPARAM lFlag = 0x00;
-			lFlag |= GetDllShareData().m_Common.m_sSearch.m_bGrepSubFolder				? 0x01 : 0x00;
-			//			この編集中のテキストから検索する(0x02.未実装)
-			lFlag |= pcDlgGrep->m_sSearchOption.bLoHiCase		? 0x04 : 0x00;
-			lFlag |= pcDlgGrep->m_sSearchOption.bRegularExp	? 0x08 : 0x00;
-			lFlag |= (GetDllShareData().m_Common.m_sSearch.m_nGrepCharSet == CODE_AUTODETECT) ? 0x10 : 0x00;	//	2002/09/21 Moca 下位互換性のための処理
-			lFlag |= GetDllShareData().m_Common.m_sSearch.m_nGrepOutputLineType == 1	? 0x20 : 0x00;
-			lFlag |= GetDllShareData().m_Common.m_sSearch.m_nGrepOutputLineType == 2	? 0x400000 : 0x00;	// 2014.09.23 否ヒット行
-			lFlag |= (GetDllShareData().m_Common.m_sSearch.m_nGrepOutputStyle == 2)		? 0x40 : 0x00;	//	CShareDataに入れなくていいの？
-			lFlag |= (GetDllShareData().m_Common.m_sSearch.m_nGrepOutputStyle == 3)		? 0x80 : 0x00;
-			ECodeType code = GetDllShareData().m_Common.m_sSearch.m_nGrepCharSet;
-			if( IsValidCodeType(code) || CODE_AUTODETECT == code ){
-				lFlag |= code << 8;
-			}
-			lFlag |= pcDlgGrep->m_sSearchOption.bWordOnly								? 0x10000 : 0x00;
-			lFlag |= GetDllShareData().m_Common.m_sSearch.m_bGrepOutputFileOnly			? 0x20000 : 0x00;
-			lFlag |= GetDllShareData().m_Common.m_sSearch.m_bGrepOutputBaseFolder		? 0x40000 : 0x00;
-			lFlag |= GetDllShareData().m_Common.m_sSearch.m_bGrepSeparateFolder			? 0x80000 : 0x00;
-			if( F_GREP_REPLACE == m_nFuncID ){
-				lFlag |= pcDlgGrepRep->m_bPaste											? 0x100000 : 0x00;
-				lFlag |= GetDllShareData().m_Common.m_sSearch.m_bGrepBackup				? 0x200000 : 0x00;
-			}
-			AddIntParam( lFlag );
-			AddIntParam( code );
+			CViewCommander::SetGrepParams(*this, pcEditView, F_GREP_REPLACE == m_nFuncID);
 		}
 		break;
 	/*	数値パラメータを追加 */
@@ -1737,6 +1700,25 @@ bool CMacro::HandleCommand(
 			pcEditView->m_pcEditWnd->m_pcMacroInstanceData->m_cExecFuncArg.AddStringParam( Argument[0], ArgLengths[0] );
 		}
 		break;
+	case F_SETSAVERESULT:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			bool bSet = _wtoi( Argument[0] ) != 0;
+			pcEditView->m_pcEditWnd->m_bSaveResultParam = bSet;
+			if( !bSet ){
+				pcEditView->m_pcEditWnd->m_cMacroResultParam.ClearMacroParam();
+				pcEditView->m_pcEditWnd->m_cMacroResultVal.Clear();
+			}
+		}
+		break;
+	case F_SETRESULTVAL:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			if( pcEditView->m_pcEditWnd->m_bSaveResultParamParent ){
+				pcEditView->m_pcEditWnd->m_cMacroResultVal.SetStringParam( Argument[0], ArgLengths[0] );
+			}
+		}
+		break;
 		
 	default:
 		//	引数なし。
@@ -2774,6 +2756,42 @@ bool CMacro::HandleFunction(CEditView *View, EFunctionCode ID, const VARIANT *Ar
 		{
 			int n = View->m_pcEditWnd->m_cExecMacroParam.GetParamCount();
 			Wrap( &Result )->Receive( n );
+			return true;
+		}
+	case F_GETRESULTVAL:
+		{
+			const WCHAR* pData = View->m_pcEditWnd->m_cMacroResultVal.m_pData;
+			int nDataLen = View->m_pcEditWnd->m_cMacroResultVal.m_nDataLen;
+			if( NULL == pData ){
+				pData = L"";
+			}
+			SysString ret = SysString( pData, nDataLen );
+			Wrap( &Result )->Receive( ret );
+			return true;
+		}
+	case F_GETRESULTPARAM:
+		{
+			if( ArgSize <= 0 ){ return false; }
+			if( !VariantToI4(varCopy, Arguments[0]) ){ return false; }
+			int nIndex = varCopy.Data.lVal - 1;
+			const CMacro& cParams = View->m_pcEditWnd->m_cMacroResultParam;
+			if( nIndex < 0 ){ return false; }
+			if( cParams.GetParamCount() <= nIndex ){ return false; }
+			CMacroParam* x = cParams.m_pParamTop;
+			int i = 0;
+			while(i < nIndex){
+				x = x->m_pNext;
+				i++;
+			}
+			SysString ret = SysString(x->m_pData, x->m_nDataLen);
+			Wrap( &Result )->Receive( ret );
+			return true;
+		}
+	case F_GETRESULTPARAMCOUNT:
+		{
+			const CMacro& cParams = View->m_pcEditWnd->m_cMacroResultParam;
+			int ret = cParams.GetParamCount();
+			Wrap( &Result )->Receive( ret );
 			return true;
 		}
 	default:

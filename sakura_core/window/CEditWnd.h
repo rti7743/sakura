@@ -437,6 +437,12 @@ public:
 	CMacro			m_cRecMacroParam;
 	CMacro			m_cExecMacroParam;
 	CMacroInstanceData*	m_pcMacroInstanceData;
+	// コマンド引数記録
+	bool				m_bSaveResultParam;
+	bool				m_bSaveResultParamParent;
+	CMacro				m_cMacroResultParam;
+	// コマンド戻り値
+	CMacroParam			m_cMacroResultVal;
 };
 
 

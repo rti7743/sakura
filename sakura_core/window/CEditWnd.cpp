@@ -228,6 +228,10 @@ CEditWnd::CEditWnd()
 , m_cRecMacroParam(F_0)
 , m_cExecMacroParam(F_0)
 , m_pcMacroInstanceData(NULL)
+, m_bSaveResultParam( false )
+, m_bSaveResultParamParent( false )
+, m_cMacroResultParam( F_0 )
+, m_cMacroResultVal()
 {
 	g_pcEditWnd=this;
 }

@@ -163,16 +163,29 @@ void CViewCommander::Command_TYPE_LIST( EFunctionFlags flags )
 	CDlgTypeList::SResult	sResult;
 	sResult.cDocumentType = GetDocument()->m_cDocType.GetDocumentType();
 	sResult.bTempChange = true;
+	int nRet = 0;
+	int nTypeNo = 0;
 	if( cDlgTypeList.DoModal( G_AppInstance(), m_pCommanderView->GetHwnd(), &sResult ) ){
 		//	Nov. 29, 2000 genta
 		//	一時的な設定適用機能を無理矢理追加
 		if( sResult.bTempChange ){
-			HandleCommand( static_cast<EFunctionCode>(F_CHANGETYPE | flags), true, (LPARAM)sResult.cDocumentType.GetIndex() + 1, 0, 0, 0 );
+			nTypeNo = sResult.cDocumentType.GetIndex() + 1;
+			HandleCommand( static_cast<EFunctionCode>(F_CHANGETYPE | flags), true, (LPARAM)nTypeNo, 0, 0, 0 );
+			nRet = 2;
 		}
 		else{
 			/* タイプ別設定 */
 			CEditApp::getInstance()->OpenPropertySheetTypes( -1, sResult.cDocumentType );
+			nRet = 1;
 		}
+	}else{
+		nRet = 0;
+	}
+	if( GetSaveResultParam() ){
+		if( nRet == 2 ){
+			GetMacroResultParam().AddIntParam( nTypeNo );
+		}
+		GetMacroResultVal().SetIntParam( nRet );
 	}
 	return;
 }

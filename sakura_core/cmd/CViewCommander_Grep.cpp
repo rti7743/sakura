@@ -21,6 +21,52 @@
 #include "plugin/CPlugin.h"
 #include "plugin/CJackManager.h"
 
+// static
+void CViewCommander::SetGrepParams(CMacro& params, const CEditView* pcEditView, bool bReplace)
+{
+	CDlgGrepReplace* pcDlgGrepRep;
+	CDlgGrep* pcDlgGrep;
+	if( bReplace ){
+		pcDlgGrepRep = NULL;
+		pcDlgGrep = &pcEditView->m_pcEditWnd->m_cDlgGrep;
+	}else{
+		pcDlgGrepRep = &pcEditView->m_pcEditWnd->m_cDlgGrepReplace;
+		pcDlgGrep = pcDlgGrepRep;
+	}
+	params.AddStringParam( pcDlgGrep->m_strText.c_str() );
+	if( bReplace ){
+		params.AddStringParam( pcDlgGrepRep->m_strText2.c_str() );
+	}
+	params.AddStringParam( GetDllShareData().m_sSearchKeywords.m_aGrepFiles[0] );
+	params.AddStringParam( GetDllShareData().m_sSearchKeywords.m_aGrepFolders[0] );
+
+	LPARAM lFlag = 0x00;
+	const CommonSetting_Search& search = GetDllShareData().m_Common.m_sSearch;
+	lFlag |= search.m_bGrepSubFolder					? 0x01 : 0x00;
+	//			この編集中のテキストから検索する(0x02.未実装)
+	lFlag |= pcDlgGrep->m_sSearchOption.bLoHiCase		? 0x04 : 0x00;
+	lFlag |= pcDlgGrep->m_sSearchOption.bRegularExp		? 0x08 : 0x00;
+	lFlag |= (search.m_nGrepCharSet == CODE_AUTODETECT) ? 0x10 : 0x00;	//	2002/09/21 Moca 下位互換性のための処理
+	lFlag |= search.m_nGrepOutputLineType == 1			? 0x20 : 0x00;
+	lFlag |= search.m_nGrepOutputLineType == 2			? 0x400000 : 0x00;	// 2014.09.23 否ヒット行
+	lFlag |= (search.m_nGrepOutputStyle == 2)			? 0x40 : 0x00;
+	lFlag |= (search.m_nGrepOutputStyle == 3)			? 0x80 : 0x00;
+	ECodeType code = search.m_nGrepCharSet;
+	if( IsValidCodeType(code) || CODE_AUTODETECT == code ){
+		lFlag |= code << 8;
+	}
+	lFlag |= search.m_sSearchOption.bWordOnly			? 0x10000 : 0x00;
+	lFlag |= search.m_bGrepOutputFileOnly				? 0x20000 : 0x00;
+	lFlag |= search.m_bGrepOutputBaseFolder				? 0x40000 : 0x00;
+	lFlag |= search.m_bGrepSeparateFolder				? 0x80000 : 0x00;
+	if( bReplace ){
+		lFlag |= pcDlgGrepRep->m_bPaste					? 0x100000 : 0x00;
+		lFlag |= search.m_bGrepBackup					? 0x200000 : 0x00;
+	}
+	params.AddIntParam( lFlag );
+	params.AddIntParam( code );
+}
+
 /*! GREPダイアログの表示
 
 	@date 2005.01.10 genta CEditView_Commandより移動
@@ -44,9 +90,23 @@ void CViewCommander::Command_GREP_DIALOG( EFunctionFlags flags )
 	int nRet = GetEditWindow()->m_cDlgGrep.DoModal( G_AppInstance(), m_pCommanderView->GetHwnd(), GetDocument()->m_cDocFile.GetFilePath() );
 //	MYTRACE( _T("nRet=%d\n"), nRet );
 	if( !nRet ){
+		if( GetSaveResultParam() ){
+			GetMacroResultVal().SetIntParam( nRet );
+		}
 		return;
 	}
+	CMacro params(F_0);
+	if( GetSaveResultParam() ){
+		// 実行に時間がかかるので先に取得
+		const CEditView* pcEditView = m_pCommanderView;
+		SetGrepParams(params, m_pCommanderView, false);
+	}
+	
 	HandleCommand(static_cast<EFunctionCode>(F_GREP | flags), true, 0, 0, 0, 0);	//	GREPコマンドの発行
+	if( GetSaveResultParam() ){
+		GetMacroResultParam().AddParamCopyFromCMacro( &params );
+		GetMacroResultVal().SetIntParam( nRet );
+	}
 }
 
 /*! GREP実行
@@ -153,9 +213,23 @@ void CViewCommander::Command_GREP_REPLACE_DLG( EFunctionFlags flags )
 
 	int nRet = cDlgGrepRep.DoModal( G_AppInstance(), m_pCommanderView->GetHwnd(), GetDocument()->m_cDocFile.GetFilePath(), (LPARAM)m_pCommanderView );
 	if( !nRet ){
+		if( GetSaveResultParam() ){
+			GetMacroResultVal().SetIntParam( nRet );
+		}
 		return;
 	}
+	CMacro params(F_0);
+	if( GetSaveResultParam() ){
+		// 実行に時間がかかるので先に取得
+		const CEditView* pcEditView = m_pCommanderView;
+		SetGrepParams(params, m_pCommanderView, true);
+	}
+	
 	HandleCommand(static_cast<EFunctionCode>(F_GREP_REPLACE | flags), true, 0, 0, 0, 0);	//	GREP置換コマンドの発行
+	if( GetSaveResultParam() ){
+		GetMacroResultParam().AddParamCopyFromCMacro( &params );
+		GetMacroResultVal().SetIntParam( nRet );
+	}
 }
 
 /*! GREP置換実行

@@ -433,7 +433,7 @@ bool CDocFileOperation::FileSave()
 
 	@date 2006.12.30 ryoji CEditView::Command_FILESAVEAS_DIALOG()から処理本体を切り出し
 */
-bool CDocFileOperation::FileSaveAs( const WCHAR* filename,ECodeType eCodeType, EEolType eEolType, bool bDialog )
+bool CDocFileOperation::FileSaveAs(SSaveInfo* psSaveInfoOut, const WCHAR* filename,ECodeType eCodeType, EEolType eEolType, bool bDialog )
 {
 	//セーブ情報
 	SSaveInfo sSaveInfo;
@@ -474,6 +474,9 @@ bool CDocFileOperation::FileSaveAs( const WCHAR* filename,ECodeType eCodeType, E
 			(*it)->Invoke(&m_pcDocRef->m_pcEditWnd->GetActiveView(), params);
 		}
 
+		if( psSaveInfoOut ){
+			*psSaveInfoOut = sSaveInfo;
+		}
 		return true;
 	}
 
