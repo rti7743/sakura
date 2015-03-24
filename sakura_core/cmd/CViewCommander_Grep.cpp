@@ -155,8 +155,7 @@ void CViewCommander::Command_GREP_REPLACE_DLG( EFunctionFlags flags )
 	if( !nRet ){
 		return;
 	}
-	HandleCommand(F_GREP_REPLACE, TRUE, 0, 0, 0, 0);	//	GREPコマンドの発行
-	HandleCommand(static_cast<EFunctionCode>(F_GREP | flags), true, 0, 0, 0, 0);	//	GREPコマンドの発行
+	HandleCommand(static_cast<EFunctionCode>(F_GREP_REPLACE | flags), true, 0, 0, 0, 0);	//	GREP置換コマンドの発行
 }
 
 /*! GREP置換実行
