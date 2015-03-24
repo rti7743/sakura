@@ -12,7 +12,7 @@ public:
 
 	HWND DoModeless( HINSTANCE, HWND, SDlgConfigArg*, int = -1 );
 
-	std::tstring CDlgConfigChildPlugin::GetReadMeFile(const std::tstring&);
+	std::tstring GetReadMeFile(const std::tstring&);
 	bool BrowseReadMe(const std::tstring&);
 protected:
 	BOOL OnInitDialog( HWND hWnd, WPARAM wParam, LPARAM lParam );
