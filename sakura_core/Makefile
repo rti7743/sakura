@@ -436,8 +436,8 @@ Funccode_enum.h: Funccode_x.hsrc
 	$(HEADERMAKE) -in=../sakura_core/Funccode_x.hsrc -out=../sakura_core/Funccode_enum.h -mode=enum -enum=EFunctionCode
 
 svnrev:
-	cp svnrev_unknown.h svnrev.h
-	-$(SUBWCREV) ".\\" ".\svnrev_template.h" ".\svnrev.h"
+	copy svnrev_unknown.h svnrev.h
+#	-$(SUBWCREV) ".\\" ".\svnrev_template.h" ".\svnrev.h"
 
 stdafx:
 	$(CXX) $(CXXFLAGS) -c StdAfx.h

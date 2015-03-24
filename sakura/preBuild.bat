@@ -10,6 +10,7 @@ rem   echo Automatic revision update unavailable, using generic template instead
 rem   echo You can safely ignore this message - see svnrev.h for details.
 rem   copy /Y "..\sakura_core\svnrev_unknown.h" "..\sakura_core\svnrev.h"
 rem )
+copy /Y "..\sakura_core\svnrev_unknown.h" "..\sakura_core\svnrev.h"
 
 ENDLOCAL
 :: Always return an errorlevel of 0 -- this allows compilation to continue if SubWCRev failed.
