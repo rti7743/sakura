@@ -195,7 +195,7 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 		}
 		int fontNo = WCODE::GetFontNo(*szText);
 		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
-		int nDx[1] = {width};
+		int nDx[1] = {(Int)width};
 
 		//•`‰æ
 		::ExtTextOutW_AnyBuild(
