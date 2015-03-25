@@ -250,7 +250,7 @@ static ECodeType GetDiffCreateTempFileCode(ECodeType code)
 	@author	maru
 	@date	2005/10/28 これまでのCommand_Diffはm_pCommanderView->ViewDiffInfoに名称変更
 */
-void CViewCommander::Command_Diff( const WCHAR* _szDiffFile2, int nFlgOpt )
+void CViewCommander::Command_Diff( const WCHAR* _szDiffFile2, int nFlgOpt, ECodeType codeOpt )
 {
 	const std::tstring strDiffFile2 = to_tchar(_szDiffFile2);
 	const TCHAR* szDiffFile2 = strDiffFile2.c_str();
@@ -268,7 +268,10 @@ void CViewCommander::Command_Diff( const WCHAR* _szDiffFile2, int nFlgOpt )
 	// 2013.06.21 Unicodeのときは、いつもファイル出力
 	ECodeType code = GetDocument()->GetDocumentEncoding();
 	ECodeType saveCode = GetDiffCreateTempFileCode(code);
-	ECodeType code2 = GetFileCharCode(szDiffFile2);
+	ECodeType code2 = codeOpt;
+	if( !IsValidCodeOrCPType(code2) ){
+		code2 = GetFileCharCode(szDiffFile2);
+	}
 	ECodeType saveCode2 = GetDiffCreateTempFileCode(code2);
 	// 2014.10.24 コードが違うときは必ずUTF-8ファイル出力
 	if( saveCode != saveCode2 ){

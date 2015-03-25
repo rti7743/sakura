@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "dlg/CDlgDiff.h"
 #include "dlg/CDlgOpenFile.h"
+#include "charset/CCodePage.h"
 #include "window/CEditWnd.h"
 #include "func/Funccode.h"
 #include "util/shell.h"
@@ -50,6 +51,8 @@ const DWORD p_helpids[] = {	//13200
 	IDC_CHECK_DIFF_EXEC_STATE,	HIDC_CHECK_DIFF_EXEC_STATE,	//DIFF差分が見つからないときにメッセージを表示  2003.05.12 MIK
 	IDC_CHECK_NOTIFYNOTFOUND,	HIDC_CHECK_DIFF_NOTIFYNOTFOUND,	// 見つからないときにメッセージを表示	// 2006.10.10 ryoji
 	IDC_CHECK_SEARCHALL,		HIDC_CHECK_DIFF_SEARCHALL,		// 先頭（末尾）から再検索する	// 2006.10.10 ryoji
+	IDC_COMBO_CHARSET,			HIDC_COMBO_DIFF_CHARSET,		// 文字コードセット
+	IDC_CHECK_CP,				HIDC_CHECK_DIFF_CP,				// CP
 //	IDC_FRAME_SEARCH_MSG,		HIDC_FRAME_DIFF_SEARCH_MSG,
 //	IDC_STATIC,					-1,
 	0, 0
@@ -57,6 +60,9 @@ const DWORD p_helpids[] = {	//13200
 
 static const SAnchorList anchorList[] = {
 	{IDC_BUTTON_DIFF_DST,       ANCHOR_RIGHT},
+	{IDC_STATIC_CHARCODE,       ANCHOR_RIGHT},
+	{IDC_COMBO_CHARSET,         ANCHOR_RIGHT},
+	{IDC_CHECK_CP,              ANCHOR_RIGHT},
 	{IDC_CHECK_DIFF_OPT_BLINE,  ANCHOR_BOTTOM},
 	{IDC_CHECK_DIFF_OPT_CASE,   ANCHOR_BOTTOM},
 	{IDC_CHECK_DIFF_OPT_SPACE,  ANCHOR_BOTTOM},
@@ -191,6 +197,10 @@ BOOL CDlgDiff::OnBnClicked( int wID )
 	case IDC_RADIO_DIFF_FILE2:
 		::CheckDlgButton( GetHwnd(), IDC_RADIO_DIFF_FILE1, FALSE );
 		return TRUE;
+	case IDC_CHECK_CP:
+		::EnableWindow( ::GetDlgItem( GetHwnd(), IDC_CHECK_CP ), FALSE );
+		CCodePage::AddComboCodePages( GetHwnd(), GetItemHwnd(IDC_COMBO_CHARSET), -1 );
+		return TRUE;
 	}
 
 	/* 基底クラスメンバ */
@@ -200,6 +210,18 @@ BOOL CDlgDiff::OnBnClicked( int wID )
 /* ダイアログデータの設定 */
 void CDlgDiff::SetData( void )
 {
+	//文字コードセット
+	{
+		CCodeTypesForCombobox cCodeTypes;
+		HWND hwndCharset = GetItemHwnd(IDC_COMBO_CHARSET);
+		Combo_ResetContent(hwndCharset);
+		for( int i = 0; i < cCodeTypes.GetCount(); ++i ){
+			int idx = Combo_AddString(hwndCharset, cCodeTypes.GetName(i));
+			Combo_SetItemData(hwndCharset, idx, cCodeTypes.GetCode(i));
+		}
+		Combo_SetCurSel(hwndCharset, 0);
+	}
+
 	//オプション
 	m_nDiffFlgOpt = m_pShareData->m_nDiffFlgOpt;
 	if( m_nDiffFlgOpt & 0x0001 ) ::CheckDlgButton( GetHwnd(), IDC_CHECK_DIFF_OPT_CASE,   TRUE );
@@ -372,6 +394,12 @@ int CDlgDiff::GetData( void )
 		//相手ファイルが指定されてなければキャンセル
 		if( m_szFile2[0] == '\0' ) ret = FALSE;
 
+		// 2015.03.25 文字コード指定追加
+		if( ret ){
+			HWND hwndCharset = GetItemHwnd(IDC_COMBO_CHARSET);
+			int nIdx = Combo_GetCurSel(hwndCharset);
+			m_nCodeTypeDst = (ECodeType)Combo_GetItemData(hwndCharset, nIdx);
+		}
 	}
 	else if( ::IsDlgButtonChecked( GetHwnd(), IDC_RADIO_DIFF_DST2 ) == BST_CHECKED )
 	{

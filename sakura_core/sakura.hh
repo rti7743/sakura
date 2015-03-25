@@ -997,6 +997,8 @@
 #define HIDC_CHECK_DIFF_EXEC_STATE	13216	//DIFF差分がないときにメッセージ表示
 #define HIDC_CHECK_DIFF_NOTIFYNOTFOUND	13217	// 見つからないときにメッセージを表示	// 2006.10.10 ryoji
 #define HIDC_CHECK_DIFF_SEARCHALL		13218	// 先頭（末尾）から再検索する	// 2006.10.10 ryoji//コントロールコード
+#define HIDC_COMBO_DIFF_CHARSET		13219	// 文字コードセット
+#define HIDC_CHECK_DIFF_CP			13220	// CP
 
 //コントロールコード
 #define HIDC_LIST_CTRLCODE			13300

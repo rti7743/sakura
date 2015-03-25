@@ -970,7 +970,20 @@ bool CMacro::HandleCommand(
 		//		0x0010 -t expand-tabs         TAB-SPACE変換
 		//		0x0020    (編集中のファイルが旧ファイル)
 		//		0x0040    (DIFF差分がないときにメッセージ表示)
-		/* NO BREAK */
+		//	Argument[2]: 相手の文字コード // 2015.03.25
+		//
+		{
+			if( Argument[0] == NULL ){
+				::MYMESSAGEBOX( NULL, MB_OK | MB_ICONSTOP | MB_TOPMOST,
+					EXEC_ERROR_TITLE, LS(STR_ERR_DLGMACRO07)
+				);
+				return false;
+			}
+			int nOpt = wtoi_def(Argument[1], 0);
+			int nOptCode = wtoi_def(Argument[2], CODE_AUTODETECT);
+			pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[0], nOpt, nOptCode, 0 );
+		}
+		break;
 
 	case F_EXECMD:
 		//	Argument[0]を実行。オプションはArgument[1]に。
