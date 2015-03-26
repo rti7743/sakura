@@ -55,6 +55,7 @@
 #define HLP000132	132 //Oracle SQL*Plusをアクティブ表示
 #define HLP000027	27 //Oracle SQL*Plusで実行
 #define HLP000121	121 //ブラウズ
+#define HLP000374	374 //URLを開く
 #define HLP000022	22 //ファイルのプロパティ
 #define HLP000363	363 //プロファイルマネージャ
 #define HLP000029	29 //最近使ったファイル
@@ -369,6 +370,7 @@
 //#define HLP000304	304 //メタ文字列の仕様 HLP000272
 #define HLP000089	89 //利用可能な正規表現	// 2007.09.30
 #define HLP000108	108 //1行選択	// 2007.12.01
+#define HLP000375	375 //URL選択
 
 #define HLP000284	284	//ExpandParameter
 #define HLP000288	288	//文字入力

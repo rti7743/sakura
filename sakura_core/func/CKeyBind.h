@@ -50,6 +50,7 @@ struct KEYDATA {
 #define VKEX_WHEEL_DOWN		0x0108	// ホイールダウン
 #define VKEX_WHEEL_LEFT		0x0109	// ホイール左
 #define VKEX_WHEEL_RIGHT	0x010A	// ホイール右
+#define VKEX_DBLCLK_URL		0x010B	// ダブルクリック(URL選択)
 
 extern const TCHAR* jpVKEXNames[];
 extern const int jpVKEXNamesLen;

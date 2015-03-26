@@ -224,6 +224,13 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 		}
 		break;
 
+	case F_OPENURL:
+		{
+			if( 0 != lParam ){
+				AddStringParam( (const wchar_t*)lParam );
+			}
+		}
+		break;
 	case F_EXECMD:
 		{
 			AddStringParam( (const wchar_t*)lParam );	//	lParamを追加。
@@ -834,6 +841,12 @@ bool CMacro::HandleCommand(
 		{
 			int len = ArgLengths[0];
 			pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[0], len, 0, 0 );	//	標準
+		}
+		break;
+	case F_OPENURL:
+		{
+			// Argument[0]: NULL許容
+			pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[0], 0, 0, 0 );
 		}
 		break;
 	/* 一つ目、二つ目とも引数は数値 */

@@ -146,6 +146,37 @@ void CViewCommander::Command_SELECTLINE( int lparam )
 
 
 
+void CViewCommander::Command_SELECTURL( const CLayoutPoint* pptCaret )
+{
+	CLogicRange cUrlRange;	//URL範囲
+	CLayoutPoint ptCaret;
+	if( pptCaret == NULL ){
+		ptCaret = GetCaret().GetCaretLayoutPos();
+	}else{
+		ptCaret = *pptCaret;
+	}
+	// カーソル位置にURLが有る場合のその範囲を調べる
+	bool bIsUrl = m_pCommanderView->IsCurrentPositionURL(
+		ptCaret,						// カーソル位置
+		&cUrlRange,						// URL範囲
+		NULL							// URL受け取り先
+	);
+	if( bIsUrl ){
+		/* 現在の選択範囲を非選択状態に戻す */
+		m_pCommanderView->GetSelectionInfo().DisableSelectArea( true );
+
+		CLayoutRange sRangeB;
+		GetDocument()->m_cLayoutMgr.LogicToLayout( cUrlRange, &sRangeB );
+		m_pCommanderView->GetSelectionInfo().m_sSelectBgn = sRangeB;
+		m_pCommanderView->GetSelectionInfo().m_sSelect = sRangeB;
+
+		/* 選択領域描画 */
+		m_pCommanderView->GetSelectionInfo().DrawSelectArea();
+	}
+}
+
+
+
 /* 範囲選択開始 */
 void CViewCommander::Command_BEGIN_SELECT( void )
 {

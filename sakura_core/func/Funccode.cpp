@@ -116,6 +116,7 @@ const EFunctionCode pnFuncList_File[] = {	//Oct. 16, 2000 JEPRO 変数名変更(List5
 	F_ACTIVATE_SQLPLUS			,	/* Oracle SQL*Plusをアクティブ表示 */	//Sept. 20, 2000 「コンパイル」JEPRO アクティブ表示を上に移動した
 	F_PLSQL_COMPILE_ON_SQLPLUS	,	/* Oracle SQL*Plusで実行 */	//Sept. 20, 2000 jepro 説明の「コンパイル」を「実行」に統一
 	F_BROWSE			,	//ブラウズ
+	F_OPENURL			,	//URLを開く
 	F_VIEWMODE			,	//ビューモード
 	F_PROPERTY_FILE		,	/* ファイルのプロパティ */
 	F_PROFILEMGR		,	//プロファイルマネージャ
@@ -207,6 +208,7 @@ const EFunctionCode pnFuncList_Select[] = {
 	F_SELECTWORD			,	//現在位置の単語選択
 	F_SELECTALL				,	//すべて選択
 	F_SELECTLINE			,	//1行選択	// 2007.10.06 nasukoji
+	F_SELECTURL				,	//URL選択
 	F_BEGIN_SEL				,	//範囲選択開始
 	F_UP_SEL				,	//(範囲選択)カーソル上移動
 	F_DOWN_SEL				,	//(範囲選択)カーソル下移動
@@ -618,6 +620,7 @@ int FuncID_To_HelpContextID( EFunctionCode nFuncID )
 	case F_ACTIVATE_SQLPLUS:	return HLP000132;			/* Oracle SQL*Plusをアクティブ表示 */
 	case F_PLSQL_COMPILE_ON_SQLPLUS:	return HLP000027;	/* Oracle SQL*Plusで実行 */
 	case F_BROWSE:				return HLP000121;			//ブラウズ
+	case F_OPENURL:				return HLP000374;			//URLを開く
 	case F_VIEWMODE:			return HLP000249;			//ビューモード
 	case F_PROPERTY_FILE:		return HLP000022;			/* ファイルのプロパティ */
 	case F_PROFILEMGR:			return HLP000363;			//プロファイルマネージャ
@@ -688,6 +691,7 @@ int FuncID_To_HelpContextID( EFunctionCode nFuncID )
 	case F_SELECTWORD:		return HLP000045;	//現在位置の単語選択
 	case F_SELECTALL:		return HLP000044;	//すべて選択
 	case F_SELECTLINE:		return HLP000108;	//1行選択	// 2007.10.06 nasukoji 2013.05.03 Moca
+	case F_SELECTURL:		return HLP000375;	//URL選択
 	case F_BEGIN_SEL:		return HLP000233;	//範囲選択開始
 	case F_UP_SEL:			return HLP000290;	//(範囲選択)カーソル上移動	// 2006.10.11 ryoji
 	case F_DOWN_SEL:		return HLP000290;	//(範囲選択)カーソル下移動	// 2006.10.11 ryoji

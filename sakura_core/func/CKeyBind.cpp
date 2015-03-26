@@ -702,6 +702,7 @@ static const KEYDATAINIT	KeyDataInit[] = {
 	{ VKEX_WHEEL_DOWN,	(LPCTSTR)STR_KEY_BIND_WHEEL_DOWN,	{ F_WHEELDOWN,		F_WHEELDOWN,		F_SETFONTSIZEDOWN,		F_WHEELDOWN,		F_WHEELDOWN,			F_WHEELDOWN,		F_WHEELDOWN,			F_WHEELDOWN }, },
 	{ VKEX_WHEEL_LEFT,	(LPCTSTR)STR_KEY_BIND_WHEEL_LEFT,	{ F_WHEELLEFT,		F_WHEELLEFT,		F_WHEELLEFT,			F_WHEELLEFT,		F_WHEELLEFT,			F_WHEELLEFT,		F_WHEELLEFT,			F_WHEELLEFT }, },
 	{ VKEX_WHEEL_RIGHT,	(LPCTSTR)STR_KEY_BIND_WHEEL_RIGHT,	{ F_WHEELRIGHT,		F_WHEELRIGHT,		F_WHEELRIGHT,			F_WHEELRIGHT,		F_WHEELRIGHT,			F_WHEELRIGHT,		F_WHEELRIGHT,			F_WHEELRIGHT }, },
+	{ VKEX_DBLCLK_URL,	(LPCTSTR)STR_KEY_BIND_DBLCLK_URL,	{ F_OPENURL,		F_OPENURL,			F_OPENURL,				F_OPENURL,			F_OPENURL,				F_OPENURL,			F_OPENURL,				F_OPENURL }, },
 
 	/* ファンクションキー */
 	//keycode,	keyname,			なし,				Shitf+,				Ctrl+,					Shift+Ctrl+,		Alt+,					Shit+Alt+,			Ctrl+Alt+,				Shift+Ctrl+Alt+
@@ -819,7 +820,8 @@ const TCHAR* jpVKEXNames[] = {
 	_T("ホイールアップ"),
 	_T("ホイールダウン"),
 	_T("ホイール左"),
-	_T("ホイール右")
+	_T("ホイール右"),
+	_T("ダブルクリック(URL選択)")
 };
 const int jpVKEXNamesLen = _countof( jpVKEXNames );
 

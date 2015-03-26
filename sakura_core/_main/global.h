@@ -128,7 +128,8 @@ enum MOUSEFUNCTION_ASSIGN {
 	MOUSEFUNCTION_WHEELDOWN		= 8,	//!< ホイールダウン
 	MOUSEFUNCTION_WHEELLEFT		= 9,	//!< ホイール左
 	MOUSEFUNCTION_WHEELRIGHT	= 10,	//!< ホイール右
-	MOUSEFUNCTION_KEYBEGIN		= 11,	//!< マウスへの割り当て個数＝本当のキー割り当て先頭INDEX
+	MOUSEFUNCTION_DBLCK_URL		= 11,	//!< ダブルクリック(URL選択)
+	MOUSEFUNCTION_KEYBEGIN		= 12,	//!< マウスへの割り当て個数＝本当のキー割り当て先頭INDEX
 };
 
 // 2008.05.30 nasukoji	テキストの折り返し方法

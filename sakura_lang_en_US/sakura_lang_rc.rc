@@ -2986,6 +2986,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     F_BROWSE                "Browse"
+    F_OPENURL               "Open URL"
     F_VIEWMODE              "View Mode"
     F_PROPERTY_FILE         "File Property"
     F_PROFILEMGR            "Profile Maneger"
@@ -3105,6 +3106,7 @@ BEGIN
     F_SELECTWORD            "Select Word at Cursor"
     F_SELECTALL             "Select All"
     F_SELECTLINE            "Select complete line"
+    F_SELECTURL             "Select URL"
     F_BEGIN_SEL             "Begin Selection"
     F_UP_SEL                "(Sel.)Cursor Up"
     F_DOWN_SEL              "(Sel.)Cursor Down"
@@ -4599,6 +4601,7 @@ BEGIN
 	STR_KEY_BIND_WHEEL_DOWN			"Wheel-Down"
 	STR_KEY_BIND_WHEEL_LEFT			"Wheel-Left"
 	STR_KEY_BIND_WHEEL_RIGHT		"Wheel-Right"
+	STR_KEY_BIND_DBLCLK_URL			"Double-Click(Select URL)"
 	STR_KEY_BIND_HAT_ENG_QT			"^(EN KBD ')"
 	STR_KEY_BIND_AT_ENG_BQ			"@(EN KBD `)"
 	STR_KEY_BIND_APLI				"Apli Key"

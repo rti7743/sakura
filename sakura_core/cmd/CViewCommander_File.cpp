@@ -56,6 +56,7 @@
 #include "plugin/CJackManager.h"
 #include "env/CSakuraEnvironment.h"
 #include "debug/CRunningTimer.h"
+#include <process.h> // _beginthreadex
 #include "sakura_rc.h"
 
 
@@ -528,6 +529,80 @@ void CViewCommander::Command_BROWSE( void )
 	::ShellExecuteEx(&info);
 
 	return;
+}
+
+
+
+/* ShellExecuteを呼び出すプロシージャ */
+/*   呼び出し前に lpParameter を new しておくこと */
+static unsigned __stdcall ShellExecuteProc( LPVOID lpParameter )
+{
+	LPTSTR pszFile = (LPTSTR)lpParameter;
+	::ShellExecute( NULL, _T("open"), pszFile, NULL, NULL, SW_SHOW );
+	delete []pszFile;
+	return 0;
+}
+
+
+
+/*! URLを開く
+	@date 2014.12.24 CEditView::OnLBUTTONDBLCLKから移動
+*/
+void CViewCommander::Command_OPENURL( const wchar_t* url )
+{
+	std::wstring wstrOPEN;
+	if( NULL == url || url[0] == L'\0' ){
+		CLogicRange cUrlRange;
+		std::wstring wstrURL;
+		if(
+			m_pCommanderView->IsCurrentPositionURL(
+				GetCaret().GetCaretLayoutPos(),	// カーソル位置
+				&cUrlRange,				// URL範囲
+				&wstrURL				// URL受け取り先
+			)
+		){
+			const wchar_t*	pszMailTo = L"mailto:";
+			// URLを開く
+		 	// 現在位置がメールアドレスならば、NULL以外と、その長さを返す
+			if( IsMailAddress( wstrURL.c_str(), wstrURL.length(), NULL ) ){
+				wstrOPEN = pszMailTo + wstrURL;
+			}
+			else{
+				if( wcsnicmp( wstrURL.c_str(), L"ttp://", 6 ) == 0 ){	//抑止URL
+					wstrOPEN = L"h" + wstrURL;
+				}
+				else if( wcsnicmp( wstrURL.c_str(), L"tp://", 5 ) == 0 ){	//抑止URL
+					wstrOPEN = L"ht" + wstrURL;
+				}
+				else{
+					wstrOPEN = wstrURL;
+				}
+			}
+		}else{
+			return;
+		}
+	}else{
+		wstrOPEN = url;
+	}
+	// URLを開く
+	// 2009.05.21 syat UNCパスだと1分以上無応答になることがあるのでスレッド化
+	CWaitCursor cWaitCursor( m_pCommanderView->GetHwnd() );	// カーソルを砂時計にする
+
+	unsigned int nThreadId;
+	LPCTSTR szUrl = to_tchar(wstrOPEN.c_str());
+	LPTSTR szUrlDup = new TCHAR[_tcslen( szUrl ) + 1];
+	_tcscpy( szUrlDup, szUrl );
+	HANDLE hThread = (HANDLE)_beginthreadex( NULL, 0, ShellExecuteProc, (LPVOID)szUrlDup, 0, &nThreadId );
+	if( hThread != INVALID_HANDLE_VALUE ){
+		// ユーザーのURL起動指示に反応した目印としてちょっとの時間だけ砂時計カーソルを表示しておく
+		// ShellExecute は即座にエラー終了することがちょくちょくあるので WaitForSingleObject ではなく Sleep を使用（ex.存在しないパスの起動）
+		// 【補足】いずれの API でも待ちを長め（2～3秒）にするとなぜか Web ブラウザ未起動からの起動が重くなる模様（PCタイプ, XP/Vista, IE/FireFox に関係なく）
+		::Sleep(200);
+		::CloseHandle(hThread);
+	}else{
+		//スレッド作成失敗
+		delete[] szUrlDup;
+	}
 }
 
 

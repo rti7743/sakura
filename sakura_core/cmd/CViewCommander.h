@@ -125,6 +125,7 @@ public:
 	void Command_ACTIVATE_SQLPLUS( void );		/* Oracle SQL*Plusをアクティブ表示 */
 	void Command_PLSQL_COMPILE_ON_SQLPLUS( void );/* Oracle SQL*Plusで実行 */
 	void Command_BROWSE( void );				/* ブラウズ */
+	void Command_OPENURL( const wchar_t* url ); // URLを開く
 	void Command_VIEWMODE( void );				/* ビューモード */
 	void Command_PROPERTY_FILE( void );			/* ファイルのプロパティ */
 	void Command_PROFILEMGR( void );			// プロファイルマネージャ
@@ -212,6 +213,7 @@ public:
 	bool Command_SELECTWORD( CLayoutPoint* pptCaretPos = NULL );		/* 現在位置の単語選択 */
 	void Command_SELECTALL( void );			/* すべて選択 */
 	void Command_SELECTLINE( int lparam );	/* 1行選択 */	// 2007.10.13 nasukoji
+	void Command_SELECTURL( const CLayoutPoint* );	// URL選択
 	void Command_BEGIN_SELECT( void );		/* 範囲選択開始 */
 
 	/* 矩形選択系 */

@@ -284,6 +284,7 @@ BOOL CViewCommander::HandleCommand(
 		Command_PLSQL_COMPILE_ON_SQLPLUS();
 		break;
 	case F_BROWSE:				Command_BROWSE();break;				/* ブラウズ */
+	case F_OPENURL:				Command_OPENURL( (const wchar_t*)lparam1 );break;	// URLを開く
 	case F_VIEWMODE:			Command_VIEWMODE();break;			/* ビューモード */
 	case F_PROPERTY_FILE:		Command_PROPERTY_FILE();break;		/* ファイルのプロパティ */
 	case F_PROFILEMGR:			Command_PROFILEMGR();break;			// プロファイルマネージャ
@@ -367,6 +368,7 @@ BOOL CViewCommander::HandleCommand(
 	case F_SELECTWORD:		Command_SELECTWORD();break;						//現在位置の単語選択
 	case F_SELECTALL:		Command_SELECTALL();break;						//すべて選択
 	case F_SELECTLINE:		Command_SELECTLINE( lparam1 );break;			//1行選択	// 2007.10.13 nasukoji
+	case F_SELECTURL:		Command_SELECTURL( NULL );break;				//URL選択
 	case F_BEGIN_SEL:		Command_BEGIN_SELECT();break;					/* 範囲選択開始 */
 	case F_UP_SEL:			Command_UP( true, bRepeat, lparam1 ); break;	//(範囲選択)カーソル上移動
 	case F_DOWN_SEL:		Command_DOWN( true, bRepeat ); break;			//(範囲選択)カーソル下移動

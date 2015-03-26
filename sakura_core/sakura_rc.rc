@@ -2987,6 +2987,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     F_BROWSE                "ブラウズ"
+    F_OPENURL               "URLを開く"
     F_VIEWMODE              "ビューモード"
     F_PROPERTY_FILE         "ファイルのプロパティ"
     F_PROFILEMGR            "プロファイルマネージャ"
@@ -3106,6 +3107,7 @@ BEGIN
     F_SELECTWORD            "現在位置の単語選択"
     F_SELECTALL             "すべて選択"
     F_SELECTLINE            "1行選択"
+    F_SELECTURL             "URL選択"
     F_BEGIN_SEL             "範囲選択開始"
     F_UP_SEL                "(選択)カーソル上移動"
     F_DOWN_SEL              "(選択)カーソル下移動"
@@ -4596,6 +4598,7 @@ BEGIN
 	STR_KEY_BIND_WHEEL_DOWN			"ホイールダウン"
 	STR_KEY_BIND_WHEEL_LEFT			"ホイール左"
 	STR_KEY_BIND_WHEEL_RIGHT		"ホイール右"
+	STR_KEY_BIND_DBLCLK_URL			"ダブルクリック(URL選択)"
 	STR_KEY_BIND_HAT_ENG_QT			"^(英語')"
 	STR_KEY_BIND_AT_ENG_BQ			"@(英語`)"
 	STR_KEY_BIND_APLI				"アプリキー"

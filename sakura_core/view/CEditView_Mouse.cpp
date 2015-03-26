@@ -21,7 +21,6 @@
 */
 
 #include "StdAfx.h"
-#include <process.h> // _beginthreadex
 #include <limits.h>
 #include "CEditView.h"
 #include "_main/CAppMode.h"
@@ -482,37 +481,7 @@ normal_action:;
 		else{
 			/* URLがクリックされたら選択するか */
 			if( FALSE != GetDllShareData().m_Common.m_sEdit.m_bSelectClickedURL ){
-
-				CLogicRange cUrlRange;	//URL範囲
-				// カーソル位置にURLが有る場合のその範囲を調べる
-				bool bIsUrl = IsCurrentPositionURL(
-					ptNewCaret,	// カーソル位置
-					&cUrlRange,						// URL範囲
-					NULL							// URL受け取り先
-				);
-				if( bIsUrl ){
-					/* 現在の選択範囲を非選択状態に戻す */
-					GetSelectionInfo().DisableSelectArea( true );
-
-					/*
-					  カーソル位置変換
-					  物理位置(行頭からのバイト数、折り返し無し行位置)
-					  →レイアウト位置(行頭からの表示桁位置、折り返しあり行位置)
-						2002/04/08 YAZAKI 少しでもわかりやすく。
-					*/
-					CLayoutRange sRangeB;
-					m_pcEditDoc->m_cLayoutMgr.LogicToLayout( cUrlRange, &sRangeB );
-					/*
-					m_pcEditDoc->m_cLayoutMgr.LogicToLayout( CLogicPoint(nUrlIdxBgn          , nUrlLine), sRangeB.GetFromPointer() );
-					m_pcEditDoc->m_cLayoutMgr.LogicToLayout( CLogicPoint(nUrlIdxBgn + nUrlLen, nUrlLine), sRangeB.GetToPointer() );
-					*/
-
-					GetSelectionInfo().m_sSelectBgn = sRangeB;
-					GetSelectionInfo().m_sSelect = sRangeB;
-
-					/* 選択領域描画 */
-					GetSelectionInfo().DrawSelectArea();
-				}
+				GetCommander().Command_SELECTURL( &ptNewCaret );
 			}
 			if( bSetPtNewCaret && !bSelectWord ){
 				/* 現在のカーソル位置によって選択範囲を変更 */
@@ -1589,17 +1558,6 @@ void CEditView::OnLBUTTONUP( WPARAM fwKeys, int xPos , int yPos )
 
 
 
-/* ShellExecuteを呼び出すプロシージャ */
-/*   呼び出し前に lpParameter を new しておくこと */
-static unsigned __stdcall ShellExecuteProc( LPVOID lpParameter )
-{
-	LPTSTR pszFile = (LPTSTR)lpParameter;
-	::ShellExecute( NULL, _T("open"), pszFile, NULL, NULL, SW_SHOW );
-	delete []pszFile;
-	return 0;
-}
-
-
 // マウス左ボタンダブルクリック
 // 2007.01.18 kobake IsCurrentPositionURL仕様変更に伴い、処理の書き換え
 void CEditView::OnLBUTTONDBLCLK( WPARAM fwKeys, int _xPos , int _yPos )
@@ -1638,26 +1596,18 @@ void CEditView::OnLBUTTONDBLCLK( WPARAM fwKeys, int _xPos , int _yPos )
 					wstrOPEN = wstrURL;
 				}
 			}
-			{
-				// URLを開く
-				// 2009.05.21 syat UNCパスだと1分以上無応答になることがあるのでスレッド化
-				CWaitCursor cWaitCursor( GetHwnd() );	// カーソルを砂時計にする
-
-				unsigned int nThreadId;
-				LPCTSTR szUrl = to_tchar(wstrOPEN.c_str());
-				LPTSTR szUrlDup = new TCHAR[_tcslen( szUrl ) + 1];
-				_tcscpy( szUrlDup, szUrl );
-				HANDLE hThread = (HANDLE)_beginthreadex( NULL, 0, ShellExecuteProc, (LPVOID)szUrlDup, 0, &nThreadId );
-				if( hThread != INVALID_HANDLE_VALUE ){
-					// ユーザーのURL起動指示に反応した目印としてちょっとの時間だけ砂時計カーソルを表示しておく
-					// ShellExecute は即座にエラー終了することがちょくちょくあるので WaitForSingleObject ではなく Sleep を使用（ex.存在しないパスの起動）
-					// 【補足】いずれの API でも待ちを長め（2～3秒）にするとなぜか Web ブラウザ未起動からの起動が重くなる模様（PCタイプ, XP/Vista, IE/FireFox に関係なく）
-					::Sleep(200);
-					::CloseHandle(hThread);
-				}else{
-					//スレッド作成失敗
-					delete[] szUrlDup;
-				}
+			int nIdx = getCtrlKeyState();
+			// デフォルトはF_OPENURL
+			EFunctionCode nFuncID = GetDllShareData().m_Common.m_sKeyBind.m_pKeyNameArr[MOUSEFUNCTION_DBLCK_URL].m_nFuncCodeArr[nIdx];
+			if (nFuncID == F_0) {
+				// 何もしない
+			}else if ( (F_PLUGCOMMAND_FIRST <= nFuncID && nFuncID <= F_PLUGCOMMAND_LAST) ||
+				F_USERMACRO_0 <= nFuncID && nFuncID < (F_USERMACRO_0 + MAX_CUSTMACRO)) {
+				CMacro cMacroParam(F_0);
+				cMacroParam.AddStringParam( wstrOPEN.c_str() );
+				GetCommander().HandleCommand(nFuncID, true, (LPARAM)&cMacroParam, 0, 0, 0); // マクロ記録
+			}else{
+				GetCommander().HandleCommand(nFuncID, true, 0, 0, 0, 0); // マクロ記録
 			}
 			return;
 		}
