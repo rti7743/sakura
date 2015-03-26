@@ -174,6 +174,7 @@ bool CShareData_IO::ShareData_IO_2( bool bRead )
 	ShareData_IO_Macro( cProfile );
 	ShareData_IO_Statusbar( cProfile );		// 2008/6/21 Uchi
 	ShareData_IO_MainMenu( cProfile );		// 2010/5/15 Uchi
+	ShareData_IO_MouseGesture( cProfile );
 	ShareData_IO_Other( cProfile, cProfHistory );
 
 	delete pcMenuDrawer;					// 2010/7/4 Uchi
@@ -2228,6 +2229,36 @@ void CShareData_IO::IO_MainMenu( CDataProfile& cProfile, std::vector<std::wstrin
 			if (nIdx < MAX_MAINMENU_TOP) {
 				mainmenu.m_nMenuTopIdx[nIdx++] = i;
 			}
+		}
+	}
+}
+
+//マウスジェスチャー
+void CShareData_IO::ShareData_IO_MouseGesture(CDataProfile& cProfile)
+{
+	IO_MouseGesture(cProfile, GetDllShareData().m_Common.m_sMouseGesture, false);
+}
+
+void CShareData_IO::IO_MouseGesture(CDataProfile& cProfile, CommonSetting_MouseGesture& sMouseGesture, bool bOutCmdName)
+{
+	const WCHAR* pszSecName = LTEXT("MouseGesture");
+
+	cProfile.IOProfileData(pszSecName, LTEXT("nUse"), sMouseGesture.m_nUse);
+	cProfile.IOProfileData(pszSecName, LTEXT("nType"), sMouseGesture.m_nType);
+	cProfile.IOProfileData(pszSecName, LTEXT("nCount"), sMouseGesture.m_nGestureNum);
+	for(int i = 0; i < MAX_MOUSE_GESTURE_COUNT; i++){
+		WCHAR szGestureKey[32];
+		WCHAR szFuncIDKey[32];
+		auto_sprintf(szGestureKey, L"Gesture[%03d].szGesture", i);
+		auto_sprintf(szFuncIDKey, L"Gesture[%03d].nFuncID", i);
+		if(i < sMouseGesture.m_nGestureNum){
+			cProfile.IOProfileData(pszSecName, szGestureKey, MakeStringBufferT(sMouseGesture.m_cGesture[i].m_sGesture));
+			cProfile.IOProfileData(pszSecName, szFuncIDKey, sMouseGesture.m_cGesture[i].m_nFuncID);
+		} else{
+			TCHAR szBuffer[MAX_GESTURE_LENGTH] = { _T('\0') };
+			int nFuncID = 0;
+			cProfile.IOProfileData(pszSecName, szGestureKey, MakeStringBufferT(szBuffer));
+			cProfile.IOProfileData(pszSecName, szFuncIDKey, nFuncID);
 		}
 	}
 }

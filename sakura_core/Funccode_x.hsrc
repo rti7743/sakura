@@ -394,6 +394,7 @@ F_OPTION_TAB			= 32015,	// 共通設定『タブ』						？
 F_OPTION_STATUSBAR		= 32016,	// 共通設定『ステータスバー』			？
 F_OPTION_PLUGIN			= 32017,	// 共通設定『プラグイン』				？
 F_OPTION_MAINMENU		= 32018,	// 共通設定『メインメニュー』			？
+F_OPTION_GESTURE		= 32019,	// 共通設定『マウスジェスチャー』		？
 
 // マクロ系
 F_RECKEYMACRO			= 31250,	// キーマクロの記録開始／終了		なし

@@ -42,6 +42,7 @@ LIBS= \
  -lshell32 -lole32 -loleaut32 \
  -luuid -lcomctl32 -limm32 \
  -lmpr -limagehlp -lshlwapi \
+ -lwinmm \
  -static-libgcc -static-libstdc++ -mwindows -s
 
 exe= sakura.exe
@@ -163,6 +164,7 @@ dlg/CDlgGrep.o \
 dlg/CDlgGrepReplace.o \
 dlg/CDlgInput1.o \
 dlg/CDlgJump.o \
+dlg/CDlgMouseGesture.o \
 dlg/CDlgOpenFile.o \
 dlg/CDlgPluginOption.o \
 dlg/CDlgPrintSetting.o \
@@ -220,6 +222,7 @@ func/CFuncKeyWnd.o \
 func/CFuncLookup.o \
 func/CKeyBind.o \
 func/Funccode.o \
+gesture/CMouseGesture.o \
 io/CBinaryStream.o \
 io/CFile.o \
 io/CFileLoad.o \
@@ -266,6 +269,7 @@ prop/CPropComFile.o \
 prop/CPropComFileName.o \
 prop/CPropComFormat.o \
 prop/CPropComGeneral.o \
+prop/CPropComGesture.o \
 prop/CPropComGrep.o \
 prop/CPropComHelper.o \
 prop/CPropComKeybind.o \

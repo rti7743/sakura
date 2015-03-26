@@ -396,6 +396,8 @@ BOOL CEditView::Create(
 		m_bHideMouse = true;
 	}
 
+	m_cMouseGesture.Initialize(&GetDllShareData().m_Common.m_sMouseGesture);
+
 	CTypeSupport cTextType(this, COLORIDX_TEXT);
 	m_crBack = cTextType.GetBackColor();
 
@@ -689,14 +691,14 @@ LRESULT CEditView::DispatchEvent(
 	case WM_RBUTTONDBLCLK:
 //		MYTRACE( _T(" WM_RBUTTONDBLCLK wParam=%08xh, x=%d y=%d\n"), wParam, LOWORD( lParam ), HIWORD( lParam ) );
 		return 0L;
-//	case WM_RBUTTONDOWN:
+	case WM_RBUTTONDOWN:
 //		MYTRACE( _T(" WM_RBUTTONDOWN wParam=%08xh, x=%d y=%d\n"), wParam, LOWORD( lParam ), HIWORD( lParam ) );
-//		OnRBUTTONDOWN( wParam, (short)LOWORD( lParam ), (short)HIWORD( lParam ) );
+		OnRBUTTONDOWN( wParam, (short)LOWORD( lParam ), (short)HIWORD( lParam ) );
 //		if( m_nMyIndex != m_pcEditWnd->GetActivePane() ){
 //			/* アクティブなペインを設定 */
 //			m_pcEditWnd->SetActivePane( m_nMyIndex );
 //		}
-//		return 0L;
+		return 0L;
 	case WM_RBUTTONUP:
 //		MYTRACE( _T(" WM_RBUTTONUP wParam=%08xh, x=%d y=%d\n"), wParam, LOWORD( lParam ), HIWORD( lParam ) );
 		OnRBUTTONUP( wParam, (short)LOWORD( lParam ), (short)HIWORD( lParam ) );

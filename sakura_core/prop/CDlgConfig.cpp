@@ -50,6 +50,7 @@
 #include "CDlgConfigChildSupport.h"
 #include "CDlgConfigChildMacro.h"
 #include "CDlgConfigChildPlugin.h"
+#include "CDlgConfigChildGesture.h"
 #include "env/CShareData.h"
 #include "util/shell.h"
 #include "sakura_rc.h"
@@ -92,14 +93,15 @@ public:\
 	ChildOpenClose(Support)
 	ChildOpenClose(Macro)
 	ChildOpenClose(Plugin)
+	ChildOpenClose(Gesture)
 
 #undef ChildOpenClose
 public:
 	CConfigChildHolder(){}
-	static const SConfigChildDlgInfo defaultItems[18];
+	static const SConfigChildDlgInfo defaultItems[19];
 	static const SConfigChildDlgInfo keywordItems[1];
 };
-const SConfigChildDlgInfo CConfigChildHolder::defaultItems[18] = {
+const SConfigChildDlgInfo CConfigChildHolder::defaultItems[19] = {
 	{ STR_PROPCOMMON_GENERAL,	COMMON,	OpenGeneral,	CloseGeneral,	F_OPTION_GENERAL },
 	{ STR_PROPCOMMON_WINDOW,	COMMON,	OpenWindow,		CloseWindow,	F_OPTION_WINDOW },
 	{ STR_PROPCOMMON_MAINMENU,	COMMON,	OpenMainMenu,	CloseMainMenu,	F_OPTION_MAINMENU },
@@ -118,6 +120,7 @@ const SConfigChildDlgInfo CConfigChildHolder::defaultItems[18] = {
 	{ STR_PROPCOMMON_SUPPORT,	COMMON,	OpenSupport,	CloseSupport,	F_OPTION_HELPER },
 	{ STR_PROPCOMMON_MACRO,		COMMON,	OpenMacro,		CloseMacro,		F_OPTION_MACRO },
 	{ STR_PROPCOMMON_PLUGIN,	COMMON,	OpenPlugin,		ClosePlugin,	F_OPTION_PLUGIN },
+	{ STR_PROPCOMMON_GESTURE,	COMMON,	OpenGesture,	CloseGesture,	F_OPTION_GESTURE },
 };
 	
 const SConfigChildDlgInfo CConfigChildHolder::keywordItems[1] = {

@@ -809,6 +809,22 @@
 #define IDC_BUTTON_CLOSE                1739
 #define IDC_CONFIGTREE                  1740
 #define IDC_BUTTON_CONFIGFOLDER         1741
+#define IDC_COMBO_TYPE                  1742
+#define IDC_BUTTON_EDIT                 1743
+#define IDC_LIST_GESTURE                1744
+#define IDC_BUTTON_LEFT_UP              1745
+#define IDC_BUTTON_RIGHT_UP             1746
+#define IDC_BUTTON_LEFT_DOWN            1747
+#define IDC_BUTTON_RIGHT_DOWN           1748
+#define IDC_CHECKBOX_SHIFT              1749
+#define IDC_CHECKBOX_CTRL               1750
+#define IDC_CHECKBOX_ALT                1751
+#define IDC_BUTTON_RESET                1752
+#define IDC_BUTTON_BROWSE               1753
+#define IDC_EDIT_FUNCTION               1754
+#define IDC_CHECKBOX_USE                1755
+#define IDC_STATIC_TYPE                 1756
+#define IDC_CHECKBOX_GESTURE            1757
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -839,11 +855,14 @@
 #define IDD_PROP_MACRO                  5215
 #define IDD_PROP_PLUGIN                 5216
 #define IDD_PROP_MAINMENU               5217
+#define IDD_PROP_GESTURE                5218
 #define IDD_WINPOSSIZE                  5220
 #define IDD_PLUGIN_OPTION               5221
 #define IDD_PROFILEMGR                  5222
 #define IDD_FILETREE                    5223
 #define IDD_CONFIG                      5224
+#define IDD_GESTURE_EDIT                5225
+#define IDD_GESTURE_FUNCTION            5226
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -852,7 +871,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1742
+#define _APS_NEXT_CONTROL_VALUE         1758
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

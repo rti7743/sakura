@@ -668,6 +668,16 @@ bool CShareData::InitShareData()
 			CShareData_IO::IO_MainMenu( cProfile, &data, m_pShareData->m_Common.m_sMainMenu, false );
 		}
 
+		//[マウスジェスチャー]タブ
+		{
+			m_pShareData->m_Common.m_sMouseGesture.m_nType = 0;
+			m_pShareData->m_Common.m_sMouseGesture.m_nGestureNum = 0;
+			for(int nGesture = 0; nGesture < MAX_MOUSE_GESTURE_COUNT; nGesture++){
+				m_pShareData->m_Common.m_sMouseGesture.m_cGesture[nGesture].m_sGesture[0] = L'\0';
+				m_pShareData->m_Common.m_sMouseGesture.m_cGesture[nGesture].m_nFuncID = 0;
+			}
+		}
+
 		{
 			InitTypeConfigs( m_pShareData, *m_pvTypeSettings );
 		}

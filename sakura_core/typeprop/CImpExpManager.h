@@ -335,5 +335,30 @@ private:
 };
 
 
+// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
+//                     マウスジェスチャー                      //
+// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
+class CImpExpMouseGesture : public CImpExpManager
+{
+public:
+	// Constructor
+	CImpExpMouseGesture( CommonSetting& common )
+		: m_Common( common )
+	{
+	}
+
+public:
+	bool Import( const wstring&, wstring& );
+	bool Export( const wstring&, wstring& );
+
+public:
+	// デフォルト拡張子の取得
+	const TCHAR* GetDefaultExtension()	{ return _T("*.ini"); }
+	const wchar_t* GetOriginExtension()	{ return L"ini"; }
+
+private:
+	CommonSetting&		m_Common;
+};
+
 ///////////////////////////////////////////////////////////////////////
 #endif /* SAKURA_CIMPEXPMANAGER_H_ */

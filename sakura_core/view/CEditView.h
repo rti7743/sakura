@@ -64,6 +64,7 @@
 #include "mfclike/CMyWnd.h"		// parent
 #include "doc/CDocListener.h"	// parent
 #include "basis/SakuraBasis.h"	// CLogicInt, CLayoutInt
+#include "gesture/CMouseGesture.h"
 #include "util/container.h"		// vector_ex
 #include "util/design_template.h"
 
@@ -748,6 +749,7 @@ public:
 	CRegexKeyword*	m_cRegexKeyword;	//@@@ 2001.11.17 add MIK
 	int				m_nMyIndex;	/* 分割状態 */
 	CMigemo*		m_pcmigemo;
+	CMouseGesture	m_cMouseGesture;	//マウスジェスチャー
 	bool			m_bMiniMap;
 	bool			m_bMiniMapMouseDown;
 	CLayoutInt		m_nPageViewTop;

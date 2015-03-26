@@ -732,6 +732,20 @@ struct CommonSetting_MainMenu
 	bool 			m_bMainMenuKeyParentheses;			//!< アクセスキーを( )付で表示
 };
 
+class CGestureInfo
+{
+public:
+	TCHAR			m_sGesture[MAX_GESTURE_LENGTH];	//!< ジェスチャー
+	int				m_nFuncID;						//!< 機能ID
+};
+
+struct CommonSetting_MouseGesture
+{
+	int				m_nUse;			//!< マウスジェスチャーを使用する
+	int				m_nType;		//!< ジェスチャーの種類(4方向,8方向)
+	int				m_nGestureNum;	//!< ジェスチャー登録数
+	CGestureInfo	m_cGesture[MAX_MOUSE_GESTURE_COUNT];
+};
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 //                                                             //
@@ -767,6 +781,7 @@ struct CommonSetting
 	CommonSetting_Statusbar			m_sStatusbar;		//!< ステータスバー		// 2008/6/21 Uchi
 	CommonSetting_Plugin			m_sPlugin;			//!< プラグイン 2009/11/30 syat
 	CommonSetting_MainMenu			m_sMainMenu;		//!< メインメニュー		// 2010/5/15 Uchi
+	CommonSetting_MouseGesture		m_sMouseGesture;	// マウスジェスチャー
 };
 
 #endif /* SAKURA_COMMONSETTING_7C01A3F3_AD50_4AEA_84D6_0798DB67F40C_H_ */

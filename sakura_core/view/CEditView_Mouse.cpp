@@ -571,7 +571,19 @@ void CEditView::OnRBUTTONDOWN( WPARAM fwKeys, int xPos , int yPos )
 	){
 		return;
 	}
-	OnLBUTTONDOWN( fwKeys, xPos , yPos );
+	// OnLBUTTONDOWN( fwKeys, xPos , yPos );
+	if( m_bHokan ){
+		m_pcEditWnd->m_cHokanMgr.Hide();
+		m_bHokan = FALSE;
+	}
+	//isearchをキャンセルする
+	if( m_nISearchMode > 0 ){
+		ISearchExit();
+	}
+	::SetCapture(GetHwnd());
+
+	m_cMouseGesture.StartMouseGesture(GetHwnd(), xPos, yPos, m_cMouseGesture.GetButtonState());
+
 	return;
 }
 
@@ -583,6 +595,11 @@ void CEditView::OnRBUTTONUP( WPARAM fwKeys, int xPos , int yPos )
 		OnLBUTTONUP( fwKeys, xPos, yPos );
 	}
 
+	DWORD dwGestureID = m_cMouseGesture.EndMouseGesture(xPos, yPos, m_cMouseGesture.GetButtonState());
+	if(dwGestureID != 0){
+		GetCommander().HandleCommand((EFunctionCode)dwGestureID, TRUE, 0, 0, 0, 0);
+		return; // ジェスチャーを実行したら右クリックは実行しない
+	}
 
 	int		nIdx;
 	int		nFuncID;
@@ -912,6 +929,8 @@ void CEditView::OnXRBUTTONUP( WPARAM fwKeys, int xPos , int yPos )
 /* マウス移動のメッセージ処理 */
 void CEditView::OnMOUSEMOVE( WPARAM fwKeys, int xPos_, int yPos_ )
 {
+	m_cMouseGesture.RecordMouseGesture(xPos_, yPos_, m_cMouseGesture.GetButtonState());
+
 	CMyPoint ptMouse(xPos_, yPos_);
 
 	if( m_cMousePousePos != ptMouse ){

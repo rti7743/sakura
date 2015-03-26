@@ -63,6 +63,7 @@ protected:
 	static void ShareData_IO_Statusbar( CDataProfile& );	// 2008/6/21 Uchi
 	static void ShareData_IO_Plugin( CDataProfile&, CMenuDrawer* );		// 2009/11/30 syat
 	static void ShareData_IO_MainMenu( CDataProfile& );		// 2010/5/15 Uchi
+	static void ShareData_IO_MouseGesture( CDataProfile& );
 	static void ShareData_IO_Other( CDataProfile&, CDataProfile& );
 
 public:
@@ -80,6 +81,7 @@ public:
 	static void IO_MainMenu( CDataProfile& cProfile, std::vector<std::wstring>* pData,
 		CommonSetting_MainMenu& mainmenu, bool bOutCmdName);
 	static void IO_ColorSet( CDataProfile* , const WCHAR* , ColorInfo* );	/* êFê›íË I/O */ // Feb. 12, 2006 D.S.Koba
+	static void IO_MouseGesture(CDataProfile& cProfile, CommonSetting_MouseGesture& sMouseGesture, bool bOutCmdName);
 };
 
 #endif /* SAKURA_CSHAREDATA_IO_AA81C249_631D_40B0_AAFF_2F163748954B9_H_ */

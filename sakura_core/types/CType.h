@@ -147,7 +147,7 @@ struct STypeConfig{
 	wchar_t				m_szIndentChars[64];			//!< その他のインデント対象文字
 
 	int					m_nColorInfoArrNum;				//!< 色設定配列の有効数
-	ColorInfo			m_ColorInfoArr[64];				//!< 色設定配列
+	ColorInfo			m_ColorInfoArr[80];				//!< 色設定配列
 
 	SFilePath			m_szBackImgPath;				//!< 背景画像
 	EBackgroundImagePos m_backImgPos;					//!< 背景画像表示位置

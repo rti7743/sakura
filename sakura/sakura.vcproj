@@ -2305,6 +2305,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\sakura_core\prop\CDlgConfigChildGesture.h"
+					>
+				</File>
+				<File
 					RelativePath="..\sakura_core\prop\CDlgConfigChildKeybind.h"
 					>
 				</File>
@@ -2374,6 +2378,10 @@
 				</File>
 				<File
 					RelativePath="..\sakura_core\prop\CPropComGeneral.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\prop\CPropComGesture.cpp"
 					>
 				</File>
 				<File
@@ -2938,6 +2946,14 @@
 				</File>
 				<File
 					RelativePath="..\sakura_core\dlg\CDlgJump.h"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\dlg\CDlgMouseGesture.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\dlg\CDlgMouseGesture.h"
 					>
 				</File>
 				<File
@@ -3654,6 +3670,18 @@
 				</File>
 				<File
 					RelativePath="..\sakura_core\uiparts\HandCursor.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="gesture"
+				>
+				<File
+					RelativePath="..\sakura_core\gesture\CMouseGesture.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sakura_core\gesture\CMouseGesture.h"
 					>
 				</File>
 			</Filter>

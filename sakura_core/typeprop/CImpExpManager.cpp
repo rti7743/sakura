@@ -96,6 +96,9 @@ static       wchar_t	WSTR_MAINMENU_HEAD_V1[]	= L"SakuraEditorMainMenu Ver1";
 
 static       wchar_t	WSTR_FILETREE_HEAD_V1[]	= L"SakuraEditorFileTree_Ver1";
 
+// マウスジェスチャー
+static       wchar_t	WSTR_MOUSE_GESTURE_HEAD_V1[] = L"SakuraEditorMouseGesture Ver1";
+
 // Exportファイル名の作成
 //	  タイプ名などファイルとして扱うことを考えていない文字列を扱う
 //		2010/4/12 Uchi
@@ -1324,4 +1327,72 @@ void CImpExpFileTree::IO_FileTreeIni( CDataProfile& cProfile, std::vector<SFileT
 	for( ;i < nItemCount; i++ ){
 		CShareData_IO::ShareData_IO_FileTreeItem( cProfile, data[i], pszSecName, i );
 	}
+}
+
+// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
+//                     マウスジェスチャー                      //
+// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
+// インポート
+bool CImpExpMouseGesture::Import( const wstring& sFileName, wstring& sErrMsg )
+{
+	const tstring strPath = to_tchar( sFileName.c_str() );
+
+	//ヘッダ確認
+	CTextInputStream in(strPath.c_str());
+	if (!in) {
+		sErrMsg = std::wstring(LSW(STR_IMPEXP_ERR_FILEOPEN)) + sFileName;
+		return false;
+	}
+
+	CDataProfile cProfile;
+	cProfile.SetReadingMode();
+	cProfile.ReadProfile( strPath.c_str() );
+
+	//バージョン確認
+	WCHAR szHeader[256];
+	cProfile.IOProfileData(szSecInfo, L"GESTURE_VERSION", MakeStringBufferW(szHeader));
+	if(wcscmp(szHeader, WSTR_MOUSE_GESTURE_HEAD_V1)!=0) {
+		sErrMsg = wstring(LSW(STR_IMPEXP_MOUSE_GESTURE)) + sFileName;
+		return false;
+	}
+
+	CShareData_IO::IO_MouseGesture(cProfile,m_Common.m_sMouseGesture, true);
+
+	return true;
+}
+
+// エクスポート
+bool CImpExpMouseGesture::Export( const wstring& sFileName, wstring& sErrMsg )
+{
+	const tstring strPath = to_tchar( sFileName.c_str() );
+
+	// オープン
+	CTextOutputStream out( strPath.c_str() );
+	if (!out) {
+		sErrMsg = std::wstring(LSW(STR_IMPEXP_ERR_FILEOPEN)) + sFileName;
+		return false;
+	}
+
+	out.Close();
+
+	//ヘッダ
+	CDataProfile	cProfile;
+	CommonSetting_MouseGesture* menu = &m_Common.m_sMouseGesture;
+
+	// 書き込みモード設定
+	cProfile.SetWritingMode();
+
+	//ヘッダ
+	cProfile.IOProfileData( szSecInfo, L"GESTURE_VERSION", MakeStringBufferW(WSTR_MOUSE_GESTURE_HEAD_V1) );
+	
+	//内容
+	CShareData_IO::IO_MouseGesture(cProfile, *menu, true);
+
+	// 書き込み
+	if (!cProfile.WriteProfile( strPath.c_str(), WSTR_MOUSE_GESTURE_HEAD_V1)) {
+		sErrMsg = std::wstring(LSW(STR_IMPEXP_ERR_EXPORT)) + sFileName;
+		return false;
+	}
+
+	return true;
 }

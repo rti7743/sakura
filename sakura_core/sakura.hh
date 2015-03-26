@@ -296,6 +296,7 @@
 #define HLP000190	190 //外部ヘルプ1
 #define HLP000191	191 //外部HTMLヘルプ
 #define HLP000102	102 //バージョン情報
+#define HLP000373	373 //マウスジェスチャー
 #define HLP000107	107 //キー割り当て一覧 (キー別)
 #define HLP000193	193 //コマンド一覧 (機能別)
 #define HLP000149	149 //改行コードについて
@@ -1222,5 +1223,31 @@
 #define HIDC_WINLIST_BUTTTN_SAVE			14801
 #define HIDC_WINLIST_BUTTTN_CLOSE			14802
 #define HIDC_WINLIST_IDOK					14803
+
+// マウスジェスチャー
+#define HIDC_BUTTON_ADD_GESTURE				14800	//ジェスチャー追加
+#define HIDC_BUTTON_EDIT_GESTURE			14801	//ジェスチャー編集
+#define HIDC_BUTTON_DEL_GESTURE				14802	//ジェスチャー削除
+#define HIDC_BUTTON_IMPORT_GESTURE			14803	//ジェスチャーインポート
+#define HIDC_BUTTON_EXPORT_GESTURE			14804	//ジェスチャーエクスポート
+#define HIDC_COMBO_GESTURE					14805	//ジェスチャータイプ
+#define HIDC_LIST_GESTURE					14806	//ジェスチャー一覧
+#define HIDC_CHECKBOX_GESTURE				14807	//ジェスチャーを使用する
+#define HIDC_GESTURE_BUTTON_LEFT_UP			14808	//左上
+#define HIDC_GESTURE_BUTTON_UP				14809	//上
+#define HIDC_GESTURE_BUTTON_RIGHT_UP		14810	//右上
+#define HIDC_GESTURE_BUTTON_LEFT			14811	//左
+#define HIDC_GESTURE_BUTTON_RIGHT			14812	//右
+#define HIDC_GESTURE_BUTTON_LEFT_DOWN		14813	//左下
+#define HIDC_GESTURE_BUTTON_DOWN			14814	//下
+#define HIDC_GESTURE_BUTTON_RIGHT_DOWN		14815	//右下
+#define HIDC_GESTURE_CHECKBOX_SHIFT			14816	//SHIFT
+#define HIDC_GESTURE_CHECKBOX_CTRL			14817	//CTRL
+#define HIDC_GESTURE_CHECKBOX_ALT			14818	//ALT
+#define HIDC_GESTURE_BUTTON_RESET			14819	//リセット
+#define HIDC_GESTURE_BUTTON_BROWSE			14820	//機能割り当て
+#define HIDC_GESTURE_BUTTON_CLEAR			14821	//解除
+#define HIDC_GESTURE_IDOK					14822	//OK
+#define HIDC_GESTURE_IDCANCEL				14823	//キャンセル
 
 #define HIDC_STATIC								19999 //不明
