@@ -8,7 +8,7 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-https://github.com/mocaskr/sakura/releases/tag/v017.20150326-r4017  
+https://github.com/mocaskr/sakura/releases/tag/v018.20150327-r4017  
 
 chm版ヘルプは release tagのページにあります  
 https://github.com/mocaskr/sakura_help/releases/tag/v012  
@@ -25,7 +25,7 @@ https://github.com/mocaskr/sakura_help
 マージ困難な場合などでtrunk2側を優先し適用済みパッチを削除する可能性もあります。
 
 ## 変更内容
-sakura 2.2.0.1 mocaskr_ver 017.20150326-r4017  
+sakura 2.2.0.1 mocaskr_ver 018.20150327-r4017  
 baseバージョンからの変更点一覧  
 New/Imp/Chg
 * プロポーショナルフォント
@@ -75,3 +75,4 @@ Fix
 * 正規表現のGrep置換で行内の1つめしか置換されない
 * メニュー自動追加でアクセスキーが追加されない
 * メインメニュー自動追加でのセパレータのFuncCodeが間違っている
+* ユーザ別設定のときのマルチプロファイルの場所がおかしい
