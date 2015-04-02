@@ -60,6 +60,7 @@
 #include "util/os.h" //WM_MOUSEWHEEL,IMR_RECONVERTSTRING,WM_XBUTTON*,IMR_CONFIRMRECONVERTSTRING
 #include "util/module.h"
 #include "debug/CRunningTimer.h"
+#include "sakura_rc.h"
 
 #ifndef IMR_DOCUMENTFEED
 #define IMR_DOCUMENTFEED 0x0007
@@ -480,9 +481,21 @@ LRESULT CEditView::DispatchEvent(
 		if( m_pcEditWnd->DoMouseWheel( wParam, lParam ) ){
 			return 0L;
 		}
+		{
+			LRESULT ret;
+			if( MOUSEWHEELSendOtherView( uMsg, wParam, lParam, ret ) ){
+				return ret;
+			}
+		}
 		return OnMOUSEWHEEL( wParam, lParam );
 
 	case WM_MOUSEHWHEEL:
+		{
+			LRESULT ret;
+			if( MOUSEWHEELSendOtherView( uMsg, wParam, lParam, ret ) ){
+				return ret;
+			}
+		}
 		return OnMOUSEHWHEEL( wParam, lParam );
 
 	case WM_CREATE:
@@ -1152,6 +1165,49 @@ void CEditView::OnKillFocus( void )
 	}
 
 	return;
+}
+
+
+/*! スクロール直下のウィンドウへスクロールメッセージを転送する
+*/
+bool CEditView::MOUSEWHEELSendOtherView(int uMsg, WPARAM wParam, LPARAM lParam, LRESULT& ret)
+{
+	if (GetDllShareData().m_Common.m_sGeneral.m_bWheelScrollMousePosition) {
+		POINT pt;
+		pt.x = (short)LOWORD(lParam);
+		pt.y = (short)HIWORD(lParam);
+		HWND hwnd = ::WindowFromPoint(pt);
+		CEditWnd& editWnd = *m_pcEditWnd;
+		if (hwnd == GetHwnd()) {
+			// 自分には転送しない
+			return false;
+		}
+		for (int i = 0; i < editWnd.GetAllViewCount(); i++) {
+			CEditView& view = editWnd.GetView(i);
+			if (hwnd == view.GetHwnd()) {
+				ret = ::SendMessageAny(hwnd, uMsg, wParam, lParam);
+				return true;
+			}
+		}
+		if (!m_bMiniMap && hwnd == editWnd.GetMiniMap().GetHwnd()) {
+			ret = ::SendMessageAny(hwnd, uMsg, wParam, lParam);
+			return true;
+		}
+		HWND hwndFuncList = editWnd.m_cDlgFuncList.GetHwnd();
+		if (NULL != hwndFuncList) {
+			HWND hwndList = GetDlgItem(hwndFuncList, IDC_LIST_FL);
+			HWND hwndTree = GetDlgItem(hwndFuncList, IDC_TREE_FL);
+			if (hwnd == hwndList) {
+				ret = ::SendMessageAny(hwnd, uMsg, wParam, lParam);
+				return true;
+			}
+			if (hwnd == hwndTree){
+				ret = ::SendMessageAny(hwnd, uMsg, wParam, lParam);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 
