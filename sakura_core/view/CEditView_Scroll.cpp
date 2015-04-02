@@ -206,7 +206,17 @@ CLayoutInt CEditView::OnVScroll( int nScrollCode, int nPos )
 		nScrollVal = ScrollAtV( CLayoutInt(0) );
 		break;
 	case SB_BOTTOM:
-		nScrollVal = ScrollAtV(( m_pcEditDoc->m_cLayoutMgr.GetLineCount() ) - GetTextArea().m_nViewRowNum );
+		{
+			CLayoutYInt nAddLine;
+			if( GetDllShareData().m_Common.m_sGeneral.m_bVScrollEofViewTop ){
+				nAddLine = 0;
+			}else{
+				nAddLine = CLayoutYInt(1) - GetTextArea().m_nViewRowNum;
+			}
+			CLayoutPoint ptEof;
+			m_pcEditDoc->m_cLayoutMgr.GetEndLayoutPos(&ptEof);
+			nScrollVal = ScrollAtV(t_max(CLayoutYInt(0), ptEof.y + nAddLine));
+		}
 		break;
 	default:
 		break;
@@ -295,8 +305,15 @@ void CEditView::AdjustScrollBars()
 
 	if( NULL != m_hwndVScrollBar ){
 		/* 垂直スクロールバー */
-		const CLayoutInt	nEofMargin = CLayoutInt(2); // EOFとその下のマージン
-		const CLayoutInt	nAllLines = m_pcEditDoc->m_cLayoutMgr.GetLineCount() + nEofMargin;
+		CLayoutYInt nEofMargin;
+		if( GetDllShareData().m_Common.m_sGeneral.m_bVScrollEofViewTop ){
+			nEofMargin = GetTextArea().m_nViewRowNum;
+		}else{
+			nEofMargin = CLayoutInt(2);
+		}
+		CLayoutPoint ptEof;
+		m_pcEditDoc->m_cLayoutMgr.GetEndLayoutPos(&ptEof);
+		const CLayoutInt	nAllLines = ptEof.y + nEofMargin;
 		int	nVScrollRate = 1;
 #ifdef _WIN64
 		/* nAllLines / nVScrollRate < INT_MAX となる整数nVScrollRateを求める */
@@ -361,11 +378,19 @@ CLayoutInt CEditView::ScrollAtV( CLayoutInt nPos )
 	CLayoutInt	nScrollRowNum;
 	RECT		rcScrol;
 	RECT		rcClip;
+	CLayoutYInt nAddLine;
+	CLayoutPoint ptEof;
+	m_pcEditDoc->m_cLayoutMgr.GetEndLayoutPos(&ptEof);
+	if( GetDllShareData().m_Common.m_sGeneral.m_bVScrollEofViewTop ){
+		nAddLine = CLayoutYInt(0);
+	}else{
+		nAddLine = CLayoutYInt(2) - GetTextArea().m_nViewRowNum;
+	}
 	if( nPos < 0 ){
 		nPos = CLayoutInt(0);
 	}
-	else if( (m_pcEditDoc->m_cLayoutMgr.GetLineCount() + 2 )- GetTextArea().m_nViewRowNum < nPos ){
-		nPos = ( m_pcEditDoc->m_cLayoutMgr.GetLineCount() + CLayoutInt(2) ) - GetTextArea().m_nViewRowNum;
+	else if( ptEof.y + nAddLine < nPos ){
+		nPos = ptEof.y + nAddLine;
 		if( nPos < 0 ){
 			nPos = CLayoutInt(0);
 		}

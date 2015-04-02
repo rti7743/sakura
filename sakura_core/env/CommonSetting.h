@@ -75,6 +75,7 @@ struct CommonSetting_General
 	int		m_nPageScrollByWheel;					//!< キー/マウスボタン + ホイールスクロールでページUP/DOWNする	// 2009.01.17 nasukoji
 	int		m_nHorizontalScrollByWheel;				//!< キー/マウスボタン + ホイールスクロールで横スクロールする	// 2009.01.17 nasukoji
 	bool	m_bWheelScrollMousePosition;			//!< カーソル位置下のマウススクロール
+	bool	m_bVScrollEofViewTop;					//!< 上下スクロールでEOFを最上段に表示する
 
 	//タスクトレイ
 	BOOL	m_bUseTaskTray;					//!< タスクトレイのアイコンを使う

@@ -240,6 +240,7 @@ bool CShareData::InitShareData()
 			sGeneral.m_nPageScrollByWheel = 0;			/* キー/マウスボタン + ホイールスクロールでページスクロールする */	// 2009.01.17 nasukoji
 			sGeneral.m_nHorizontalScrollByWheel = 0;	/* キー/マウスボタン + ホイールスクロールで横スクロールする */		// 2009.01.17 nasukoji
 			sGeneral.m_bWheelScrollMousePosition = true;
+			sGeneral.m_bVScrollEofViewTop = false;
 
 			sGeneral.m_bUseTaskTray = TRUE;				/* タスクトレイのアイコンを使う */
 #ifdef _DEBUG
