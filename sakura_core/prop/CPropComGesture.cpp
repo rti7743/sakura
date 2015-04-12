@@ -380,6 +380,7 @@ int CDlgConfigChildGesture::GetData()
 		lvi.mask     = LVIF_TEXT | LVIF_PARAM;
 		lvi.pszText  = m_Common.m_sMouseGesture.m_cGesture[i].m_sGesture;
 		lvi.lParam   = 0;
+		lvi.cchTextMax = _countof(m_Common.m_sMouseGesture.m_cGesture[i].m_sGesture);
 		int nIndex = ListView_GetItem(hList, &lvi);
 		m_Common.m_sMouseGesture.m_cGesture[i].m_nFuncID = lvi.lParam;
 	}
