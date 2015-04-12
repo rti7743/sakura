@@ -8,7 +8,7 @@
 class CDlgConfigChildFormat : public CDlgConfigChild
 {
 public:
-	CDlgConfigChildFormat( CommonSetting& common ): CDlgConfigChild( common ){}
+	CDlgConfigChildFormat( CommonSetting& common ): CDlgConfigChild( common ), m_bInit(false){}
 
 	HWND DoModeless( HINSTANCE, HWND, SDlgConfigArg*, int = -1 );
 protected:
@@ -22,6 +22,8 @@ protected:
 	void ChangeDateExample();
 	void ChangeTimeExample();
 	void EnableFormatPropInput();
+
+	bool m_bInit;
 };
 
 #endif

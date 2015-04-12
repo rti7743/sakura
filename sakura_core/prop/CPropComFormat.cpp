@@ -78,6 +78,7 @@ HWND CDlgConfigChildFormat::DoModeless( HINSTANCE hInstance, HWND hwndParent, SD
 {
 	m_nCurrentTypeIndex = nTypeIndex;
 	m_pDlgConfigArg  = pDlgConfigArg;
+	m_bInit = false;
 
 	return CDialog::DoModeless( hInstance, hwndParent, IDD_PROP_FORMAT, 0, SW_SHOW );
 }
@@ -86,6 +87,8 @@ HWND CDlgConfigChildFormat::DoModeless( HINSTANCE hInstance, HWND hwndParent, SD
 BOOL CDlgConfigChildFormat::OnInitDialog( HWND hwndDlg, WPARAM wParam, LPARAM lParam )
 {
 	BOOL result =  CDlgConfigChild::OnInitDialog( hwndDlg, wParam, lParam );
+
+	m_bInit = true;
 
 	ChangeDateExample();
 	ChangeTimeExample();
@@ -140,6 +143,9 @@ void CDlgConfigChildFormat::ChangeTimeExample()
 
 BOOL CDlgConfigChildFormat::OnEnChange( HWND hwndCtl, int wID )
 {
+	if( !m_bInit ){
+		return FALSE;
+	}
 	if( IDC_EDIT_DFORM == wID ){
 		ChangeDateExample();
 		return FALSE;
@@ -154,6 +160,9 @@ BOOL CDlgConfigChildFormat::OnEnChange( HWND hwndCtl, int wID )
 
 BOOL CDlgConfigChildFormat::OnBnClicked( int wID )
 {
+	if( !m_bInit ){
+		return FALSE;
+	}
 	/* ボタン／チェックボックスがクリックされた */
 	switch( wID ){
 	case IDC_RADIO_DFORM_0:
