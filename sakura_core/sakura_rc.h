@@ -137,7 +137,7 @@
 #define IDC_BUTTON_DELETE               1069
 #define IDC_BUTTON_DELKEYWORD           1070
 #define IDC_EDIT_EXTHTMLHELP            1071
-#define IDC_EDIT_TFORM                  1072
+#define IDC_COMBO_TFORM                 1072
 #define IDC_EDIT_BLOCKCOMMENT_FROM2     1073
 #define IDC_EDIT_FNAME_TO               1074
 #define IDC_CHECK_BACKUP_MONTH          1075
@@ -356,7 +356,7 @@
 #define IDC_RADIO_TFORM_0               1288
 #define IDC_RADIO_TFORM_1               1289
 #define IDC_EDIT_TFORM_EX               1290
-#define IDC_EDIT_DFORM                  1291
+#define IDC_COMBO_DFORM                  1291
 //#define IDC_RADIO_ALL                   1292
 #define IDC_RADIO_PORTRAIT              1293
 #define IDC_RADIO_BACKUP_DATETYPE1      1294

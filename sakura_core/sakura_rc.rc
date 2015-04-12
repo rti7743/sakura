@@ -1927,7 +1927,8 @@ BEGIN
     CONTROL         "カスタム(&C)",IDC_RADIO_DFORM_1,"Button",
                     BS_AUTORADIOBUTTON,51,18,52,10
     LTEXT           "&D:",IDC_LABEL_DFORM,106,19,8,8
-    EDITTEXT        IDC_EDIT_DFORM,115,17,82,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO_DFORM,115,17,82,200,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "日付書式",IDC_STATIC,3,3,199,35,WS_GROUP
     LTEXT           "表示例",IDC_STATIC,209,7,27,8,NOT WS_GROUP
     EDITTEXT        IDC_EDIT_DFORM_EX,209,17,77,12,ES_AUTOHSCROLL | 
@@ -1937,7 +1938,8 @@ BEGIN
     CONTROL         "カスタム(&U)",IDC_RADIO_TFORM_1,"Button",
                     BS_AUTORADIOBUTTON,51,58,52,10
     LTEXT           "&T:",IDC_LABEL_TFORM,106,59,8,8
-    EDITTEXT        IDC_EDIT_TFORM,115,57,82,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO_TFORM,115,57,82,200,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "時刻書式",IDC_STATIC,3,43,199,35,WS_GROUP
     LTEXT           "表示例",IDC_STATIC,209,47,27,8,NOT WS_GROUP
     EDITTEXT        IDC_EDIT_TFORM_EX,209,57,77,12,ES_AUTOHSCROLL | 
@@ -4362,6 +4364,27 @@ BEGIN
 
 	// CPropComFormat.cpp
 	// Has static date-time string
+	STR_PROPFORMAT_DATE0		"yyyy'年'M'月'd'日'"
+	STR_PROPFORMAT_DATE1		"yyyy'年'M'月'd'日('dddd')'"
+	STR_PROPFORMAT_DATE2		"yyyy'年'MM'月'dd'日'"
+	STR_PROPFORMAT_DATE3		"yyyy'年'M'月'd'日' dddd"
+	STR_PROPFORMAT_DATE4		"yyyy'年'MM'月'dd'日' dddd"
+	STR_PROPFORMAT_DATE5		"yyyy/MM/dd"
+	STR_PROPFORMAT_DATE6		"yy/MM/dd"
+	STR_PROPFORMAT_DATE7		"yy/M/d"
+	STR_PROPFORMAT_DATE8		"yyyy/M/d"
+	STR_PROPFORMAT_DATE9		"yy/MM/dd' ('ddd')'"
+	STR_PROPFORMAT_DATE10		"yy/M/d' ('ddd')'"
+	STR_PROPFORMAT_DATE11		"yyyy/MM/dd' ('ddd')'"
+	STR_PROPFORMAT_DATE12		"yyyy/M/d' ('ddd')'"
+	STR_PROPFORMAT_DATE13		"yyyy/M/d' ('dddd')'"
+	STR_PROPFORMAT_DATE14		"yyyy-MM-dd"
+	STR_PROPFORMAT_TIME0		"hh:mm:ss"
+	STR_PROPFORMAT_TIME1		"tthh'時'mm'分'ss'秒'"
+	STR_PROPFORMAT_TIME2		"H:mm:ss"
+	STR_PROPFORMAT_TIME3		"HH:mm:ss"
+	STR_PROPFORMAT_TIME4		"tt h:mm:ss"
+	STR_PROPFORMAT_TIME5		"tt hh:mm:ss"
 
 	// CPropComGeneral.cpp
 	STR_PROPCOMGEN_FILE1		"最近使ったファイルの履歴を削除します。\nよろしいですか？\n"
