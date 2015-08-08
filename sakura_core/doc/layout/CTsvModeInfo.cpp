@@ -62,10 +62,19 @@ void CTsvModeInfo::CalcTabLength(CDocLineMgr* cDocLineMgr)
 				continue;
 			}
 			if( pcLine[i] != WCODE::TAB ){
-				CLayoutInt nKeta = CNativeW::GetKetaOfChar(pcLine, nLineLen, i);
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+				CLayoutInt nKeta = CNativeW::GetColmOfChar(pcLine, nLineLen, i) + m_nSpacing;
+#else
+				CLayoutInt nKeta = CNativeW::GetColmOfChar(pcLine, nLineLen, i);
+#endif
 				nFieldWidth += Int(nKeta);
 			} else {
+				// TSV_MODE_TSV && TAB: TSVÇ≈ÇÕTABÇÕ1ï∂éöïù
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+				nFieldWidth += m_nDx;
+#else
 				nFieldWidth++;
+#endif
 			}
 			nCharChars = CNativeW::GetSizeOfChar( pcLine, nLineLen, i );
 			i += nCharChars;
@@ -78,11 +87,16 @@ void CTsvModeInfo::CalcTabLength(CDocLineMgr* cDocLineMgr)
 		}
 	}
 
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	const int nAddWidth = m_nDx * 2;
+#else
+	const int nAddWidth = 2;
+#endif
 	for (ui = 0; ui<m_tabLength.size(); ui++) {
 		if (ui == 0) {
-			m_tabLength[0] += 2;
+			m_tabLength[0] += nAddWidth;
 		} else {
-			m_tabLength[ui] += m_tabLength[ui-1] + 2;
+			m_tabLength[ui] += m_tabLength[ui-1] + nAddWidth;
 		}
 	}
 }
@@ -96,5 +110,9 @@ CLayoutInt CTsvModeInfo::GetActualTabLength(CLayoutInt pos) const
 			return CLayoutInt(m_tabLength[i]) - pos;
 		}
 	}
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	return CLayoutInt(m_nDx);
+#else
 	return CLayoutInt(1);
+#endif
 }

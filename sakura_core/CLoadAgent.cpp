@@ -253,12 +253,14 @@ ELoadResult CLoadAgent::OnLoad(const SLoadInfo& sLoadInfo)
 			nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
 		pcDoc->m_pcEditWnd->ClearViewCaretPosInfo();
 		if (pcDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode != TSV_MODE_NONE) {
+			pcDoc->m_cLayoutMgr.CopyTsvInfo(pcDoc->m_cLayoutMgr.m_tsvInfo);
 			pcDoc->m_cLayoutMgr.m_tsvInfo.CalcTabLength(pcDoc->m_cLayoutMgr.m_pcDocLineMgr);
 		}
 
 		CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);
 	}else{
 		if (pcDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode != TSV_MODE_NONE) {
+			pcDoc->m_cLayoutMgr.CopyTsvInfo(pcDoc->m_cLayoutMgr.m_tsvInfo);
 			pcDoc->m_cLayoutMgr.m_tsvInfo.CalcTabLength(pcDoc->m_cLayoutMgr.m_pcDocLineMgr);
 		}
 	}

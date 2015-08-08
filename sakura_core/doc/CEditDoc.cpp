@@ -812,6 +812,9 @@ void CEditDoc::OnChangeSetting(
 		nMaxLineKetas = m_cLayoutMgr.GetMaxLineKetas();	// 現在の折り返し幅
 		nTabSpace = m_cLayoutMgr.GetTabSpaceKetas();	// 現在のタブ幅
 	}
+	// フォントが変更されたかもしれないので、TSV情報を一度無効化→SetLayoutInfoで再生成
+	m_cLayoutMgr.m_tsvInfo.m_nTsvMode = TSV_MODE_NONE;
+
 	CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&m_cLayoutMgr);
 	m_cLayoutMgr.SetLayoutInfo( bDoLayout, bBlockingHook, ref, nTabSpace, nTsvMode, nMaxLineKetas, CLayoutXInt(-1), &m_pcEditWnd->GetLogfont() );
 	CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);

@@ -44,6 +44,7 @@ public:
 	, m_nSpacing(nSpacing)
 	, m_nTabPadding(nCharDx - 1)
 	, m_nTabSpaceDx((Int)nTabSpace + nCharDx - 1)
+	, m_nCharDx(nCharDx)
 #endif
 	{
 		first();
@@ -61,6 +62,7 @@ public:
 	, m_nSpacing(nSpacing)
 	, m_nTabPadding(nCharDx - 1)
 	, m_nTabSpaceDx((Int)nTabSpace + nCharDx - 1)
+	, m_nCharDx(nCharDx)
 #endif
 	{
 		first();
@@ -100,7 +102,7 @@ public:
 			if (m_tsvInfo.m_nTsvMode == TSV_MODE_TSV) {
 				m_nColumn_Delta = m_tsvInfo.GetActualTabLength(m_nColumn);
 			} else if (m_tsvInfo.m_nTsvMode == TSV_MODE_CSV) {
-				m_nColumn_Delta = CNativeW::GetColmOfChar( L" ", 1, 0 ) + CLayoutInt(m_nSpacing);
+				m_nColumn_Delta = m_nCharDx;
 			} else {
 				m_nColumn_Delta = m_nTabSpaceDx - (m_nColumn + m_nTabPadding) % m_nTabSpace;
 			}
@@ -158,6 +160,7 @@ private:
 	const CPixelXInt	m_nSpacing;		//文字隙間(px)
 	const CPixelXInt	m_nTabPadding;	//タブ幅最少値-1
 	const CPixelXInt	m_nTabSpaceDx;	//タブ幅計算用(m_nTabSpace + m_nTabPadding - 1)
+	const CPixelXInt	m_nCharDx;
 #endif
 
 	//状態変数

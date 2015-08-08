@@ -201,6 +201,19 @@ public:
 		@return éüÇÃTABà íuÇ‹Ç≈ÇÃï∂éöêîÅD1Å`TABïù
 	 */
 	CLayoutInt GetActualTsvSpace(CLayoutInt pos, wchar_t ch) const {
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+		if (m_tsvInfo.m_nTsvMode == TSV_MODE_NONE && ch == WCODE::TAB) {
+			CLayoutInt tabPadding = m_nCharLayoutXPerKeta - 1;
+			return GetTabSpace() + tabPadding - ((pos + tabPadding) % GetTabSpace());
+		} else if (m_tsvInfo.m_nTsvMode == TSV_MODE_CSV && ch == WCODE::TAB) {
+			return m_nCharLayoutXPerKeta; // 1ï∂éöïù
+		} else if ((m_tsvInfo.m_nTsvMode == TSV_MODE_TSV && ch == WCODE::TAB)
+			|| (m_tsvInfo.m_nTsvMode == TSV_MODE_CSV && ch == L',')) {
+			return CLayoutInt(m_tsvInfo.GetActualTabLength(pos));
+		} else {
+			return GetLayoutXOfChar(&ch, 1, 0);
+		}
+#else
 		if (m_tsvInfo.m_nTsvMode == TSV_MODE_NONE && ch == WCODE::TAB) {
 			return m_nTabSpace - pos % m_nTabSpace;
 		} else if (m_tsvInfo.m_nTsvMode == TSV_MODE_CSV && ch == WCODE::TAB) {
@@ -211,6 +224,7 @@ public:
 		} else {
 			return CLayoutInt(1);
 		}
+#endif
 	}
 
 	//	Aug. 14, 2005 genta
@@ -334,6 +348,12 @@ public:
 	CPixelXInt GetCharSpacing() const { return 0; }
 #endif
 
+	void CopyTsvInfo(CTsvModeInfo& tsvInfo){
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+		tsvInfo.m_nDx = Int(m_nCharLayoutXPerKeta);
+		tsvInfo.m_nSpacing = m_nSpacing;
+#endif
+	}
 
 
 protected:

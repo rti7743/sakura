@@ -151,6 +151,7 @@ void CLayoutMgr::SetLayoutInfo(
 	int nTsvModeOld = m_tsvInfo.m_nTsvMode;
 	m_tsvInfo.m_nTsvMode = nTsvMode;
 	if (nTsvModeOld != nTsvMode) {
+		CopyTsvInfo(m_tsvInfo);
 		m_tsvInfo.CalcTabLength(this->m_pcDocLineMgr);
 	}
 
@@ -664,6 +665,7 @@ bool CLayoutMgr::ChangeLayoutParam(
 	int nTsvModeOld = m_tsvInfo.m_nTsvMode;
 	m_tsvInfo.m_nTsvMode = nTsvMode;
 	if (nTsvModeOld != nTsvMode) {
+		CopyTsvInfo(m_tsvInfo);
 		m_tsvInfo.CalcTabLength(this->m_pcDocLineMgr);
 	}
 	m_nMaxLineKetas = nMaxLineKetas;
