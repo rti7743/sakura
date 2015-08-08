@@ -194,6 +194,7 @@ doc/layout/CLayoutMgr.o \
 doc/layout/CLayoutMgr_DoLayout.o \
 doc/layout/CLayoutMgr_New.o \
 doc/layout/CLayoutMgr_New2.o \
+doc/layout/CTsvModeInfo.o \
 doc/logic/CDocLine.o \
 doc/logic/CDocLineMgr.o \
 docplus/CBookmarkManager.o \
@@ -395,6 +396,7 @@ view/colors/CColor_RegexKeyword.o \
 view/colors/CColor_Url.o \
 view/figures/CFigureManager.o \
 view/figures/CFigureStrategy.o \
+view/figures/CFigure_Comma.o \
 view/figures/CFigure_CtrlCode.o \
 view/figures/CFigure_Eol.o \
 view/figures/CFigure_HanSpace.o \

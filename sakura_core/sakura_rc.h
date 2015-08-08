@@ -785,11 +785,10 @@
 #define IDC_RADIO_LINEDELETE            1715
 #define IDC_RADIO_NOHIT                 1716
 #define IDC_CHECK_BOXSELECTLOCK         1717
-#define IDC_CHECK_INDENTCPPSTR          1718
-#define IDC_CHECK_INDENTCPPCMT          1719
-#define IDC_CHECK_INDENTCPPUNDO         1720
-#define IDC_CHECK_ITALIC                1721
-#define IDC_CHECK_STRIKEOUT             1722
+#define IDC_COMBO_TSV_MODE              1718
+#define IDC_CHECK_INDENTCPPSTR          1719
+#define IDC_CHECK_INDENTCPPCMT          1720
+#define IDC_CHECK_INDENTCPPUNDO         1721
 #define IDC_BUTTON_ALLRESET             1723
 #define IDC_CHECK_USE_FONT              1724
 #define IDC_STATIC_FONT                 1725
@@ -825,6 +824,8 @@
 #define IDC_CHECKBOX_USE                1755
 #define IDC_STATIC_TYPE                 1756
 #define IDC_CHECKBOX_GESTURE            1757
+#define IDC_CHECK_ITALIC                1758
+#define IDC_CHECK_STRIKEOUT             1759
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000
@@ -871,7 +872,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        230
 #define _APS_NEXT_COMMAND_VALUE         4057
-#define _APS_NEXT_CONTROL_VALUE         1758
+#define _APS_NEXT_CONTROL_VALUE         1769
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

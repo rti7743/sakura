@@ -561,6 +561,9 @@
 	Version 166/x176:
 	タブバーの最大・最小値設定 2014.07.04 Moca
 
+	Version 167/x153:
+	インデント詳細設定 2013.12.20 Moca
+
 	Version x177:
 	マクロ保存互換設定 2014.12.25 Moca
 
@@ -582,12 +585,15 @@
 	Version x183:
 	上下スクロールでEOFを一番上に表示 2015.04.02 Moca
 
+	Version x184:(本家側バージョン未修正)
+	TVSモード
+
 	-- 統合されたので元に戻す（1000～1023が使用済み） 	2008.11.16 nasukoji
 	-- Version 1000:
 	-- バージョン1000以降を本家統合までの間、使わせてください。かなり頻繁に構成が変更されると思われるので。by kobake 2008.03.02
 
 */
-#define N_SHAREDATA_VERSION		183
+#define N_SHAREDATA_VERSION		184
 #define STR_SHAREDATA_VERSION	NUM_TO_STR(N_SHAREDATA_VERSION)
 #define	GSTR_SHAREDATA	(_T("SakuraShareData") _T(CON_SKR_MACHINE_SUFFIX_) _T(_CODE_SUFFIX_) _T(_DEBUG_SUFFIX_) _T(STR_SHAREDATA_VERSION))
 

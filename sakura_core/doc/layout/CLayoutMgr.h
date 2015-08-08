@@ -30,6 +30,7 @@
 #include "types/CType.h"
 #include "CLayoutExInfo.h"
 #include "mem/CMemoryIterator.h"
+#include "CTsvModeInfo.h"
 #include "view/colors/EColorIndexType.h"
 #include "COpe.h"
 #include "util/container.h"
@@ -189,9 +190,28 @@ public:
 	CKetaXInt  GetActualTabSpaceKetas(CKetaXInt pos) const { return GetTabSpaceKetas() - pos % GetTabSpaceKetas(); }
 
 	CMemoryIterator CreateCMemoryIterator(const CLayout* pcLayout) const {
-		return CMemoryIterator(pcLayout, this->GetTabSpace(), this->GetWidthPerKeta(), this->GetCharSpacing());
+		return CMemoryIterator(pcLayout, this->GetTabSpace(), this->m_tsvInfo,
+			this->GetWidthPerKeta(), this->GetCharSpacing());
 	}
 
+
+	/*! 次のTABまたはカンマ位置までの幅
+		@param pos [in] 現在の位置
+		@param 
+		@return 次のTAB位置までの文字数．1～TAB幅
+	 */
+	CLayoutInt GetActualTsvSpace(CLayoutInt pos, wchar_t ch) const {
+		if (m_tsvInfo.m_nTsvMode == TSV_MODE_NONE && ch == WCODE::TAB) {
+			return m_nTabSpace - pos % m_nTabSpace;
+		} else if (m_tsvInfo.m_nTsvMode == TSV_MODE_CSV && ch == WCODE::TAB) {
+			return CLayoutInt(1);
+		} else if ((m_tsvInfo.m_nTsvMode == TSV_MODE_TSV && ch == WCODE::TAB)
+			|| (m_tsvInfo.m_nTsvMode == TSV_MODE_CSV && ch == L',')) {
+			return CLayoutInt(m_tsvInfo.GetActualTabLength(pos));
+		} else {
+			return CLayoutInt(1);
+		}
+	}
 
 	//	Aug. 14, 2005 genta
 	// Sep. 07, 2007 kobake 関数名変更 GetMaxLineSize→GetMaxLineKetas
@@ -203,7 +223,7 @@ public:
 #endif
 
 	// 2005.11.21 Moca 引用符の色分け情報を引数から除去
-	bool ChangeLayoutParam( CKetaXInt nTabSize, CKetaXInt nMaxLineKetas );
+	bool ChangeLayoutParam( CKetaXInt nTabSize, int nTsvMode, CKetaXInt nMaxLineKetas );
 
 	// Jul. 29, 2006 genta
 	void GetEndLayoutPos(CLayoutPoint* ptLayoutEnd);
@@ -280,6 +300,7 @@ public:
 		bool			bBlockingHook,
 		const STypeConfig&	refType,
 		CKetaXInt		nTabSpace,
+		int				nTsvMode,
 		CKetaXInt		nMaxLineKetas,
 		CLayoutXInt		nCharLayoutXPerKeta,
 		const LOGFONT*	pLogfont
@@ -425,6 +446,7 @@ protected:
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 public:
 	CDocLineMgr*			m_pcDocLineMgr;	/* 行バッファ管理マネージャ */
+	CTsvModeInfo			m_tsvInfo;
 
 protected:
 	// 2002.10.07 YAZAKI add m_nLineTypeBot

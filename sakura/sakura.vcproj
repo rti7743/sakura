@@ -142,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/NXCOMPAT /SAFESEH /DYNAMICBASE"
+				AdditionalOptions="/NXCOMPAT /DYNAMICBASE"
 				AdditionalDependencies="comctl32.lib Imm32.lib mpr.lib imagehlp.lib Shlwapi.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -299,7 +299,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/NXCOMPAT /SAFESEH /DYNAMICBASE"
+				AdditionalOptions="/NXCOMPAT /DYNAMICBASE"
 				AdditionalDependencies="comctl32.lib Imm32.lib mpr.lib imagehlp.lib Shlwapi.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -376,7 +376,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/NXCOMPAT /SAFESEH /DYNAMICBASE"
+				AdditionalOptions="/NXCOMPAT /DYNAMICBASE"
 				AdditionalDependencies="comctl32.lib Imm32.lib mpr.lib imagehlp.lib Shlwapi.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -2204,6 +2204,14 @@
 					Name="figures"
 					>
 					<File
+						RelativePath="..\sakura_core\view\figures\CFigure_Comma.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\sakura_core\view\figures\CFigure_Comma.h"
+						>
+					</File>
+					<File
 						RelativePath="..\sakura_core\view\figures\CFigure_CtrlCode.cpp"
 						>
 					</File>
@@ -2701,6 +2709,14 @@
 					</File>
 					<File
 						RelativePath="..\sakura_core\doc\layout\CLayoutMgr_New2.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\sakura_core\doc\layout\CTsvModeInfo.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\sakura_core\doc\layout\CTsvModeInfo.h"
 						>
 					</File>
 				</Filter>

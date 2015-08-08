@@ -43,6 +43,7 @@ CLayoutMgr::CLayoutMgr()
 	m_pTypeConfig = NULL;
 	m_nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 	m_nTabSpace = CKetaXInt(4);
+	m_tsvInfo.m_nTsvMode = TSV_MODE_NONE;
 	m_pszKinsokuHead_1.clear();						/* 行頭禁則 */	//@@@ 2002.04.08 MIK
 	m_pszKinsokuTail_1.clear();						/* 行末禁則 */	//@@@ 2002.04.08 MIK
 	m_pszKinsokuKuto_1.clear();						/* 句読点ぶらさげ */	//@@@ 2002.04.17 MIK
@@ -116,6 +117,7 @@ void CLayoutMgr::SetLayoutInfo(
 	bool				bBlockingHook,
 	const STypeConfig&	refType,
 	CKetaXInt			nTabSpace,
+	int					nTsvMode,
 	CKetaXInt			nMaxLineKetas,
 	CLayoutXInt			nCharLayoutXPerKeta,
 	const LOGFONT*		pLogfont
@@ -146,6 +148,11 @@ void CLayoutMgr::SetLayoutInfo(
 		m_nCharLayoutXPerKeta = nCharLayoutXPerKeta;
 	}
 #endif
+	int nTsvModeOld = m_tsvInfo.m_nTsvMode;
+	m_tsvInfo.m_nTsvMode = nTsvMode;
+	if (nTsvModeOld != nTsvMode) {
+		m_tsvInfo.CalcTabLength(this->m_pcDocLineMgr);
+	}
 
 	//	Oct. 1, 2002 genta タイプによって処理関数を変更する
 	//	数が増えてきたらテーブルにすべき
@@ -646,6 +653,7 @@ void CLayoutMgr::ShiftLogicalLineNum( CLayout* pLayoutPrev, CLogicInt nShiftLine
 
 bool CLayoutMgr::ChangeLayoutParam(
 	CKetaXInt	nTabSize,
+	int			nTsvMode,
 	CKetaXInt	nMaxLineKetas
 )
 {
@@ -653,6 +661,11 @@ bool CLayoutMgr::ChangeLayoutParam(
 	if( nMaxLineKetas < MINLINEKETAS || nMaxLineKetas > MAXLINEKETAS ){ return false; }
 
 	m_nTabSpace = nTabSize;
+	int nTsvModeOld = m_tsvInfo.m_nTsvMode;
+	m_tsvInfo.m_nTsvMode = nTsvMode;
+	if (nTsvModeOld != nTsvMode) {
+		m_tsvInfo.CalcTabLength(this->m_pcDocLineMgr);
+	}
 	m_nMaxLineKetas = nMaxLineKetas;
 
 	_DoLayout(true);
@@ -885,9 +898,8 @@ void CLayoutMgr::LogicToLayout(
 
 				//文字レイアウト幅 -> nCharKetas
 				CLayoutInt nCharKetas;
-				if( pData[i] ==	WCODE::TAB ){
-					// Sep. 23, 2002 genta メンバー関数を使うように
-					nCharKetas = GetActualTabSpace( nCaretPosX );
+				if( pData[i] ==	WCODE::TAB || pData[i] == L',' ){
+					nCharKetas = GetActualTsvSpace( nCaretPosX, pData[i] );
 				}
 				else{
 					nCharKetas = GetLayoutXOfChar( pData, nDataLen, i );
@@ -1025,8 +1037,8 @@ checkloop:;
 		
 		//文字レイアウト幅 -> nCharKetas
 		CLayoutInt	nCharKetas;
-		if( pData[i] == WCODE::TAB ){
-			nCharKetas = GetActualTabSpace( nX );
+		if( pData[i] == WCODE::TAB || pData[i] == L',' ){
+			nCharKetas = GetActualTsvSpace( nX, pData[i] );
 		}
 		else{
 			nCharKetas = GetLayoutXOfChar( pData, nDataLen, i );

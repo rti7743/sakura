@@ -1885,6 +1885,7 @@ bool CMacro::HandleFunction(CEditView *View, EFunctionCode ID, const VARIANT *Ar
 				View->m_pcEditWnd->ChangeLayoutParam(
 					false, 
 					CKetaXInt(varCopy.Data.iVal),
+					View->m_pcEditDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode,
 					View->m_pcEditDoc->m_cLayoutMgr.GetMaxLineKetas()
 				);
 
@@ -1999,6 +2000,7 @@ bool CMacro::HandleFunction(CEditView *View, EFunctionCode ID, const VARIANT *Ar
 			View->m_pcEditWnd->ChangeLayoutParam(
 				false, 
 				View->m_pcEditDoc->m_cLayoutMgr.GetTabSpaceKetas(),
+				View->m_pcEditDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode,
 				CKetaXInt(varCopy.Data.iVal)
 			);
 		}

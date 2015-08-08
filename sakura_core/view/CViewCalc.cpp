@@ -16,6 +16,11 @@ CPixelXInt CViewCalc::GetCharSpacing() const
 	return m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetCharSpacing();
 }
 
+CTsvModeInfo& CViewCalc::GetTsvMode() const
+{
+	return m_pOwner->m_pcEditDoc->m_cLayoutMgr.m_tsvInfo;
+}
+
 /* 指定された桁に対応する行のデータ内の位置を調べる Ver1
 	
 	@@@ 2002.09.28 YAZAKI CDocLine版
@@ -23,7 +28,7 @@ CPixelXInt CViewCalc::GetCharSpacing() const
 CLogicInt CViewCalc::LineColumnToIndex( const CDocLine* pcDocLine, CLayoutInt nColumn ) const
 {
 	CLogicInt i2 = CLogicInt(0);
-	CMemoryIterator it( pcDocLine, GetTabSpace(), m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetWidthPerKeta(), GetCharSpacing() );
+	CMemoryIterator it( pcDocLine, GetTabSpace(), GetTsvMode(), m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetWidthPerKeta(), GetCharSpacing() );
 	while( !it.end() ){
 		it.scanNext();
 		if ( it.getColumn() + it.getColumnDelta() > nColumn ){
@@ -119,7 +124,7 @@ CLayoutInt CViewCalc::LineIndexToColumn( const CLayout* pcLayout, CLogicInt nInd
 CLayoutInt CViewCalc::LineIndexToColumn( const CDocLine* pcDocLine, CLogicInt nIndex ) const
 {
 	CLayoutInt nPosX2 = CLayoutInt(0);
-	CMemoryIterator it( pcDocLine, GetTabSpace(), m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetWidthPerKeta(), GetCharSpacing() );
+	CMemoryIterator it( pcDocLine, GetTabSpace(), GetTsvMode(), m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetWidthPerKeta(), GetCharSpacing() );
 	while( !it.end() ){
 		it.scanNext();
 		if ( it.getIndex() + it.getIndexDelta() > nIndex ){

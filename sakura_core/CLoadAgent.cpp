@@ -207,7 +207,7 @@ ELoadResult CLoadAgent::OnLoad(const SLoadInfo& sLoadInfo)
 			if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH ){
 				nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 			}
-			pcDoc->m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
+			pcDoc->m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, ref.m_nTsvMode, nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
 			pcDoc->m_pcEditWnd->ClearViewCaretPosInfo();
 		}
 
@@ -249,10 +249,18 @@ ELoadResult CLoadAgent::OnLoad(const SLoadInfo& sLoadInfo)
 			nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 
 		CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&pcDoc->m_cLayoutMgr);
-		pcDoc->m_cLayoutMgr.SetLayoutInfo( true, true, ref, ref.m_nTabSpace, nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
+		pcDoc->m_cLayoutMgr.SetLayoutInfo( true, true, ref, ref.m_nTabSpace, ref.m_nTsvMode,
+			nMaxLineKetas, CLayoutXInt(-1), &pcDoc->m_pcEditWnd->GetLogfont() );
 		pcDoc->m_pcEditWnd->ClearViewCaretPosInfo();
+		if (pcDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode != TSV_MODE_NONE) {
+			pcDoc->m_cLayoutMgr.m_tsvInfo.CalcTabLength(pcDoc->m_cLayoutMgr.m_pcDocLineMgr);
+		}
 
 		CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);
+	}else{
+		if (pcDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode != TSV_MODE_NONE) {
+			pcDoc->m_cLayoutMgr.m_tsvInfo.CalcTabLength(pcDoc->m_cLayoutMgr.m_pcDocLineMgr);
+		}
 	}
 
 	return eRet;

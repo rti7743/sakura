@@ -630,7 +630,7 @@ HWND CEditWnd::Create(
 	m_pcEditDoc = pcEditDoc;
 
 	m_pcEditDoc->m_cLayoutMgr.SetLayoutInfo( true, false, m_pcEditDoc->m_cDocType.GetDocumentAttribute(),
-		m_pcEditDoc->m_cLayoutMgr.GetTabSpaceKetas(), m_pcEditDoc->m_cLayoutMgr.GetMaxLineKetas(),
+		m_pcEditDoc->m_cLayoutMgr.GetTabSpaceKetas(), m_pcEditDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode, m_pcEditDoc->m_cLayoutMgr.GetMaxLineKetas(),
 		CLayoutXInt(-1), &GetLogfont() );
 
 	for( int i = 0; i < _countof(m_pcEditViewArr); i++ ){
@@ -4640,7 +4640,7 @@ BOOL CEditWnd::WrapWindowWidth( int nPane )
 	// 右端で折り返す
 	CKetaXInt nWidth = GetView(nPane).ViewColNumToWrapColNum( GetView(nPane).GetTextArea().m_nViewColNum );
 	if( GetDocument()->m_cLayoutMgr.GetMaxLineKetas() != nWidth ){
-		ChangeLayoutParam( false, GetDocument()->m_cLayoutMgr.GetTabSpaceKetas(), nWidth );
+		ChangeLayoutParam( false, GetDocument()->m_cLayoutMgr.GetTabSpaceKetas(), GetDocument()->m_cLayoutMgr.m_tsvInfo.m_nTsvMode, nWidth );
 		ClearViewCaretPosInfo();
 		return TRUE;
 	}
@@ -4679,7 +4679,7 @@ BOOL CEditWnd::UpdateTextWrap( void )
 	@date 2005.08.14 genta 新規作成
 	@date 2008.06.18 ryoji レイアウト変更途中はカーソル移動の画面スクロールを見せない（画面のちらつき抑止）
 */
-void CEditWnd::ChangeLayoutParam( bool bShowProgress, CKetaXInt nTabSize, CKetaXInt nMaxLineKetas )
+void CEditWnd::ChangeLayoutParam( bool bShowProgress, CKetaXInt nTabSize, int nTsvMode, CKetaXInt nMaxLineKetas )
 {
 	HWND		hwndProgress = NULL;
 	if( bShowProgress && NULL != this ){
@@ -4695,7 +4695,7 @@ void CEditWnd::ChangeLayoutParam( bool bShowProgress, CKetaXInt nTabSize, CKetaX
 	CLogicPointEx* posSave = SavePhysPosOfAllView();
 
 	//	レイアウトの更新
-	GetDocument()->m_cLayoutMgr.ChangeLayoutParam( nTabSize, nMaxLineKetas );
+	GetDocument()->m_cLayoutMgr.ChangeLayoutParam( nTabSize, nTsvMode, nMaxLineKetas );
 	ClearViewCaretPosInfo();
 
 	//	座標の復元

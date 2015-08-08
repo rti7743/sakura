@@ -50,7 +50,7 @@ void CFigure_Tab::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView,
 	CTypeSupport cTabType(pcView,COLORIDX_TAB);
 
 	// ‚±‚ê‚©‚ç•`‰æ‚·‚éƒ^ƒu•
-	CLayoutXInt tabDispWidthLayout = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTabSpace(sPos.GetDrawCol());
+	CLayoutXInt tabDispWidthLayout = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpace(sPos.GetDrawCol(), WCODE::TAB);
 	int tabDispWidth = (Int)tabDispWidthLayout;
 	if( pcView->m_bMiniMap ){
 		CLayoutMgr mgrTemp;
