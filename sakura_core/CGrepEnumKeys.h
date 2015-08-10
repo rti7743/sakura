@@ -142,7 +142,7 @@ public:
 				}
 			}else{
 				// Regex
-				if( !CheckRegexpSyntax( token, NULL, true, 0, false ) ){
+				if( !CheckRegexpSyntax( to_wchar(token), NULL, true, 0, false ) ){
 					delete [] pWildCard;
 					return 3; // regex error
 				}

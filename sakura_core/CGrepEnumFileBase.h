@@ -114,7 +114,7 @@ public:
 				if( !InitRegexp( NULL, pRegex[i], true ) ){
 					break; // error MSGï\é¶çœÇ›
 				}
-				if( !pRegex[i].Compile(vecKeysRegex[i], CBregexp::optNothing) ){
+				if( !pRegex[i].Compile(to_wchar(vecKeysRegex[i]), CBregexp::optNothing) ){
 					break; // error
 				}
 			}
@@ -173,7 +173,7 @@ public:
 								bMatchRegex = true;
 							}else{
 								for( int k = 0; k < (int)vecKeysRegex.size(); k++ ){
-									if( pRegex[k].Match( lpName, _tcslen(w32fd.cFileName), 0 ) ){
+									if( pRegex[k].Match( to_wchar(lpName), _tcslen(w32fd.cFileName), 0 ) ){
 										bMatchRegex = true;
 										break;
 									}
