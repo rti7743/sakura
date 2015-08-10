@@ -379,6 +379,8 @@ void CLayoutMgr::_DoLayout(bool bBlockingHook)
 			if( !::BlockingHook( NULL ) )return;
 		}
 	}
+	m_nEOFColumn = CLayoutInt(-1);
+	m_nEOFLine = CLayoutInt(-1);
 }
 
 
@@ -763,6 +765,8 @@ unsigned int CLayoutMgr::StartThread(SLayoutMgrThread* ptr)
 
 	m_nPrevReferLine = CLayoutInt(0);
 	m_pLayoutPrevRefer = NULL;
+	m_nEOFLine = CLayoutInt(-1);
+	m_nEOFColumn = CLayoutInt(-1);
 
 	return 0;
 }
