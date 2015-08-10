@@ -630,8 +630,10 @@ HWND CEditWnd::Create(
 	m_pcEditDoc = pcEditDoc;
 
 	m_pcEditDoc->m_cLayoutMgr.SetLayoutInfo( true, false, m_pcEditDoc->m_cDocType.GetDocumentAttribute(),
-		m_pcEditDoc->m_cLayoutMgr.GetTabSpaceKetas(), m_pcEditDoc->m_cLayoutMgr.m_tsvInfo.m_nTsvMode, m_pcEditDoc->m_cLayoutMgr.GetMaxLineKetas(),
-		CLayoutXInt(-1), &GetLogfont() );
+		m_pcEditDoc->m_cDocType.GetDocumentAttribute().m_nTabSpace, m_pcEditDoc->m_cDocType.GetDocumentAttribute().m_nTsvMode,
+		m_pcEditDoc->m_cDocType.GetDocumentAttribute().m_nMaxLineKetas, CLayoutXInt(-1), &GetLogfont(),
+		GetDllShareData().m_Common.m_sWindow.m_bDispMiniMap, GetLogfontCacheMode() );
+
 
 	for( int i = 0; i < _countof(m_pcEditViewArr); i++ ){
 		m_pcEditViewArr[i] = NULL;
@@ -1053,10 +1055,13 @@ void CEditWnd::LayoutTabBar( void )
 /*! ミニマップの配置処理
 	@date 2014.07.14 新規作成
 */
-void CEditWnd::LayoutMiniMap( void )
+void CEditWnd::LayoutMiniMap(bool bTsvCreate)
 {
 	if( m_pShareData->m_Common.m_sWindow.m_bDispMiniMap ){	/* タブバーを表示する */
 		if( NULL == GetMiniMap().GetHwnd() ){
+			if( bTsvCreate ){
+				m_pcEditDoc->m_cLayoutMgr.CreateTsvInfoMinimap(true, &GetLogfont(), GetLogfontCacheMode());
+			}
 			GetMiniMap().Create( GetHwnd(), GetDocument(), -1, TRUE, true );
 		}
 	}else{
@@ -2063,7 +2068,7 @@ LRESULT CEditWnd::DispatchEvent(
 				LayoutStatusBar();		// 2006.12.19 ryoji
 				break;
 			case MYBCN_MINIMAP:
-				LayoutMiniMap();
+				LayoutMiniMap(true);
 				break;
 			}
 			EndLayoutBars();	// 2006.12.19 ryoji
@@ -4695,7 +4700,9 @@ void CEditWnd::ChangeLayoutParam( bool bShowProgress, CKetaXInt nTabSize, int nT
 	CLogicPointEx* posSave = SavePhysPosOfAllView();
 
 	//	レイアウトの更新
-	GetDocument()->m_cLayoutMgr.ChangeLayoutParam( nTabSize, nTsvMode, nMaxLineKetas );
+	GetDocument()->m_cLayoutMgr.ChangeLayoutParam( nTabSize, nTsvMode, nMaxLineKetas,
+		&GetLogfont(), GetDllShareData().m_Common.m_sWindow.m_bDispMiniMap, GetLogfontCacheMode()
+	);
 	ClearViewCaretPosInfo();
 
 	//	座標の復元

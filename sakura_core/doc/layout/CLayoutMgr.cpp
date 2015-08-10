@@ -43,7 +43,7 @@ CLayoutMgr::CLayoutMgr()
 	m_pTypeConfig = NULL;
 	m_nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 	m_nTabSpace = CKetaXInt(4);
-	m_tsvInfo.m_nTsvMode = TSV_MODE_NONE;
+	m_tsvInfo.m_nTsvMode = TSV_MODE_RESET;
 	m_pszKinsokuHead_1.clear();						/* 行頭禁則 */	//@@@ 2002.04.08 MIK
 	m_pszKinsokuTail_1.clear();						/* 行末禁則 */	//@@@ 2002.04.08 MIK
 	m_pszKinsokuKuto_1.clear();						/* 句読点ぶらさげ */	//@@@ 2002.04.17 MIK
@@ -74,6 +74,7 @@ void CLayoutMgr::Create( CEditDoc* pcEditDoc, CDocLineMgr* pcDocLineMgr )
 	_Empty();
 	Init();
 	//	Jun. 20, 2003 genta EditDocへのポインタ追加
+	m_tsvInfo.m_nTsvMode = TSV_MODE_RESET;
 	m_pcEditDoc = pcEditDoc;
 	m_pcDocLineMgr = pcDocLineMgr;
 }
@@ -120,7 +121,9 @@ void CLayoutMgr::SetLayoutInfo(
 	int					nTsvMode,
 	CKetaXInt			nMaxLineKetas,
 	CLayoutXInt			nCharLayoutXPerKeta,
-	const LOGFONT*		pLogfont
+	const LOGFONT*		pLogfont,
+	bool				bMiniMap,
+	ECharWidthCacheMode eTypeFontMode
 )
 {
 	MY_RUNNINGTIMER( cRunningTimer, "CLayoutMgr::SetLayoutInfo" );
@@ -153,6 +156,7 @@ void CLayoutMgr::SetLayoutInfo(
 	if (nTsvModeOld != nTsvMode) {
 		CopyTsvInfo(m_tsvInfo);
 		m_tsvInfo.CalcTabLength(this->m_pcDocLineMgr);
+		CreateTsvInfoMinimap(bMiniMap, pLogfont, eTypeFontMode);
 	}
 
 	//	Oct. 1, 2002 genta タイプによって処理関数を変更する
@@ -655,7 +659,10 @@ void CLayoutMgr::ShiftLogicalLineNum( CLayout* pLayoutPrev, CLogicInt nShiftLine
 bool CLayoutMgr::ChangeLayoutParam(
 	CKetaXInt	nTabSize,
 	int			nTsvMode,
-	CKetaXInt	nMaxLineKetas
+	CKetaXInt	nMaxLineKetas,
+	const LOGFONT* pLogfont,
+	bool		bMiniMap,
+	ECharWidthCacheMode eTypeFontMode
 )
 {
 	if( nTabSize < 1 || nTabSize > 64 ) { return false; }
@@ -667,6 +674,7 @@ bool CLayoutMgr::ChangeLayoutParam(
 	if (nTsvModeOld != nTsvMode) {
 		CopyTsvInfo(m_tsvInfo);
 		m_tsvInfo.CalcTabLength(this->m_pcDocLineMgr);
+		CreateTsvInfoMinimap(bMiniMap, pLogfont, eTypeFontMode);
 	}
 	m_nMaxLineKetas = nMaxLineKetas;
 
@@ -676,6 +684,32 @@ bool CLayoutMgr::ChangeLayoutParam(
 }
 
 
+
+void CLayoutMgr::CreateTsvInfoMinimap(bool bMiniMap, const LOGFONT* pLogfont, ECharWidthCacheMode eTypeFontMode)
+{
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	m_tsvInfoMinimap.m_nTsvMode = m_tsvInfo.m_nTsvMode;
+	if( !bMiniMap ){
+		if( m_tsvInfoMinimap.m_nTsvMode == TSV_MODE_NONE ){
+			m_tsvInfoMinimap.CalcTabLength(this->m_pcDocLineMgr);
+		}
+		return;
+	}
+	{
+		HWND hwnd = NULL;
+		HDC hdc = ::GetDC(hwnd);
+		CViewFont viewFont(pLogfont, true); // miniMap = true
+		CTextMetrics temp;
+		temp.Update(hdc, viewFont.GetFontHan(), 0, 0);
+		m_tsvInfoMinimap.m_nDx = temp.GetHankakuWidth();
+		m_tsvInfoMinimap.m_nSpacing = 0;
+		::ReleaseDC(hwnd, hdc);
+	}
+	SelectCharWidthCache(CWM_FONT_MINIMAP, CWM_CACHE_LOCAL);
+	m_tsvInfoMinimap.CalcTabLength(this->m_pcDocLineMgr);
+	SelectCharWidthCache(CWM_FONT_EDIT, eTypeFontMode);
+#endif
+}
 
 
 

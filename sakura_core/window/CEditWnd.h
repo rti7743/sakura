@@ -195,7 +195,7 @@ public:
 	void LayoutFuncKey( void );			/* ファンクションキーの配置処理 */	// 2006.12.19 ryoji
 	void LayoutTabBar( void );			/* タブバーの配置処理 */			// 2006.12.19 ryoji
 	void LayoutStatusBar( void );		/* ステータスバーの配置処理 */		// 2006.12.19 ryoji
-	void LayoutMiniMap();				// ミニマップの配置処理
+	void LayoutMiniMap(bool bTsvCreate = false);	// ミニマップの配置処理
 	void EndLayoutBars( BOOL bAdjust = TRUE );	/* バーの配置終了処理 */	// 2006.12.19 ryoji
 
 

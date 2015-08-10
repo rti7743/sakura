@@ -42,7 +42,15 @@ void CFigure_Comma::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcVie
 	CTypeSupport cTabType(pcView,COLORIDX_TAB);
 
 	// これから描画するタブ幅
-	CLayoutXInt nCol = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpace( sPos.GetDrawCol(), L',' );
+	CLayoutXInt nCol;
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	if( pcView->m_bMiniMap ){
+		nCol = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpaceMiniMap( sPos.GetDrawCol(), L',' );
+	}else
+#endif
+	{
+		nCol = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpace( sPos.GetDrawCol(), L',' );
+	}
 	int tabDispWidth = (Int)nCol;
 
 	// タブ記号領域

@@ -182,7 +182,7 @@ CEditDoc::CEditDoc(CEditApp* pcApp)
 	if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH ){
 		nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 	}
-	m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, ref.m_nTsvMode, nMaxLineKetas, CLayoutXInt(1), NULL );
+	// m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, ref.m_nTsvMode, nMaxLineKetas, CLayoutXInt(1), NULL );
 
 	//	自動保存の設定	//	Aug, 21, 2000 genta
 	m_cAutoSaveAgent.ReloadAutoSaveParam();
@@ -266,7 +266,8 @@ void CEditDoc::Clear()
 	if( ref.m_nTextWrapMethod != WRAP_SETTING_WIDTH ){
 		nMaxLineKetas = CKetaXInt(MAXLINEKETAS);
 	}
-	m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, ref.m_nTsvMode, nMaxLineKetas, CLayoutXInt(-1), &m_pcEditWnd->GetLogfont() );
+	m_cLayoutMgr.SetLayoutInfo( true, false, ref, ref.m_nTabSpace, ref.m_nTsvMode, nMaxLineKetas, CLayoutXInt(-1), &m_pcEditWnd->GetLogfont(),
+	GetDllShareData().m_Common.m_sWindow.m_bDispMiniMap, m_pcEditWnd->GetLogfontCacheMode() );
 	m_pcEditWnd->ClearViewCaretPosInfo();
 }
 
@@ -813,10 +814,11 @@ void CEditDoc::OnChangeSetting(
 		nTabSpace = m_cLayoutMgr.GetTabSpaceKetas();	// 現在のタブ幅
 	}
 	// フォントが変更されたかもしれないので、TSV情報を一度無効化→SetLayoutInfoで再生成
-	m_cLayoutMgr.m_tsvInfo.m_nTsvMode = TSV_MODE_NONE;
+	m_cLayoutMgr.m_tsvInfo.m_nTsvMode = TSV_MODE_RESET;
 
 	CProgressSubject* pOld = CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(&m_cLayoutMgr);
-	m_cLayoutMgr.SetLayoutInfo( bDoLayout, bBlockingHook, ref, nTabSpace, nTsvMode, nMaxLineKetas, CLayoutXInt(-1), &m_pcEditWnd->GetLogfont() );
+	m_cLayoutMgr.SetLayoutInfo( bDoLayout, bBlockingHook, ref, nTabSpace, nTsvMode, nMaxLineKetas, CLayoutXInt(-1), &m_pcEditWnd->GetLogfont(),
+		GetDllShareData().m_Common.m_sWindow.m_bDispMiniMap, m_pcEditWnd->GetLogfontCacheMode() );
 	CEditApp::getInstance()->m_pcVisualProgress->CProgressListener::Listen(pOld);
 	m_pcEditWnd->ClearViewCaretPosInfo();
 

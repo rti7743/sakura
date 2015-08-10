@@ -34,6 +34,7 @@
 #define TSV_MODE_NONE	0	// TSVモードなし
 #define TSV_MODE_TSV	1	// TSVモード
 #define TSV_MODE_CSV	2	// CSVモード
+#define TSV_MODE_RESET	99	// RESET
 
 class CDocLineMgr;
 

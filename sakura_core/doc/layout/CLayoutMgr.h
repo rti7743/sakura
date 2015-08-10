@@ -143,12 +143,6 @@ public:
 	CKetaXInt GetTabSpaceKetas() const { return m_nTabSpace; }
 #endif
 
-	void SetTabSpaceInfo( CKetaXInt nTabSpaceKeta, CLayoutXInt nCharLayoutXPerKeta ){
-		m_nTabSpace = nTabSpaceKeta;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-		m_nCharLayoutXPerKeta = nCharLayoutXPerKeta;
-#endif
-	}
 
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 	//                          参照系                             //
@@ -226,6 +220,22 @@ public:
 		}
 #endif
 	}
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	CLayoutXInt GetActualTsvSpaceMiniMap(CLayoutXInt pos, wchar_t ch) const {
+		if (m_tsvInfoMinimap.m_nTsvMode == TSV_MODE_NONE && ch == WCODE::TAB) {
+			CLayoutXInt tabSpace = CLayoutXInt(m_tsvInfoMinimap.m_nDx * m_nTabSpace);
+			CLayoutXInt tabPadding = CLayoutXInt(m_tsvInfoMinimap.m_nDx - 1);
+			return tabSpace + tabPadding - ((pos + tabPadding) % tabSpace);
+		} else if (m_tsvInfoMinimap.m_nTsvMode == TSV_MODE_CSV && ch == WCODE::TAB) {
+			return CLayoutXInt(m_tsvInfoMinimap.m_nDx); // 1文字幅
+		} else if ((m_tsvInfoMinimap.m_nTsvMode == TSV_MODE_TSV && ch == WCODE::TAB)
+			|| (m_tsvInfoMinimap.m_nTsvMode == TSV_MODE_CSV && ch == L',')) {
+			return CLayoutInt(m_tsvInfoMinimap.GetActualTabLength(pos));
+		} else {
+			return CNativeW::GetColmOfChar(&ch, 1, 0); // spacing == 0
+		}
+	}
+#endif
 
 	//	Aug. 14, 2005 genta
 	// Sep. 07, 2007 kobake 関数名変更 GetMaxLineSize→GetMaxLineKetas
@@ -237,7 +247,10 @@ public:
 #endif
 
 	// 2005.11.21 Moca 引用符の色分け情報を引数から除去
-	bool ChangeLayoutParam( CKetaXInt nTabSize, int nTsvMode, CKetaXInt nMaxLineKetas );
+	bool ChangeLayoutParam( CKetaXInt nTabSize, int nTsvMode, CKetaXInt nMaxLineKetas,
+		const LOGFONT* pLogfont, bool bMiniMap, ECharWidthCacheMode eTypeFontMode );
+
+	void CreateTsvInfoMinimap(bool bMiniMap, const LOGFONT* pLogfont, ECharWidthCacheMode eTypeFontMode);
 
 	// Jul. 29, 2006 genta
 	void GetEndLayoutPos(CLayoutPoint* ptLayoutEnd);
@@ -317,7 +330,9 @@ public:
 		int				nTsvMode,
 		CKetaXInt		nMaxLineKetas,
 		CLayoutXInt		nCharLayoutXPerKeta,
-		const LOGFONT*	pLogfont
+		const LOGFONT*	pLogfont,
+		bool			bMiniMap,
+		ECharWidthCacheMode eTypeFontMode
 	);
 
 	HANDLE CreateThread(SLayoutMgrThread*); // CLayoutMgrを走らせるスレッドを作成
@@ -467,6 +482,9 @@ protected:
 public:
 	CDocLineMgr*			m_pcDocLineMgr;	/* 行バッファ管理マネージャ */
 	CTsvModeInfo			m_tsvInfo;
+#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
+	CTsvModeInfo			m_tsvInfoMinimap;
+#endif
 
 protected:
 	// 2002.10.07 YAZAKI add m_nLineTypeBot
@@ -486,6 +504,7 @@ protected:
 	CKetaXInt				m_nTabSpace;
 #ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	CLayoutXInt				m_nCharLayoutXPerKeta;		//CKetaXInt(1)あたりのCLayoutXInt値(Spacing入り)
+	CLayoutXInt				m_nCharLayoutXPerKetaMinimap;
 	CPixelXInt				m_nSpacing;					//1文字ずつの間隔(px)
 #endif
 	vector_ex<wchar_t>		m_pszKinsokuHead_1;			// 行頭禁則文字	//@@@ 2002.04.08 MIK

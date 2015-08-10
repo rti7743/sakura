@@ -142,7 +142,7 @@ void CViewCommander::Command_SHOWMINIMAP( void )
 	CEditWnd*	pCEditWnd = GetEditWindow();	//	Sep. 10, 2002 genta
 
 	GetDllShareData().m_Common.m_sWindow.m_bDispMiniMap = ((NULL == pCEditWnd->GetMiniMap().GetHwnd())? true: false);
-	pCEditWnd->LayoutMiniMap();
+	pCEditWnd->LayoutMiniMap(true);
 	pCEditWnd->EndLayoutBars();
 
 	//全ウインドウに変更を通知する。

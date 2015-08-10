@@ -861,7 +861,7 @@ void CPrintPreview::OnChangePrintSetting( void )
 #else
 		CLayoutXInt(1),
 #endif
-	NULL );
+	NULL, false, CWM_CACHE_LOCAL );
 	m_nAllPageNum = (WORD)((Int)m_pLayoutMgr_Print->GetLineCount() / ( m_bPreview_EnableLines * m_pPrintSetting->m_nPrintDansuu ));		/* 全ページ数 */
 	if( 0 < m_pLayoutMgr_Print->GetLineCount() % ( m_bPreview_EnableLines * m_pPrintSetting->m_nPrintDansuu ) ){
 		m_nAllPageNum++;
