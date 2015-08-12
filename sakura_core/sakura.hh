@@ -1124,6 +1124,7 @@
 #define HIDC_CHECK_DISP_UTF8_CODEPOINT	14203		// UTF-8をコードポイントで表示する
 #define HIDC_CHECK_DISP_SP_CODEPOINT	14204		// サロゲートペアをコードポイントで表示する
 #define HIDC_CHECK_DISP_SELCOUNT_BY_BYTE	14205	// 選択文字数を文字単位ではなくバイト単位で表示する
+#define HIDC_CHECK_DISP_SELCOUNT_INCLUDE_CRLF 14206	// 選択文字数に改行コード分を含める
 
 // 共通設定メインメニュー			// 2010/5/16	Uchi
 #define HIDC_TREE_RES						14400	//メニュー一覧

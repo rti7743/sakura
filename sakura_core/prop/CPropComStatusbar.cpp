@@ -22,6 +22,7 @@
 #include "prop/CDlgConfigChildStatusbar.h"
 #include "prop/CDlgConfig.h"
 #include "util/shell.h"
+#include "util/window.h"
 #include "sakura_rc.h"
 #include "sakura.hh"
 
@@ -33,6 +34,7 @@ static const DWORD p_helpids[] = {
 	IDC_CHECK_DISP_UTF8_CODEPOINT,		HIDC_CHECK_DISP_UTF8_CODEPOINT,			// UTF-8をコードポイントで表示する
 	IDC_CHECK_DISP_SP_CODEPOINT,		HIDC_CHECK_DISP_SP_CODEPOINT,			// サロゲートペアをコードポイントで表示する
 	IDC_CHECK_DISP_SELCOUNT_BY_BYTE,	HIDC_CHECK_DISP_SELCOUNT_BY_BYTE,		// 選択文字数を文字単位ではなくバイト単位で表示する
+	IDC_CHECK_DISP_SELCOUNT_INCLUDE_CRLF, HIDC_CHECK_DISP_SELCOUNT_INCLUDE_CRLF,
 	0, 0
 };
 
@@ -72,6 +74,7 @@ void CDlgConfigChildStatusbar::SetData()
 	::CheckDlgButton( hwndDlg, IDC_CHECK_DISP_SP_CODEPOINT,    m_Common.m_sStatusbar.m_bDispSPCodepoint );
 	// 選択文字数を文字単位ではなくバイト単位で表示する
 	::CheckDlgButton( hwndDlg, IDC_CHECK_DISP_SELCOUNT_BY_BYTE,m_Common.m_sStatusbar.m_bDispSelCountByByte );
+	CheckDlgButtonBool( hwndDlg, IDC_CHECK_DISP_SELCOUNT_INCLUDE_CRLF,m_Common.m_sStatusbar.m_bDispSelIncludeCrlf );
 	return;
 }
 
@@ -94,6 +97,7 @@ int CDlgConfigChildStatusbar::GetData()
 	m_Common.m_sStatusbar.m_bDispSPCodepoint	= ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DISP_SP_CODEPOINT );
 	// 選択文字数を文字単位ではなくバイト単位で表示する
 	m_Common.m_sStatusbar.m_bDispSelCountByByte	= ::IsDlgButtonChecked( hwndDlg, IDC_CHECK_DISP_SELCOUNT_BY_BYTE );
+	m_Common.m_sStatusbar.m_bDispSelIncludeCrlf	= IsDlgButtonCheckedBool( hwndDlg, IDC_CHECK_DISP_SELCOUNT_INCLUDE_CRLF );
 
 	return TRUE;
 }

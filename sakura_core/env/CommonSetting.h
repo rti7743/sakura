@@ -675,6 +675,8 @@ struct CommonSetting_Statusbar
 	BOOL		m_bDispUtf8Codepoint;			//!< UTF-8をコードポイントで表示する
 	BOOL		m_bDispSPCodepoint;				//!< サロゲートペアをコードポイントで表示する
 	BOOL		m_bDispSelCountByByte;			//!< 選択文字数を文字単位ではなくバイト単位で表示する
+	bool		m_bDispSelIncludeCrlf;			//!< 選択文字数に改行コード分を含む
+	int			m_nDispSelTimeoutSec;			//!< 選択文字数の計算タイムアウト秒
 };
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //

@@ -826,6 +826,7 @@
 #define IDC_CHECKBOX_GESTURE            1757
 #define IDC_CHECK_ITALIC                1758
 #define IDC_CHECK_STRIKEOUT             1759
+#define IDC_CHECK_DISP_SELCOUNT_INCLUDE_CRLF 1760
 #define IDS_AUTHOR_PAGE                 4054
 #define IDS_ABOUT_DESCRIPTION           4056
 #define IDD_TYPELIST                    5000

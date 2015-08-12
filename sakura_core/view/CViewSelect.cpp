@@ -11,6 +11,7 @@
 #include "env/CShareData.h"
 #include "env/DLLSHAREDATA.h"
 #include "types/CTypeSupport.h"
+#include "uiparts/CWaitCursor.h"
 
 CViewSelect::CViewSelect(CEditView* pcEditView)
 : m_pcEditView(pcEditView)
@@ -700,7 +701,7 @@ void CViewSelect::PrintSelectionInfoMsg() const
 	}
 	else {
 		//	通常の選択では選択範囲の中身を数える
-		int select_sum = 0;	//	バイト数合計
+		INT_PTR select_sum = 0;	//	バイト数合計
 		const wchar_t *pLine;	//	データを受け取る
 		CLogicInt	nLineLen;		//	行の長さ
 		const CLayout*	pcLayout;
@@ -711,6 +712,7 @@ void CViewSelect::PrintSelectionInfoMsg() const
 		BOOL bCountByByte = ( pView->m_pcEditWnd->m_nSelectCountMode == SELECT_COUNT_TOGGLE ?
 								bCountByByteCommon :
 								pView->m_pcEditWnd->m_nSelectCountMode == SELECT_COUNT_BY_BYTE );
+		const bool bCountIncludeCrlf = GetDllShareData().m_Common.m_sStatusbar.m_bDispSelIncludeCrlf;
 
 		//	1行目
 		pLine = pView->m_pcEditDoc->m_cLayoutMgr.GetLineStr( m_sSelect.GetFrom().GetY2(), &nLineLen, &pcLayout );
@@ -719,9 +721,6 @@ void CViewSelect::PrintSelectionInfoMsg() const
 				//  バイト数でカウント
 				//  内部文字コードから現在の文字コードに変換し、バイト数を取得する。
 				//  コード変換は負荷がかかるため、選択範囲の増減分のみを対象とする。
-
-				CNativeW cmemW;
-				CMemory cmemCode;
 
 				// 増減分文字列の取得にCEditView::GetSelectedDataを使いたいが、m_sSelect限定のため、
 				// 呼び出し前にm_sSelectを書き換える。呼出し後に元に戻すので、constと言えないこともない。
@@ -743,48 +742,54 @@ void CViewSelect::PrintSelectionInfoMsg() const
 				}
 
 				//2009.07.07 syat m_nLastSelectedByteLenが0の場合は、差分ではなく全体を変換する（モード切替時にキャッシュクリアするため）
-
+				CLayoutRange selectRange;
 				if( m_bSelectAreaChanging && m_nLastSelectedByteLen && m_sSelect.GetFrom() == m_sSelectOld.GetFrom() ){
 					// 範囲が後方に拡大された
 					if( PointCompare( m_sSelect.GetTo(), m_sSelectOld.GetTo() ) < 0 ){
 						bSelExtend = false;				// 縮小
-						thiz->m_sSelect = CLayoutRange( m_sSelect.GetTo(), m_sSelectOld.GetTo() );
+						selectRange = CLayoutRange( m_sSelect.GetTo(), m_sSelectOld.GetTo() );
 					}else{
 						bSelExtend = true;				// 拡大
-						thiz->m_sSelect = CLayoutRange( m_sSelectOld.GetTo(), m_sSelect.GetTo() );
+						selectRange = CLayoutRange( m_sSelectOld.GetTo(), m_sSelect.GetTo() );
 					}
-
-					const_cast<CEditView*>( pView )->GetSelectedDataSimple(cmemW);
-					thiz->m_sSelect = rngSelect;		// m_sSelectを元に戻す
 				}
 				else if( m_bSelectAreaChanging && m_nLastSelectedByteLen && m_sSelect.GetTo() == m_sSelectOld.GetTo() ){
 					// 範囲が前方に拡大された
 					if( PointCompare( m_sSelect.GetFrom(), m_sSelectOld.GetFrom() ) < 0 ){
 						bSelExtend = true;				// 拡大
-						thiz->m_sSelect = CLayoutRange( m_sSelect.GetFrom(), m_sSelectOld.GetFrom() );
+						selectRange = CLayoutRange( m_sSelect.GetFrom(), m_sSelectOld.GetFrom() );
 					}else{
 						bSelExtend = false;				// 縮小
-						thiz->m_sSelect = CLayoutRange( m_sSelectOld.GetFrom(), m_sSelect.GetFrom() );
+						selectRange = CLayoutRange( m_sSelectOld.GetFrom(), m_sSelect.GetFrom() );
 					}
-
-					const_cast<CEditView*>( pView )->GetSelectedDataSimple(cmemW);
-					thiz->m_sSelect = rngSelect;		// m_sSelectを元に戻す
 				}
 				else{
 					// 選択領域全体をコード変換対象にする
-					const_cast<CEditView*>( pView )->GetSelectedDataSimple(cmemW);
+					selectRange = m_sSelect;
 					bSelExtend = true;
 					thiz->m_nLastSelectedByteLen = 0;
 				}
 				//  現在の文字コードに変換し、バイト長を取得する
-				CCodeBase* pCode = CCodeFactory::CreateCodeBase(pView->m_pcEditDoc->GetDocumentEncoding(), false);
-				pCode->UnicodeToCode( cmemW, &cmemCode );
-				delete pCode;
+				INT_PTR nDiffByte = GetByteRangeConvertCode(selectRange);
+				if( nDiffByte < 0 ){
+					thiz->m_nLastSelectedByteLen = 0;
+					const_cast<CEditView*>(pView)->GetCaret().m_bClearStatus = false;
+					const TCHAR* pszFormat;
+					if( -2 == nDiffByte ){
+						pszFormat = _T("count timeout (%d lines) selected.");
+					}else{
+						pszFormat = _T("count error (%d lines) selected.");
+					}
+					TCHAR szMsg[100];
+					auto_sprintf(szMsg, pszFormat, select_line);
+					pView->m_pcEditWnd->m_cStatusBar.SendStatusMessage2(szMsg);
+					return;
+				}
 
 				if( bSelExtend ){
-					select_sum = m_nLastSelectedByteLen + cmemCode.GetRawLength();
+					select_sum = m_nLastSelectedByteLen + nDiffByte;
 				}else{
-					select_sum = m_nLastSelectedByteLen - cmemCode.GetRawLength();
+					select_sum = m_nLastSelectedByteLen - nDiffByte;
 				}
 				thiz->m_nLastSelectedByteLen = select_sum;
 
@@ -804,9 +809,10 @@ void CViewSelect::PrintSelectionInfoMsg() const
 				} else {	//	2行以上選択されている場合
 					select_sum =
 						pcLayout->GetLengthWithoutEOL()
-						+ pcLayout->GetLayoutEol().GetLen()
 						- pView->LineColumnToIndex( pcLayout, m_sSelect.GetFrom().GetX2() );
-
+					if( bCountIncludeCrlf ){
+						select_sum += pcLayout->GetLayoutEol().GetLen();
+					}
 					//	GetSelectedDataと似ているが，先頭行と最終行は排除している
 					//	Aug. 16, 2005 aroka nLineNumはfor以降でも使われるのでforの前で宣言する
 					//	VC .NET以降でもMicrosoft拡張を有効にした標準動作はVC6と同じことに注意
@@ -817,7 +823,10 @@ void CViewSelect::PrintSelectionInfoMsg() const
 						//	2006.06.06 ryoji 指定行のデータが存在しない場合の対策
 						if( NULL == pLine )
 							break;
-						select_sum += pcLayout->GetLengthWithoutEOL() + pcLayout->GetLayoutEol().GetLen();
+						select_sum += pcLayout->GetLengthWithoutEOL();
+						if( bCountIncludeCrlf ){
+							select_sum += pcLayout->GetLayoutEol().GetLen();
+						}
 					}
 
 					//	最終行の処理
@@ -841,17 +850,150 @@ void CViewSelect::PrintSelectionInfoMsg() const
 			}
 		}
 
+		const TCHAR* pszFormat;
 #ifdef _DEBUG
-		auto_sprintf( msg, _T("%d %ts (%d lines) selected. [%d:%d]-[%d:%d]"),
+#ifdef _WIN64
+		pszFormat = _T("%I64d %ts (%d lines) selected. [%d:%d]-[%d:%d]");
+#else
+		pszFormat = _T("%d %ts (%d lines) selected. [%d:%d]-[%d:%d]");
+#endif
+		auto_sprintf( msg, pszFormat,
 			select_sum,
 			( bCountByByte ? _T("bytes") : _T("chars") ),
 			select_line,
 			m_sSelect.GetFrom().x, m_sSelect.GetFrom().y,
 			m_sSelect.GetTo().x, m_sSelect.GetTo().y );
 #else
-		auto_sprintf( msg, _T("%d %ts (%d lines) selected."), select_sum, ( bCountByByte ? _T("bytes") : _T("chars") ), select_line );
+#ifdef _WIN64
+		pszFormat = _T("%I64d %ts (%d lines) selected.");
+#else
+		pszFormat = _T("%d %ts (%d lines) selected.");
+#endif
+		auto_sprintf( msg, pszFormat, select_sum, ( bCountByByte ? _T("bytes") : _T("chars") ), select_line );
 #endif
 	}
 	const_cast<CEditView*>(pView)->GetCaret().m_bClearStatus = false;
 	pView->m_pcEditWnd->m_cStatusBar.SendStatusMessage2( msg );
+}
+
+/*! 指定範囲の文字コードによるバイト数を数える
+
+	@date 2015.08.12 Moca 新規作成。GetSelectedDataSimpleによる全範囲コピーをやめ行ごとに変換して計算
+*/
+INT_PTR CViewSelect::GetByteRangeConvertCode(const CLayoutRange& sRange) const
+{
+	const CEditView* pView = GetEditView();
+	CCodeBase* pCode = CCodeFactory::CreateCodeBase(pView->m_pcEditDoc->GetDocumentEncoding(), false);
+	if (NULL == pCode) {
+		return -1;
+	}
+	const CLayoutMgr& layoutMgr = pView->m_pcEditDoc->m_cLayoutMgr;
+	const bool bCountIncludeCrlf = GetDllShareData().m_Common.m_sStatusbar.m_bDispSelIncludeCrlf;
+	DWORD dwTimeout = GetDllShareData().m_Common.m_sStatusbar.m_nDispSelTimeoutSec * 1000; // timeout secの1/10 ms
+	INT_PTR select_sum = 0;
+	CNativeW cmemW;
+	CMemory cmemCode;
+
+	if (IsBoxSelecting()) {
+#if 0
+		// 矩形選択：未使用
+		CLayoutRect rcSel;
+		TwoPointToRect(&rcSel, sRange.GetFrom(), sRange.GetTo());
+
+		CLayoutYInt nLineNum = rcSel.top;
+		CLogicXInt nLineLen;
+		const CLayout* pcLayout;
+		const wchar_t* pLine = layoutMgr.GetLineStr(rcSel.top, &nLineLen, &pcLayout);
+		for (; nLineNum <= rcSel.bottom && NULL != pcLayout; ++nLineNum) {
+			CLogicXInt nIdxFrom = pView->LineColumnToIndex(pcLayout, rcSel.left);
+			CLogicXInt nIdxTo   = pView->LineColumnToIndex(pcLayout, rcSel.right);
+			if (0 < nIdxTo - nIdxFrom) {
+				CLogicXInt len = pcLayout->GetLengthWithoutEOL();
+				if (len < nIdxTo) {
+					if (bCountIncludeCrlf) {
+						// 改行コードを"CRLF"両方含める
+						nIdxTo = len + pcLayout->GetLayoutEol().GetLen();
+					} else {
+						// 改行コード手前まで
+						nIdxTo = len;
+					}
+				}
+				cmemW.SetStringHoldBuffer(&pLine[nIdxFrom], nIdxTo - nIdxFrom);
+				pCode->UnicodeToCode(cmemW, &cmemCode);
+				select_sum += cmemCode.GetRawLength();
+			}
+			pLine = layoutMgr.GetLineStr(nLineNum, &nLineLen, &pcLayout);
+		}
+#endif
+	} else {
+		CLogicRange logicRange;
+		layoutMgr.LayoutToLogic(sRange, &logicRange);
+		const CDocLineMgr& docLineMgr = pView->m_pcEditDoc->m_cDocLineMgr;
+		CLogicYInt nLineNum = logicRange.GetFrom().GetY2();
+		const CLogicXInt first = nLineNum;
+		const CLogicXInt last = logicRange.GetTo().GetY2();
+		const DWORD dwStart = ::GetTickCount();
+		DWORD dwOld = dwStart;
+		const CDocLine* pcDocLine = docLineMgr.GetLine(nLineNum);
+		int nPercent = 0;
+		int nLines = t_max(Int(1), Int(last - first));
+		CWaitCursor cWaitCursor(pView->GetHwnd(), 50000 < nLines);
+		for (; nLineNum <= last && NULL != pcDocLine;) {
+			if (0 == ((Int)nLineNum & 0x3ff)) {
+				DWORD dwNow = ::GetTickCount();
+				if (2000 < dwNow - dwOld) {
+					// 2sec以上待機した場合
+					dwOld = dwNow - 1900; // 次回以降は0.1 sec
+					int nNewPercent = ::MulDiv(Int(nLineNum - first), 100, nLines);
+					if (nPercent != nNewPercent) {
+						nPercent = nNewPercent;
+						HWND hwndStatus = pView->m_pcEditWnd->m_cStatusBar.GetStatusHwnd();
+						if( hwndStatus ){
+							TCHAR status[30];
+							auto_sprintf(status, _T("calc selected byte.(%d %%)"), nPercent);
+							pView->m_pcEditWnd->m_cStatusBar.SendStatusMessage2(status);
+						}
+					}
+					MSG		msg;
+					::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE); // 応答なしを回避
+				}
+				if (0 != dwTimeout && 2000 < dwNow - dwStart) {
+					int nNewPercent = ::MulDiv(Int(nLineNum - first + 1), 100, nLines);
+					if (DWORD(nNewPercent) < (dwNow - dwStart) * 100 / dwTimeout) {
+						// 2secの段階で設定時間の2秒分進んでいなければタイムアウトにする
+						delete pCode;
+						return -2;
+					}
+					dwTimeout = 0;
+				}
+			}
+			CLogicXInt nIdxFrom = CLogicXInt(0);
+			CLogicXInt nIdxTo;
+			if (bCountIncludeCrlf) {
+				nIdxTo = pcDocLine->GetLengthWithEOL();
+			} else {
+				nIdxTo = pcDocLine->GetLengthWithoutEOL();
+			}
+			if (nLineNum == first) {
+				nIdxFrom = logicRange.GetFrom().GetX2();
+			}
+			if (nLineNum == last) {
+				nIdxTo = logicRange.GetTo().GetX2();
+			}
+			if (0 < nIdxTo - nIdxFrom) {
+				const wchar_t* pLine = pcDocLine->GetPtr();
+				cmemW.SetStringHoldBuffer(&pLine[nIdxFrom], nIdxTo - nIdxFrom);
+				EConvertResult e = pCode->UnicodeToCode(cmemW, &cmemCode);
+				if (e == RESULT_FAILURE) {
+					delete pCode;
+					return -1;
+				}
+				select_sum += cmemCode.GetRawLength();
+			}
+			nLineNum++;
+			pcDocLine = docLineMgr.GetLine(nLineNum);
+		}
+	}
+	delete pCode;
+	return select_sum;
 }

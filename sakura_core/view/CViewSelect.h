@@ -105,6 +105,7 @@ private:
 		CLayoutInt			nLineNum,	//!< [in] 描画対象行(レイアウト行)
 		const CLayoutRange&	sRange		//!< [in] 選択範囲(レイアウト単位)
 	) const;
+	int GetByteRangeConvertCode(const CLayoutRange& sRange) const;
 public:
 	void GetSelectAreaLineFromRange(CLayoutRange& ret, CLayoutInt nLineNum, const CLayout* pcLayout, const CLayoutRange& sRange) const;
 	void GetSelectAreaLine(CLayoutRange& ret, CLayoutInt nLineNum, const CLayout* pcLayout) const{
@@ -167,7 +168,7 @@ private:
 	bool	m_bBeginSelect;			// 範囲選択中
 	bool	m_bBeginBoxSelect;		// 矩形範囲選択中
 	bool	m_bSelectAreaChanging;	// 選択範囲変更中
-	int		m_nLastSelectedByteLen;	// 前回選択時の選択バイト数
+	INT_PTR	m_nLastSelectedByteLen;	// 前回選択時の選択バイト数
 
 public:
 	bool	m_bBeginLineSelect;		// 行単位選択中

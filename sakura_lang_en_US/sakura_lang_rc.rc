@@ -1657,7 +1657,7 @@ STYLE WS_CHILD | DS_CONTROL
 EXSTYLE WS_EX_CONTEXTHELP
 FONT 9, "Tahoma"
 BEGIN
-    GROUPBOX        "Character Code",IDC_STATIC,3,3,285,113
+    GROUPBOX        "Character Code",IDC_STATIC,3,3,285,129
     CONTROL         "Display Character Code by Unicode when using SJIS, Latin1(&S)",
                     IDC_CHECK_DISP_UNICODE_IN_SJIS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,7,16,205,10
@@ -1676,6 +1676,9 @@ BEGIN
     CONTROL         "Display Character Count by Bytes(&B) * HIGH LOAD",
                     IDC_CHECK_DISP_SELCOUNT_BY_BYTE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,7,96,274,10
+    CONTROL         "Display Character Count Include CRLFs(&R)",
+                    IDC_CHECK_DISP_SELCOUNT_INCLUDE_CRLF,"Button",
+                    BS_AUTOCHECKBOX |  WS_TABSTOP,7,112,205,10
 END
 
 IDD_PROP_EDIT DIALOGEX 101, 0, 293, 240
