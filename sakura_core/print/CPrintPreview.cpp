@@ -1838,6 +1838,7 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 			const ColorInfo& info = m_pParentWnd->GetDocument()->m_cDocType.GetDocumentAttribute().m_ColorInfoArr[nColorIdx];
 			::SetTextColor(hdc, info.m_sColorAttr.m_cTEXT);
 //			::SetBkColor(hdc, info.m_colBACK);
+			::SetBkColor(hdc, RGB(255,255,255)); //白にしておく
 		}
 	}
 
@@ -1867,6 +1868,9 @@ void CPrintPreview::Print_DrawBlock(
 		// TABはカラーで無ければ印字不要
 		return;
 	}
+	bool bTransBack = true;
+	COLORREF colBackOld = RGB(255,255,255);
+
 	HFONT	hFont = ((nKind == 1 && m_bFontZenHan) ? m_cFont.GetFontNormal(1) : m_cFont.GetFontNormal(0));
 	// 色設定
 	if (pcLayout) {
@@ -1874,11 +1878,25 @@ void CPrintPreview::Print_DrawBlock(
 			const ColorInfo& info = m_pParentWnd->GetDocument()->m_cDocType.GetDocumentAttribute().m_ColorInfoArr[nColorIdx];
 			if (nKind == 2 && !(info.m_sFontAttr.m_bUnderLine || info.m_sFontAttr.m_bStrikeOut)) {
 				// TABは下線が無ければ印字不要
-				return;
+				if (!m_pPrintSetting->m_bColorBack) {
+					// 背景色印刷のときはスキップしない
+					return;
+				}
 			}
 			hFont = GetFontHandle( nKind, info.m_sFontAttr );
 			::SetTextColor( hdc, info.m_sColorAttr.m_cTEXT);
-//			::SetBkColor( hdc, info.m_colBACK);
+
+			// 2015.08.15 Moca 背景色の設定
+			if (m_pPrintSetting->m_bColorBack) {
+				const ColorInfo& infoText = m_pParentWnd->GetDocument()->m_cDocType.GetDocumentAttribute().m_ColorInfoArr[COLORIDX_TEXT];
+				if (infoText.m_sColorAttr.m_cBACK == info.m_sColorAttr.m_cBACK) {
+					bTransBack = true;
+				} else {
+					colBackOld = ::SetBkColor(hdc, info.m_sColorAttr.m_cBACK);
+					::SetBkMode(hdc, OPAQUE);
+					bTransBack = false;
+				}
+			}
 		}
 	}
 #ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
@@ -1887,16 +1905,24 @@ void CPrintPreview::Print_DrawBlock(
 	const int charWidth = m_pPrintSetting->m_nPrintFontWidth;
 #endif
 	::SelectObject( hdc, hFont );
+	UINT nOption = 0;
+	if (!bTransBack) {
+		nOption |= ETO_OPAQUE;
+	}
 	::ExtTextOutW_AnyBuild(
 		hdc,
 		ptDraw.x + (Int)nLayoutX * charWidth,
 		ptDraw.y - ( m_pPrintSetting->m_nPrintFontHeight - (nKind == 1 ? m_nAscentZen : m_nAscentHan) ),
-		0,
+		nOption,
 		NULL,
 		&pPhysicalLine[nBgnPhysical],
 		nBlockLen,
 		&pDxArray[nBgnPhysical]
 	);
+	if (!bTransBack) {
+		::SetBkColor(hdc, colBackOld);
+		::SetBkMode(hdc, TRANSPARENT);
+	}
 }
 
 /*! 指定ロジック位置のCColorStrategyを取得

@@ -1282,6 +1282,8 @@ void CShareData_IO::ShareData_IO_Print( CDataProfile& cProfile )
 
 		//ÉJÉâÅ[àÛç¸
 		auto_sprintf( szKeyName, LTEXT("PS[%02d].bColorPrint"), i ); cProfile.IOProfileData( pszSecName, szKeyName, printsetting.m_bColorPrint );	// 2013/4/26 Uchi
+		//îwåiêF
+		auto_sprintf( szKeyName, LTEXT("PS[%02d].bColorBack"), i ); cProfile.IOProfileData( pszSecName, szKeyName, printsetting.m_bColorBack );
 	}
 }
 

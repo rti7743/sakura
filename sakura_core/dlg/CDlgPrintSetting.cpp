@@ -74,6 +74,7 @@ const DWORD p_helpids[] = {	//12500
 	IDC_CHECK_PS_KINSOKURET,		HIDC_PS_CHECK_KINSOKURET,	//改行文字をぶら下げる	//@@@ 2002.04.14 MIK
 	IDC_CHECK_PS_KINSOKUKUTO,		HIDC_PS_CHECK_KINSOKUKUTO,	//句読点をぶら下げる	//@@@ 2002.04.17 MIK
 	IDC_CHECK_COLORPRINT,			HIDC_PS_CHECK_COLORPRINT,	//カラー印刷			// 2013/4/26 Uchi
+	IDC_CHECK_COLORBACK,			HIDC_CHECK_COLORBACK,		//背景色
 	IDC_EDIT_HEAD1,					HIDC_PS_EDIT_HEAD1,			//ヘッダー(左寄せ)		// 2006.10.11 ryoji
 	IDC_EDIT_HEAD2,					HIDC_PS_EDIT_HEAD2,			//ヘッダー(中央寄せ)	// 2006.10.11 ryoji
 	IDC_EDIT_HEAD3,					HIDC_PS_EDIT_HEAD3,			//ヘッダー(右寄せ)		// 2006.10.11 ryoji
@@ -611,6 +612,9 @@ int CDlgPrintSetting::GetData( void )
 	m_PrintSettingArr[m_nCurrentPrintSetting].m_bColorPrint =
 		( BST_CHECKED == ::IsDlgButtonChecked( GetHwnd(), IDC_CHECK_COLORPRINT ) );
 
+	// 背景色
+	m_PrintSettingArr[m_nCurrentPrintSetting].m_bColorBack = IsDlgButtonCheckedBool(GetHwnd(), IDC_CHECK_COLORBACK);
+
 	//@@@ 2002.2.4 YAZAKI
 	/* ヘッダー */
 	::DlgItem_GetText( GetHwnd(), IDC_EDIT_HEAD1, m_PrintSettingArr[m_nCurrentPrintSetting].m_szHeaderForm[0], HEADER_MAX );	//	100文字で制限しないと。。。
@@ -712,6 +716,9 @@ void CDlgPrintSetting::OnChangeSettingType( BOOL bGetData )
 	// カラー印刷
 	::CheckDlgButton( GetHwnd(), IDC_CHECK_COLORPRINT, 
 		m_PrintSettingArr[m_nCurrentPrintSetting].m_bColorPrint ? BST_CHECKED : BST_UNCHECKED);
+
+	// 背景色
+	CheckDlgButtonBool(GetHwnd(), IDC_CHECK_COLORBACK, m_PrintSettingArr[m_nCurrentPrintSetting].m_bColorBack);
 
 	/* ヘッダー */
 	::DlgItem_SetText( GetHwnd(), IDC_EDIT_HEAD1, m_PrintSettingArr[m_nCurrentPrintSetting].m_szHeaderForm[POS_LEFT] );	//	100文字で制限しないと。。。

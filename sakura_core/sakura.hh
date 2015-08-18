@@ -916,6 +916,7 @@
 #define HIDC_PS_EDIT_FONTHEIGHT		12530	//フォント高さ
 #define HIDC_PS_FONT_HEAD			12531	//ヘッダー(フォント)	// 2013/5/16 Uchi
 #define HIDC_PS_FONT_FOOT			12532	//フッター(フォント)	// 2013/5/16 Uchi
+#define HIDC_CHECK_COLORBACK		12533	//背景色
 
 //プロパティ
 #define HIDOK_PROP				12600	//

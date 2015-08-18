@@ -99,6 +99,7 @@ struct PRINTSETTING {
 	short			m_nPrintPaperOrientation;			/*!< 用紙方向 DMORIENT_PORTRAIT (1) または DMORIENT_LANDSCAPE (2) */
 	short			m_nPrintPaperSize;					/*!< 用紙サイズ */
 	bool			m_bColorPrint;						//!< カラー印刷			// 2013/4/26 Uchi
+	bool			m_bColorBack;						//!< 背景色(カラー印刷時)
 	bool			m_bPrintWordWrap;					//!< 英文ワードラップする
 	bool			m_bPrintKinsokuHead;				//!< 行頭禁則する		//@@@ 2002.04.09 MIK
 	bool			m_bPrintKinsokuTail;				//!< 行末禁則する		//@@@ 2002.04.09 MIK
