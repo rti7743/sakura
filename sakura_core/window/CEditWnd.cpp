@@ -3028,6 +3028,9 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		::ShowWindow( m_cFuncKeyWnd.GetHwnd(), SW_SHOW );
 		::ShowWindow( m_cTabWnd.GetHwnd(), SW_SHOW );	//@@@ 2003.06.25 MIK
 		::ShowWindow( m_cDlgFuncList.GetHwnd(), SW_SHOW );	// 2010.06.25 ryoji
+		if( NULL != GetMiniMap().GetHwnd() ){
+			::ShowWindow( GetMiniMap().GetHwnd(), SW_SHOW );
+		}
 
 		// その他のモードレスダイアログも戻す	// 2010.06.25 ryoji
 		::ShowWindow( m_cDlgFind.GetHwnd(), SW_SHOW );
@@ -3059,6 +3062,9 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		::ShowWindow( m_cFuncKeyWnd.GetHwnd(), SW_HIDE );
 		::ShowWindow( m_cTabWnd.GetHwnd(), SW_HIDE );	//@@@ 2003.06.25 MIK
 		::ShowWindow( m_cDlgFuncList.GetHwnd(), SW_HIDE );	// 2010.06.25 ryoji
+		if( NULL != GetMiniMap().GetHwnd() ){
+			::ShowWindow( GetMiniMap().GetHwnd(), SW_HIDE );
+		}
 
 		// その他のモードレスダイアログも隠す	// 2010.06.25 ryoji
 		::ShowWindow( m_cDlgFind.GetHwnd(), SW_HIDE );
