@@ -1893,6 +1893,17 @@ LRESULT CEditWnd::DispatchEvent(
 				}
 			}
 			break;
+		case PM_CHANGESETTING_TYPE3:
+			// 2015.08.21 印刷ページ設定番号変更
+			// 変更するのは、自分のm_cDocType側だけ。印刷プレビュー側の番号は現在の値を維持する
+			// TYPE(1)だとアウトライン解析を表示しているとHandleCommandでBeepが鳴る
+			if (GetDocument()->m_cDocType.GetDocumentType().GetIndex() == wParam) {
+				STypeConfig* type = new STypeConfig();
+				if (CDocTypeManager().GetTypeConfig( GetDocument()->m_cDocType.GetDocumentType(), *type )) {
+					GetDocument()->m_cDocType.GetDocumentAttributeWrite().m_nCurrentPrintSetting = type->m_nCurrentPrintSetting;
+				}
+				delete type;
+			}
 		case PM_PRINTSETTING:
 			{
 				if( m_pPrintPreview ){
@@ -3092,9 +3103,9 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 //@@@ 2002.01.14 YAZAKI 印刷プレビューをCPrintPreviewに独立させたことによる変更
 		m_pPrintPreview = new CPrintPreview( this );
 		/* 現在の印刷設定 */
+		int nSetNo = GetDocument()->m_cDocType.GetDocumentAttribute().m_nCurrentPrintSetting;
 		m_pPrintPreview->SetPrintSetting(
-			&m_pShareData->m_PrintSettingArr[
-				GetDocument()->m_cDocType.GetDocumentAttribute().m_nCurrentPrintSetting]
+			&m_pShareData->m_PrintSettingArr[nSetNo], nSetNo
 		);
 
 		//	プリンタの情報を取得。
@@ -3722,10 +3733,12 @@ BOOL CEditWnd::OnPrintPageSetting( void )
 	int					nCurrentPrintSetting;
 	int					nLineNumberColumns;
 
-	nCurrentPrintSetting = GetDocument()->m_cDocType.GetDocumentAttribute().m_nCurrentPrintSetting;
 	if( m_pPrintPreview ){
+		// プリント番号はプレビューウィンドウ毎に一時記憶しておく
+		nCurrentPrintSetting = m_pPrintPreview->m_nCurrentPrintSetting;
 		nLineNumberColumns = GetActiveView().GetTextArea().DetectWidthOfLineNumberArea_calculate(m_pPrintPreview->m_pLayoutMgr_Print); // 印刷プレビュー時は文書の桁数 2013.5.10 aroka
 	}else{
+		nCurrentPrintSetting = GetDocument()->m_cDocType.GetDocumentAttribute().m_nCurrentPrintSetting;
 		nLineNumberColumns = 3; // ファイルメニューからの設定時は最小値 2013.5.10 aroka
 	}
 
@@ -3753,7 +3766,7 @@ BOOL CEditWnd::OnPrintPageSetting( void )
 			CAppNodeGroupHandle(0).SendMessageToAllEditors(
 				MYWM_CHANGESETTING,
 				(WPARAM)GetDocument()->m_cDocType.GetDocumentType().GetIndex(),
-				(LPARAM)PM_CHANGESETTING_TYPE,
+				(LPARAM)PM_CHANGESETTING_TYPE3,
 				CEditWnd::getInstance()->GetHwnd()
 			);
 			bChangePrintSettingNo = true;
@@ -3765,7 +3778,7 @@ BOOL CEditWnd::OnPrintPageSetting( void )
 			/* 現在の印刷設定 */
 			// 2013.08.27 印刷設定番号が変更された時に対応できていなかった
 			if( bChangePrintSettingNo ){
-				m_pPrintPreview->SetPrintSetting( &m_pShareData->m_PrintSettingArr[GetDocument()->m_cDocType.GetDocumentAttribute().m_nCurrentPrintSetting] );
+				m_pPrintPreview->SetPrintSetting( &m_pShareData->m_PrintSettingArr[nCurrentPrintSetting], nCurrentPrintSetting );
 			}
 
 			/* 印刷プレビュー スクロールバー初期化 */

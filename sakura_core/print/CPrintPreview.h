@@ -170,10 +170,11 @@ public:
 	/*
 	||	アクセサ
 	*/
-	void SetPrintSetting( PRINTSETTING* pPrintSetting ){
+	void SetPrintSetting( PRINTSETTING* pPrintSetting, int no ){
 		m_sPrintSetting = *pPrintSetting;
 		m_pPrintSetting = &m_sPrintSetting;
 		m_pPrintSettingOrg = pPrintSetting;
+		m_nCurrentPrintSetting = no;
 	}
 	BOOL GetDefaultPrinterInfo(){ return m_cPrint.GetDefaultPrinter( &m_pPrintSetting->m_mdmDevMode ); }
 	int  GetCurPageNum(){ return m_nCurPageNum; }	/* 現在のページ */
@@ -253,6 +254,7 @@ protected:
 
 public:
 	class CLayoutMgr*	m_pLayoutMgr_Print;		/* 印刷用のレイアウト管理情報 */
+	int				m_nCurrentPrintSetting;		//!< プリンタ設定番号
 public:
 	STypeConfig m_typePrint;
 

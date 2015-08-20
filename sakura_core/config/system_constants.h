@@ -594,12 +594,15 @@
 	Version x186:
 	印刷背景色 2015.08.15 Moca
 
+	Version x187:
+	印刷番号変更通知変更 2015.08.21 Moca
+
 	-- 統合されたので元に戻す（1000～1023が使用済み） 	2008.11.16 nasukoji
 	-- Version 1000:
 	-- バージョン1000以降を本家統合までの間、使わせてください。かなり頻繁に構成が変更されると思われるので。by kobake 2008.03.02
 
 */
-#define N_SHAREDATA_VERSION		186
+#define N_SHAREDATA_VERSION		187
 #define STR_SHAREDATA_VERSION	NUM_TO_STR(N_SHAREDATA_VERSION)
 #define	GSTR_SHAREDATA	(_T("SakuraShareData") _T(CON_SKR_MACHINE_SUFFIX_) _T(_CODE_SUFFIX_) _T(_DEBUG_SUFFIX_) _T(STR_SHAREDATA_VERSION))
 
@@ -706,6 +709,7 @@ enum e_PM_CHANGESETTING_SELECT {
 	PM_CHANGESETTING_TYPE		= 3, //!< タイプ別設定
 	PM_CHANGESETTING_TYPE2		= 4, //!< タイプ別設定(再読み込みなし)
 	PM_PRINTSETTING				= 5, //!< プリント設定
+	PM_CHANGESETTING_TYPE3		= 6, //!< タイプ別設定(プリンタ番号変更)
 };
 //!座標位置情報の保存
 #define MYWM_SAVEEDITSTATE  (WM_APP+1521)
