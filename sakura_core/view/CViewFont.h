@@ -36,6 +36,7 @@ public:
 	}
 	CViewFont()
 	{
+		m_bMiniMap = false;
 		InitFont();
 	}
 	virtual ~CViewFont()
