@@ -1062,7 +1062,7 @@ void CEditWnd::LayoutMiniMap(bool bTsvCreate)
 			if( bTsvCreate ){
 				m_pcEditDoc->m_cLayoutMgr.CreateTsvInfoMinimap(true, &GetLogfont(), GetLogfontCacheMode());
 			}
-			GetMiniMap().Create( GetHwnd(), GetDocument(), -1, TRUE, true );
+			GetMiniMap().Create( GetHwnd(), GetDocument(), -1, FALSE, true );
 		}
 	}else{
 		if( NULL != GetMiniMap().GetHwnd() ){
@@ -1095,6 +1095,9 @@ void CEditWnd::EndLayoutBars( BOOL bAdjust/* = TRUE*/ )
 		// メニューから[ファンクションキーを表示]/[ステータスバーを表示]を実行して非表示のバーをアウトライン直下に表示したり、
 		// その後、ウィンドウの下部境界を上下ドラッグしてサイズ変更するとゴミが現れることがあった。
 		::SetWindowPos( m_cDlgFuncList.GetHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE );
+	}
+	if( NULL != GetMiniMap().GetHwnd() ){
+		::ShowWindow( GetMiniMap().GetHwnd(), nCmdShow );
 	}
 
 	if( bAdjust )
