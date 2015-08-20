@@ -225,6 +225,7 @@ CEditWnd::CEditWnd()
 , m_hAccel( NULL )
 , m_bDragMode( false )
 , m_IconClicked(icNone) //by 鬼(2)
+, m_nPrintPreview_OutlineCode(F_0)
 , m_nSelectCountMode( SELECT_COUNT_TOGGLE )	//文字カウント方法の初期値はSELECT_COUNT_TOGGLE→共通設定に従う
 , m_bExecKeyMacro(false)
 , m_cRecMacroParam(F_0)
@@ -1872,10 +1873,17 @@ LRESULT CEditWnd::DispatchEvent(
 				if( m_cDlgFuncList.GetHwnd() && !bAnalyzed ){	// アウトラインを開いていれば再解析
 					// SHOW_NORMAL: 解析方法が変化していれば再解析される。そうでなければ描画更新（変更されたカラーの適用）のみ。
 					EFunctionCode nFuncCode = m_cDlgFuncList.GetFuncCodeRedraw(m_cDlgFuncList.m_nOutlineType);
-					GetActiveView().GetCommander().HandleCommand( nFuncCode, true, SHOW_NORMAL, 0, 0, 0 );
+					if( m_pPrintPreview ){
+						m_nPrintPreview_OutlineCode = nFuncCode;
+					}else{
+						GetActiveView().GetCommander().HandleCommand( nFuncCode, true, SHOW_NORMAL, 0, 0, 0 );
+					}
 				}
-				if( MyGetAncestor( ::GetForegroundWindow(), GA_ROOTOWNER2 ) == GetHwnd() )
-					::SetFocus( GetActiveView().GetHwnd() );	// フォーカスを戻す
+				if( MyGetAncestor( ::GetForegroundWindow(), GA_ROOTOWNER2 ) == GetHwnd() ){
+					if( !m_pPrintPreview ){
+						::SetFocus( GetActiveView().GetHwnd() );	// フォーカスを戻す
+					}
+				}
 			}
 			break;
 			delete [] m_posSaveAry;
@@ -3040,6 +3048,10 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 //@@@ 2002.01.14 YAZAKI 印刷プレビューをCPrintPreviewに独立させたことによる変更
 	if( m_pPrintPreview ){
 //@@@ 2002.01.14 YAZAKI 印刷プレビューをCPrintPreviewに独立させたことによる変更
+		if( !m_pPrintPreview->m_bLockTypeSettingBackup ){
+			// 一時ロックの解除
+			GetDocument()->m_cDocType.UnlockDocumentType();
+		}
 		/*	印刷プレビューモードを解除します。	*/
 		delete m_pPrintPreview;	//	削除。
 		m_pPrintPreview = NULL;	//	NULLか否かで、プリントプレビューモードか判断するため。
@@ -3059,6 +3071,14 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		::ShowWindow( m_cDlgFuncList.GetHwnd(), SW_SHOW );	// 2010.06.25 ryoji
 		if( NULL != GetMiniMap().GetHwnd() ){
 			::ShowWindow( GetMiniMap().GetHwnd(), SW_SHOW );
+		}
+		// 2015.08.21 アウトラインの遅延再解析
+		if( m_nPrintPreview_OutlineCode != F_0 ){
+			EFunctionCode code = m_nPrintPreview_OutlineCode;
+			m_nPrintPreview_OutlineCode = F_0;
+			if( m_cDlgFuncList.GetHwnd() ){
+				GetActiveView().GetCommander().HandleCommand( code, true, SHOW_NORMAL, 0, 0, 0 );
+			}
 		}
 
 		// その他のモードレスダイアログも戻す	// 2010.06.25 ryoji
@@ -3107,6 +3127,9 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		m_pPrintPreview->SetPrintSetting(
 			&m_pShareData->m_PrintSettingArr[nSetNo], nSetNo
 		);
+		// 2015.08.21 印刷プレビュー中はロックしておく(後で戻す)
+		m_pPrintPreview->m_bLockTypeSettingBackup = GetDocument()->m_cDocType.GetDocumentLockState();
+		GetDocument()->m_cDocType.LockDocumentType();
 
 		//	プリンタの情報を取得。
 
@@ -3124,6 +3147,7 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		::InvalidateRect( GetHwnd(), NULL, TRUE );
 		::UpdateWindow( GetHwnd() /* m_pPrintPreview->GetPrintPreviewBarHANDLE() */);
 
+		m_nPrintPreview_OutlineCode = F_0;
 	}
 	return;
 

@@ -255,6 +255,7 @@ protected:
 public:
 	class CLayoutMgr*	m_pLayoutMgr_Print;		/* 印刷用のレイアウト管理情報 */
 	int				m_nCurrentPrintSetting;		//!< プリンタ設定番号
+	bool			m_bLockTypeSettingBackup;
 public:
 	STypeConfig m_typePrint;
 

@@ -851,6 +851,9 @@ void CEditDoc::OnChangeSetting(
 		// SetDocumentTypeで変更されたものを戻す
 		CColorStrategyPool::getInstance()->OnChangeSetting(m_pcEditWnd->m_pPrintPreview->m_typePrint);
 		CFigureManager::getInstance()->OnChangeSetting(m_pcEditWnd->m_pPrintPreview->m_typePrint);
+
+		// 2015.08.21 タイプ別が変わったかもしれない(印刷設定番号はそのまま)
+		m_pcEditWnd->m_pPrintPreview->OnChangeSetting();
 	}
 }
 
