@@ -1725,8 +1725,11 @@ LRESULT CEditWnd::DispatchEvent(
 			CSelectLang::ChangeLang( GetDllShareData().m_Common.m_sWindow.m_szLanguageDll );
 			CShareData::getInstance()->RefreshString();
 
-			// メインメニュー	2010/5/16 Uchi
-			LayoutMainMenu();
+			// 2015.08.20 プリントプレビューのとき設定を延期する(戻るとき適用)
+			if( !m_pPrintPreview ){
+				// メインメニュー	2010/5/16 Uchi
+				LayoutMainMenu();
+			}
 
 			// Oct 10, 2000 ao
 			/* 設定変更時、ツールバーを再作成するようにする（バーの内容変更も反映） */
