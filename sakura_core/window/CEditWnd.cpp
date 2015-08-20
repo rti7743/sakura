@@ -1061,6 +1061,10 @@ void CEditWnd::LayoutMiniMap(bool bTsvCreate)
 		if( NULL == GetMiniMap().GetHwnd() ){
 			if( bTsvCreate ){
 				m_pcEditDoc->m_cLayoutMgr.CreateTsvInfoMinimap(true, &GetLogfont(), GetLogfontCacheMode());
+				if( m_pPrintPreview ){
+					// ê›íËÇñﬂÇ∑
+					SelectCharWidthCache( CWM_FONT_PRINT, CWM_CACHE_LOCAL );
+				}
 			}
 			GetMiniMap().Create( GetHwnd(), GetDocument(), -1, FALSE, true );
 		}
