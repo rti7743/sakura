@@ -60,6 +60,8 @@
 #include "CEditApp.h"
 #include "recent/CMRUFile.h"
 #include "recent/CMRUFolder.h"
+#include "view/colors/CColorStrategy.h"
+#include "view/figures/CFigureManager.h"
 #include "util/module.h"
 #include "util/os.h"		//WM_MOUSEWHEEL,WM_THEMECHANGED
 #include "util/window.h"
@@ -3030,6 +3032,12 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		/*	印刷プレビューモードを解除します。	*/
 		delete m_pPrintPreview;	//	削除。
 		m_pPrintPreview = NULL;	//	NULLか否かで、プリントプレビューモードか判断するため。
+
+		// 2015.08.20 色分けモードを元に戻す
+		// ~PrintPreview()から移動。~CEditWndから実行される場合にすでにCColorStrategyPoolが先に解放されており落ちていた
+		const STypeConfig& ref = GetDocument()->m_cDocType.GetDocumentAttribute();
+		CColorStrategyPool::getInstance()->OnChangeSetting(ref);
+		CFigureManager::getInstance()->OnChangeSetting(ref);
 
 		/*	通常モードに戻す	*/
 		::ShowWindow( this->m_cSplitterWnd.GetHwnd(), SW_SHOW );

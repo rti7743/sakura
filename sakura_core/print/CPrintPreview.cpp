@@ -104,13 +104,6 @@ CPrintPreview::~CPrintPreview()
 	/* 印刷用のレイアウト情報の削除 */
 	delete m_pLayoutMgr_Print;
 
-	// 2014.12.30 カラー&記号設定を戻す
-	if( m_pParentWnd && m_pParentWnd->GetDocument() ){
-		const STypeConfig& ref = m_pParentWnd->GetDocument()->m_cDocType.GetDocumentAttribute();
-		CColorStrategyPool::getInstance()->OnChangeSetting(ref);
-		CFigureManager::getInstance()->OnChangeSetting(ref);
-	}
-
 	/* フォント幅キャッシュを編集モードに戻す */
 	SelectCharWidthCache( CWM_FONT_EDIT, CWM_CACHE_NEUTRAL );
 
