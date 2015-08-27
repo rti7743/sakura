@@ -425,7 +425,13 @@ static bool MakeDiffTmpFile_core(CTextOutputStream& out, HWND hwnd, CEditView& v
 				// m_sWorkBuffer#m_Workの排他制御。外部コマンド出力/TraceOut/Diffが対象
 				LockGuard<CMutex> guard( CShareData::GetMutexShareWork() );
 				{
-					nLineLen = ::SendMessageAny( hwnd, MYWM_GETLINEDATA, y, nLineOffset );
+					DWORD_PTR dwResult;
+					if( 0 == ::SendMessageTimeout(hwnd, MYWM_GETLINEDATA, y, nLineOffset,
+						SMTO_NORMAL, 5000, &dwResult) ){
+						// timeout
+						return false;
+					}
+					nLineLen = (int)dwResult;
 					if( nLineLen == 0 ){ return true; } // EOF => 正常終了
 					if( nLineLen < 0 ){ return false; } // 何かエラー
 					if( bBom ){

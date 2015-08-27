@@ -190,7 +190,7 @@ bool CMRUFile::GetEditInfo( const TCHAR* pszPath, EditInfo* pfi ) const
 	@date 2001.03.29 MIK リムーバブルディスク上のファイルを登録しないようにした。
 	@date 2001.12.26 YAZAKI CShareData::AddMRUListから移動
 */
-void CMRUFile::Add( EditInfo* pEditInfo )
+void CMRUFile::Add( const EditInfo* pEditInfo )
 {
 	//	ファイル名が無ければ無視
 	if( NULL == pEditInfo || pEditInfo->m_szPath[0] == L'\0' ){

@@ -37,6 +37,7 @@
 #include "env/CSakuraEnvironment.h"
 #include "recent/CRecentEditNode.h"
 #include "util/window.h"
+#include "util/string_ex.h"
 #include "_main/CMutex.h"
 
 
@@ -871,4 +872,36 @@ HWND CAppNodeManager::GetNextTab(HWND hWndCur)
 	}
 
 	return hWnd;
+}
+
+const EditInfo* CAppNodeManager::GetEditInfoMsg(HWND hwnd, UINT nTimeout, bool *bRet)
+{
+	DWORD_PTR dwResult;
+	bool ret = true;
+	BOOL bSakuraWindow = IsSakuraMainWindow(hwnd);
+	if( bSakuraWindow && 0 != ::SendMessageTimeout(hwnd, MYWM_GETFILEINFO, 0, 0, SMTO_NORMAL, nTimeout, &dwResult) ){
+	}else{
+		EditInfo* pfi = &GetDllShareData().m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
+		if( FALSE == bSakuraWindow ){
+			auto_strcpy(pfi->m_szPath, _T("(window error)"));
+		}else{
+			// EditNode‚©‚çƒtƒ@ƒCƒ‹–¼‚ðŽæ“¾
+			CAppNodeHandle node(hwnd);
+			EditNode* editNode = node.GetPtr();
+			if( editNode ){
+				auto_strcpy(pfi->m_szPath, editNode->m_szFilePath);
+			}else{
+				auto_strcpy(pfi->m_szPath, _T("(timeout)"));
+			}
+		}
+		pfi->m_nCharCode = CODE_SJIS;
+		pfi->m_bIsModified = false;
+		pfi->m_bIsGrep = false;
+		pfi->m_bIsDebug = false;
+		ret = false;
+	}
+	if( bRet ){
+		*bRet = ret;
+	}
+	return &GetDllShareData().m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
 }

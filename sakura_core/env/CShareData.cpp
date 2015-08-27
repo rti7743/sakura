@@ -918,7 +918,6 @@ void CShareData::ConvertLangValues(std::vector<std::wstring>& values, bool bSetV
 */
 BOOL CShareData::IsPathOpened( const TCHAR* pszPath, HWND* phwndOwner )
 {
-	EditInfo*	pfi;
 	*phwndOwner = NULL;
 
 	//	2007.10.01 genta 相対パスを絶対パスに変換
@@ -933,17 +932,22 @@ BOOL CShareData::IsPathOpened( const TCHAR* pszPath, HWND* phwndOwner )
 	if( 0 == CAppNodeGroupHandle(0).GetEditorWindowsNum() ){
 		return FALSE;
 	}
-	
+	UINT nTimeout = 5000;
 	for( int i = 0; i < m_pShareData->m_sNodes.m_nEditArrNum; ++i ){
 		if( IsSakuraMainWindow( m_pShareData->m_sNodes.m_pEditArr[i].m_hWnd ) ){
 			// トレイからエディタへの編集ファイル名要求通知
-			::SendMessageAny( m_pShareData->m_sNodes.m_pEditArr[i].m_hWnd, MYWM_GETFILEINFO, 1, 0 );
-			pfi = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
-
-			// 同一パスのファイルが既に開かれているか
-			if( 0 == _tcsicmp( pfi->m_szPath, pszPath ) ){
-				*phwndOwner = m_pShareData->m_sNodes.m_pEditArr[i].m_hWnd;
-				return TRUE;
+			DWORD_PTR dwResult = 0;
+			if( 0 == ::SendMessageTimeout(m_pShareData->m_sNodes.m_pEditArr[i].m_hWnd, MYWM_GETFILEINFO, 0, 0,
+				SMTO_NORMAL, nTimeout, &dwResult) ){
+				// error
+				nTimeout = 1000; // たくさんハングアップしていたら大変なのでちょっと短く
+			}else{
+				const EditInfo* pfi = &m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
+				// 同一パスのファイルが既に開かれているか
+				if( 0 == _tcsicmp( pfi->m_szPath, pszPath ) ){
+					*phwndOwner = m_pShareData->m_sNodes.m_pEditArr[i].m_hWnd;
+					return TRUE;
+				}
 			}
 		}
 	}
@@ -974,7 +978,14 @@ BOOL CShareData::ActiveAlreadyOpenedWindow( const TCHAR* pszPath, HWND* phwndOwn
 		
 		//文字コードの一致確認
 		EditInfo*		pfi;
-		::SendMessageAny( *phwndOwner, MYWM_GETFILEINFO, 0, 0 );
+		{
+			DWORD_PTR dwResult = 0;
+			if( 0 == ::SendMessageTimeout(*phwndOwner, MYWM_GETFILEINFO, 0, 0, SMTO_NORMAL, 15 * 1000, &dwResult) ){
+				// error
+				ActivateFrameWindow( *phwndOwner );
+				return TRUE;
+			}
+		}
 		pfi = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
 		if(nCharCode != CODE_AUTODETECT){
 			TCHAR szCpNameCur[100];
@@ -1086,7 +1097,9 @@ void CShareData::TraceOutString( const wchar_t* pStr, int len )
 		// 0のときは何も追加しないが、カーソル移動が発生する
 		LockGuard<CMutex> guard( CShareData::GetMutexShareWork() );
 		pOutBuffer[0] = L'\0';
-		::SendMessage( m_pShareData->m_sHandles.m_hwndDebug, MYWM_ADDSTRINGLEN_W, 0, 0 );
+		DWORD_PTR dwMsgResult;
+		::SendMessageTimeout( m_pShareData->m_sHandles.m_hwndDebug, MYWM_ADDSTRINGLEN_W, 0, 0,
+			SMTO_NORMAL, 10000, &dwMsgResult );
 	}else{
 		while(outPos < len){
 			int outLen = buffLen;

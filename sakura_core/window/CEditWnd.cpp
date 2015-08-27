@@ -2874,7 +2874,6 @@ void CEditWnd::OnDropFiles( HDROP hDrop )
 {
 	POINT		pt;
 	int			cFiles, i;
-	EditInfo*	pfi;
 	HWND		hWndOwner;
 
 	::DragQueryPoint( hDrop, &pt );
@@ -2899,13 +2898,16 @@ void CEditWnd::OnDropFiles( HDROP hDrop )
 
 		/* 指定ファイルが開かれているか調べる */
 		if( CShareData::getInstance()->IsPathOpened( szFile, &hWndOwner ) ){
-			::SendMessage( hWndOwner, MYWM_GETFILEINFO, 0, 0 );
-			pfi = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
+			bool bResult;
+			const EditInfo*	pfi;
+			pfi = CAppNodeManager::GetEditInfoMsg(hWndOwner, 5000, &bResult);
+			if( bResult ){
+				/* MRUリストへの登録 */
+				CMRUFile cMRU;
+				cMRU.Add( pfi );
+			}
 			/* アクティブにする */
 			ActivateFrameWindow( hWndOwner );
-			/* MRUリストへの登録 */
-			CMRUFile cMRU;
-			cMRU.Add( pfi );
 		}
 		else{
 			/* 変更フラグがオフで、ファイルを読み込んでいない場合 */
@@ -4347,11 +4349,12 @@ LRESULT CEditWnd::WinListMenu( HMENU hMenu, EditNode* pEditNodeArr, int nRowNum,
 		met.cbSize = CCSIZEOF_STRUCT(NONCLIENTMETRICS, lfMessageFont);
 		::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, met.cbSize, &met, 0);
 		CDCFont dcFont(met.lfMenuFont, GetHwnd());
+		DWORD dwTimeStart = ::GetTickCount();
 		for( i = 0; i < nRowNum; ++i ){
 			/* トレイからエディタへの編集ファイル名要求通知 */
-			::SendMessage( pEditNodeArr[i].GetHwnd(), MYWM_GETFILEINFO, 0, 0 );
+			UINT nTimeout = t_max(500, 5000 - int(::GetTickCount() - dwTimeStart));
+			pfi = CAppNodeManager::GetEditInfoMsg(pEditNodeArr[i].GetHwnd(), nTimeout);
 ////	From Here Oct. 4, 2000 JEPRO commented out & modified	開いているファイル数がわかるように履歴とは違って1から数える
-			pfi = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
 			CFileNameManager::getInstance()->GetMenuFullLabel_WinList( szMenu, _countof(szMenu), pfi, pEditNodeArr[i].m_nId, i, dcFont.GetHDC() );
 			m_cMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING, IDM_SELWINDOW + pEditNodeArr[i].m_nIndex, szMenu, _T("") );
 			if( GetHwnd() == pEditNodeArr[i].GetHwnd() ){

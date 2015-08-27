@@ -259,7 +259,7 @@ void CDlgDiff::SetData( void )
 		HWND		hwndList;
 		int			nRowNum;
 		EditNode	*pEditNode;
-		EditInfo	*pFileInfo;
+		const EditInfo *pFileInfo1;
 		int			i;
 		int			nItem;
 		WIN_CHAR	szName[_MAX_PATH];
@@ -270,8 +270,8 @@ void CDlgDiff::SetData( void )
 
 		// 自分の文字コードを取得
 		::SendMessageAny( CEditWnd::getInstance()->GetHwnd(), MYWM_GETFILEINFO, 0, 0 );
-		pFileInfo = &m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
-		code = pFileInfo->m_nCharCode;
+		pFileInfo1 = &m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
+		code = pFileInfo1->m_nCharCode;
 
 		/* リストのハンドル取得 */
 		hwndList = :: GetDlgItem( GetHwnd(), IDC_LIST_DIFF_FILES );
@@ -285,11 +285,14 @@ void CDlgDiff::SetData( void )
 			int score = 0;
 			TCHAR		szFile1[_MAX_PATH];
 			SplitPath_FolderAndFile(m_szFile1, NULL, szFile1);
+			DWORD dwTimeStart = ::GetTickCount();
 			for( i = 0; i < nRowNum; i++ )
 			{
 				/* トレイからエディタへの編集ファイル名要求通知 */
-				::SendMessageAny( pEditNode[i].GetHwnd(), MYWM_GETFILEINFO, 0, 0 );
-				pFileInfo = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
+				bool bGetFileInfo = true;
+				UINT nTimeout = t_max(500, 5000 - int(::GetTickCount() - dwTimeStart));
+				const EditInfo *pFileInfo;
+				pFileInfo = CAppNodeManager::GetEditInfoMsg(pEditNode[i].GetHwnd(), nTimeout, &bGetFileInfo);
 
 				/* 自分ならスキップ */
 				if ( pEditNode[i].GetHwnd() == CEditWnd::getInstance()->GetHwnd() )
@@ -311,6 +314,9 @@ void CDlgDiff::SetData( void )
 
 				// 横幅を計算する
 				calc.SetTextWidthIfMax(szName);
+				if( !bGetFileInfo ){
+					continue;
+				}
 
 				// ファイル名一致のスコアを計算する
 				TCHAR szFile2[_MAX_PATH];
@@ -405,7 +411,6 @@ int CDlgDiff::GetData( void )
 	{
 		HWND		hwndList;
 		int			nItem;
-		EditInfo	*pFileInfo;
 
 		/* リストから相手のウインドウハンドルを取得 */
 		hwndList = :: GetDlgItem( GetHwnd(), IDC_LIST_DIFF_FILES );
@@ -415,13 +420,16 @@ int CDlgDiff::GetData( void )
 			m_hWnd_Dst = (HWND)List_GetItemData( hwndList, nItem );
 
 			/* トレイからエディタへの編集ファイル名要求通知 */
-			::SendMessageAny( m_hWnd_Dst, MYWM_GETFILEINFO, 0, 0 );
-			pFileInfo = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
-
-			_tcscpy( m_szFile2, pFileInfo->m_szPath );
-			m_bIsModifiedDst = pFileInfo->m_bIsModified;
-			m_nCodeTypeDst = pFileInfo->m_nCharCode;
-			m_bBomDst = pFileInfo->m_bBom;
+			bool bOk = TRUE;
+			const EditInfo* pFileInfo = CAppNodeManager::GetEditInfoMsg(m_hWnd_Dst, 5000, &bOk);
+			if( bOk ){
+				_tcscpy( m_szFile2, pFileInfo->m_szPath );
+				m_bIsModifiedDst = pFileInfo->m_bIsModified;
+				m_nCodeTypeDst = pFileInfo->m_nCharCode;
+				m_bBomDst = pFileInfo->m_bBom;
+			}else{
+				ret = FALSE;
+			}
 		}
 		else
 		{

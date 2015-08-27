@@ -99,6 +99,7 @@ bool CEditView::TagJumpSub(
 	// タグジャンプ情報の保存
 	CTagJumpManager().PushTagJump(&tagJump);
 
+	bool bRet = true;
 
 	/* 指定ファイルが開かれているか調べる */
 	/* 開かれている場合は開いているウィンドウのハンドルも返す */
@@ -115,7 +116,11 @@ bool CEditView::TagJumpSub(
 				poCaret.x = 0;
 			}
 			GetDllShareData().m_sWorkBuffer.m_LogicPoint.Set(CLogicInt(poCaret.x), CLogicInt(poCaret.y));
-			::SendMessageAny( hwndOwner, MYWM_SETCARETPOS, 0, 0 );
+			DWORD_PTR dwResult = 0;
+			if( 0 == ::SendMessageTimeout(hwndOwner, MYWM_SETCARETPOS, 0, 0, SMTO_NORMAL, 5000, &dwResult) ){
+				// timeout
+				bRet = false;
+			}
 		}
 		/* アクティブにする */
 		ActivateFrameWindow( hwndOwner );
@@ -162,7 +167,7 @@ bool CEditView::TagJumpSub(
 		GetCommander().Command_WINCLOSE();	//	挑戦するだけ。
 	}
 
-	return true;
+	return bRet;
 }
 
 

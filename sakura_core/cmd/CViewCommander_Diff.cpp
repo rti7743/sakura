@@ -54,7 +54,12 @@ static bool Commander_COMPARE_core(CViewCommander& commander, bool& bDifferent, 
 				// m_sWorkBuffer#m_Workの排他制御。外部コマンド出力/TraceOut/Diffが対象
 				LockGuard<CMutex> guard( CShareData::GetMutexShareWork() );
 				// 行(改行単位)データの要求
-				nLineLenDes = ::SendMessageAny( hwnd, MYWM_GETLINEDATA, poDes.y, nLineOffset );
+				DWORD_PTR dwResult = 0;
+				if(0 == ::SendMessageTimeout(hwnd, MYWM_GETLINEDATA, poDes.y, nLineOffset,
+					SMTO_NORMAL, 5000, &dwResult) ){
+					return false;
+				}
+				nLineLenDes = (int)dwResult;
 				if( nLineLenDes < 0 ){
 					return false;
 				}
@@ -157,7 +162,12 @@ void CViewCommander::Command_COMPARE( void )
 	// カーソル位置取得 -> poDes
 	CLogicPoint	poDes;
 	{
-		::SendMessageAny( hwndCompareWnd, MYWM_GETCARETPOS, 0, 0 );
+		DWORD_PTR dwResult = 0;
+		if( 0 == ::SendMessageTimeout(hwndCompareWnd, MYWM_GETCARETPOS, 0, 0,
+			SMTO_NORMAL, 5000, &dwResult) ){
+			ErrorBeep();
+			return; // error
+		}
 		CLogicPoint* ppoCaretDes = &(GetDllShareData().m_sWorkBuffer.m_LogicPoint);
 		poDes.x = ppoCaretDes->x;
 		poDes.y = ppoCaretDes->y;
@@ -209,7 +219,8 @@ void CViewCommander::Command_COMPARE( void )
 			比較相手は、別プロセスなのでメッセージを飛ばす。
 		*/
 		GetDllShareData().m_sWorkBuffer.m_LogicPoint = poDes;
-		::SendMessageAny( hwndCompareWnd, MYWM_SETCARETPOS, 0, 0 );
+		DWORD_PTR dwResult = 0;
+		::SendMessageTimeout(hwndCompareWnd, MYWM_SETCARETPOS, 0, 0, SMTO_NORMAL, 5000, &dwResult);
 
 		/* カーソルを移動させる */
 		GetDllShareData().m_sWorkBuffer.m_LogicPoint = poSrc;

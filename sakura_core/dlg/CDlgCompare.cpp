@@ -129,7 +129,6 @@ void CDlgCompare::SetData( void )
 	HWND			hwndList;
 	int				nRowNum;
 	EditNode*		pEditNodeArr;
-	EditInfo*		pfi;
 	int				i;
 	TCHAR			szMenu[512];
 	int				nItem;
@@ -149,10 +148,13 @@ void CDlgCompare::SetData( void )
 		int score = 0;
 		TCHAR		szFile1[_MAX_PATH];
 		SplitPath_FolderAndFile(m_pszPath, NULL, szFile1);
+		DWORD dwTimeStart = ::GetTickCount();
 		for( i = 0; i < nRowNum; ++i ){
 			/* トレイからエディタへの編集ファイル名要求通知 */
-			::SendMessageAny( pEditNodeArr[i].GetHwnd(), MYWM_GETFILEINFO, 0, 0 );
-			pfi = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
+			bool bGetFileInfo = true;
+			UINT nTimeout = t_max(500, 3000 - int(::GetTickCount() - dwTimeStart));
+			const EditInfo* pfi;
+			pfi = CAppNodeManager::GetEditInfoMsg(pEditNodeArr[i].GetHwnd(), nTimeout, &bGetFileInfo);
 
 //@@@ 2001.12.26 YAZAKI ファイル名で比較すると(無題)だったときに問題同士の比較ができない
 			if (pEditNodeArr[i].GetHwnd() == CEditWnd::getInstance()->GetHwnd()){
@@ -169,6 +171,9 @@ void CDlgCompare::SetData( void )
 
 			// 横幅を計算する
 			calc.SetTextWidthIfMax(szMenu);
+			if( !bGetFileInfo ){
+				continue;
+			}
 
 			// ファイル名一致のスコアを計算する
 			TCHAR szFile2[_MAX_PATH];
@@ -208,7 +213,6 @@ int CDlgCompare::GetData( void )
 {
 	HWND			hwndList;
 	int				nItem;
-	EditInfo*		pfi;
 	hwndList = :: GetDlgItem( GetHwnd(), IDC_LIST_FILES );
 	nItem = List_GetCurSel( hwndList );
 	if( LB_ERR == nItem ){
@@ -216,8 +220,11 @@ int CDlgCompare::GetData( void )
 	}else{
 		*m_phwndCompareWnd = (HWND)List_GetItemData( hwndList, nItem );
 		/* トレイからエディタへの編集ファイル名要求通知 */
-		::SendMessageAny( *m_phwndCompareWnd, MYWM_GETFILEINFO, 0, 0 );
-		pfi = (EditInfo*)&m_pShareData->m_sWorkBuffer.m_EditInfo_MYWM_GETFILEINFO;
+		bool bResult;
+		const EditInfo* pfi = CAppNodeManager::GetEditInfoMsg(*m_phwndCompareWnd, 5000, &bResult);
+		if( !bResult ){
+			return FALSE;
+		}
 
 		// 2010.07.30 パス名はやめて表示名に変更
 		int nId = CAppNodeManager::getInstance()->GetEditNode( *m_phwndCompareWnd )->GetId();

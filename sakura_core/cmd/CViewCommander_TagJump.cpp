@@ -376,7 +376,11 @@ void CViewCommander::Command_TAGJUMPBACK( void )
 
 	/* ÉJÅ[É\ÉãÇà⁄ìÆÇ≥ÇπÇÈ */
 	GetDllShareData().m_sWorkBuffer.m_LogicPoint = tagJump.point;
-	::SendMessageAny( tagJump.hwndReferer, MYWM_SETCARETPOS, 0, 0 );
+	DWORD_PTR dwResult = 0;
+	if( 0 == ::SendMessageTimeout(tagJump.hwndReferer, MYWM_SETCARETPOS, 0, 0,
+		SMTO_NORMAL, 5000, &dwResult) ){
+		return; // error
+	}
 
 	return;
 }
