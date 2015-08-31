@@ -102,7 +102,7 @@ struct {
 // 2010/4/23 Uchi ImportÇÃäOèoÇµ
 bool CPropTypesColor::Import( HWND hwndDlg )
 {
-	ColorInfo		ColorInfoArr[64];
+	ColorInfo		ColorInfoArr[_countof(m_Types.m_ColorInfoArr)];
 	CImpExpColors	cImpExpColors( ColorInfoArr );
 
 	/* êFê›íË I/O */
