@@ -11,14 +11,14 @@ CLayoutInt CViewCalc::GetTabSpace() const
 	return m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetTabSpace();
 }
 
-CPixelXInt CViewCalc::GetCharSpacing() const
-{
-	return m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetCharSpacing();
-}
-
 CTsvModeInfo& CViewCalc::GetTsvMode() const
 {
 	return m_pOwner->m_pcEditDoc->m_cLayoutMgr.m_tsvInfo;
+}
+
+CPixelXInt CViewCalc::GetCharSpacing() const
+{
+	return m_pOwner->m_pcEditDoc->m_cLayoutMgr.GetCharSpacing();
 }
 
 /* 指定された桁に対応する行のデータ内の位置を調べる Ver1

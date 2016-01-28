@@ -73,20 +73,11 @@ void CTextMetrics::Update(HDC hdc, HFONT hFont, int nLineSpace, int nColmSpace)
  		SIZE  sz;
 		// LocalCache::m_han_size と一致していなければならない
 		{
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 			// KB145994
 			// tmAveCharWidth は不正確(半角か全角なのかも不明な値を返す)
 			// ただしこのコードはカーニングの影響を受ける
 			GetTextExtentPoint32W_AnyBuild(hdc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sz);
 			sz.cx = (sz.cx / 26 + 1) / 2;
-#else
-#ifdef _UNICODE
-			::GetTextExtentPoint32( hdc, L"xx", 2, &sz );
-#else
-			::GetTextExtentPoint32( hdc, LS(STR_ERR_DLGEDITVW2), 2, &sz );
-#endif
-			sz.cx = sz.cx / 2;
-#endif
 		}
 		TEXTMETRIC tm;
 		GetTextMetrics(hdc, &tm);
@@ -168,10 +159,6 @@ const int* CTextMetrics::GenerateDxArray(
 	int nCharSpacing				//!< [in]  文字隙間
 )
 {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-#else
-	bool bHigh = false;				// サロゲートペア（上位）
-#endif
 
 	vResultArray->resize(nLength);
 	if(!pText || nLength<=0)return NULL;
@@ -180,7 +167,6 @@ const int* CTextMetrics::GenerateDxArray(
 	int	 nLayoutCnt = nIndent;
 	const wchar_t* x=pText;
 	for (int i=0; i<nLength; i++, p++, x++) {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		// サロゲートチェック
 		if (*x == WCODE::TAB) {
 			// TAB対応	2013/5/7 Uchi
@@ -195,67 +181,31 @@ const int* CTextMetrics::GenerateDxArray(
 		}else
 		if(IsUTF16High(*x)){
 			if(i+1 < nLength && IsUTF16Low(x[1])){
-				*p = WCODE::CalcPxWidthByFont2(x) + nCharSpacing;
+				int n = 0;
+				if(nCharSpacing){
+					n = CNativeW::GetKetaOfChar(pText, nLength, i) * nCharSpacing;
+				}
+				*p = WCODE::CalcPxWidthByFont2(x) + n;
 				p++;
 				x++;
 				i++;
 				*p = 0;
 			}else{
-				*p = WCODE::CalcPxWidthByFont(*x) + nCharSpacing;
+				int n = 0;
+				if(nCharSpacing){
+					n = CNativeW::GetKetaOfChar(pText, nLength, i) * nCharSpacing;
+				}
+				*p = WCODE::CalcPxWidthByFont(*x) + n;
 				nLayoutCnt += *p;
 			}
 		}else{
-			*p = WCODE::CalcPxWidthByFont(*x) + nCharSpacing;
+			int n = 0;
+			if(nCharSpacing){
+				n = CNativeW::GetKetaOfChar(pText, nLength, i) * nCharSpacing;
+			}
+			*p = WCODE::CalcPxWidthByFont(*x) + n;
 			nLayoutCnt += *p;
 		}
-#else
-		if (*x == WCODE::TAB) {
-			// TAB対応	2013/5/7 Uchi
-			if (i > 0 && *(x-1) == WCODE::TAB) {
-				*p = nTabSpace * nHankakuDx;
-				nLayoutCnt += nTabSpace;
-			}
-			else {
-				*p = (nTabSpace - nLayoutCnt % nTabSpace) * nHankakuDx;
-				nLayoutCnt += (nTabSpace - nLayoutCnt % nTabSpace);
-			}
-			bHigh = false;
-		}
-		// サロゲートチェック BMP 以外は全角扱い	2008/7/5 Uchi
-		else if (IsUTF16High(*x)) {
-			*p = nHankakuDx*2;
-			nLayoutCnt += 2;
-			bHigh = true;
-		}
-		else if (IsUTF16Low(*x)) {
-			// サロゲートペア（下位）単独の場合は全角扱い
-			//*p = (bHigh) ? 0 : nHankakuDx*2;
-			if (bHigh) {
-				*p = 0;
-			}
-			else{
-				if (IsBinaryOnSurrogate(*x)) {
-					*p = nHankakuDx;
-					nLayoutCnt++;
-				}
-				else{
-					*p = nHankakuDx*2;
-					nLayoutCnt += 2;
-				}
-			}
-			bHigh = false;
-		}
-		else if(WCODE::IsHankaku(*x)){
-			*p = nHankakuDx;
-			nLayoutCnt++;
-			bHigh = false;				// サロゲートペア対策	2008/7/5 Uchi
-		}
-		else{
-			*p = nHankakuDx*2;
-			nLayoutCnt += 2;
-			bHigh = false;				// サロゲートペア対策	2008/7/5 Uchi
-		}
-#endif
 	}
 
 	if(vResultArray->size())
@@ -297,6 +247,8 @@ int CTextMetrics::CalcTextWidth2(
 		pText,
 		nLength,
 		nHankakuDx,
+		8,
+		0,
 		nCharSpacing
 	);
 

@@ -236,7 +236,7 @@ void CViewCommander::Command_FONT( void )
 	/* フォント設定ダイアログ */
 	LOGFONT lf = GetDllShareData().m_Common.m_sView.m_lf;
 	INT   nPointSize = GetDllShareData().m_Common.m_sView.m_nPointSize;
-#if defined(BUILD_OPT_ENALBE_PPFONT_SUPPORT) && !defined(USE_UNFIXED_FONT)
+#if !defined(USE_UNFIXED_FONT)
 #define USE_UNFIXED_FONT
 #endif
 #ifdef USE_UNFIXED_FONT
@@ -253,10 +253,8 @@ void CViewCommander::Command_FONT( void )
 		}else{
 			GetDllShareData().m_Common.m_sView.m_bFontIs_FIXED_PITCH = FALSE;	/* 現在のフォントは固定幅フォントである */
 		}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		// 2010.09.06 プロポーショナルフォントでもたぶん矩形も使えるはず
 		GetDllShareData().m_Common.m_sView.m_bFontIs_FIXED_PITCH = TRUE;
-#endif
 		/* 設定変更を反映させる */
 		/* 全編集ウィンドウへメッセージをポストする */
 		CAppNodeGroupHandle(0).PostMessageToAllEditors(
@@ -362,25 +360,19 @@ void CViewCommander::Command_SETFONTSIZE( int fontSize, int shift, int mode )
 	// 新たにタイプ別や一時設定が有効になってもフォント名は変わらないのでSIZEのみの変更通知をする
 	if( mode == 0 || mode == 1 ){
 		/* 全編集ウィンドウへメッセージをポストする */
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		if( mode == 0 ){
 			CAppNodeGroupHandle(0).PostMessageToAllEditors(
 				MYWM_SAVEEDITSTATE,
 				(WPARAM)0, (LPARAM)0, hwndFrame
 			);
 		}
-#endif
 		CAppNodeGroupHandle(0).PostMessageToAllEditors(
 			MYWM_CHANGESETTING,
 			(WPARAM)nTypeIndex, (LPARAM)PM_CHANGESETTING_FONTSIZE, hwndFrame
 		);
 	}else if( mode == 2 ){
 		// 自分だけ更新
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		GetDocument()->OnChangeSetting( true, false );
-#else
-		GetDocument()->OnChangeSetting( false );
-#endif
 	}
 }
 

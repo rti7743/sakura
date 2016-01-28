@@ -247,14 +247,12 @@ namespace WCODE
 		return c>=0x2500 && c<=0x257F;
 	}
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	//!文字が半角かどうかを取得(DLLSHARE/フォント依存)
 	bool CalcHankakuByFont(wchar_t c);
 	//!文字のpx幅を取得(DLLSHARE/フォント依存)
 	int  CalcPxWidthByFont(wchar_t c);
 	//!文字のpx幅を取得(DLLSHARE/フォント依存)
 	int  CalcPxWidthByFont2(const wchar_t* c);
-#endif
 	//! 句読点か
 	//bool IsKutoten( wchar_t wc );
 
@@ -334,11 +332,7 @@ struct SCharWidthCache {
 	// 文字半角全角キャッシュ
 	TCHAR		m_lfFaceName[LF_FACESIZE];
 	TCHAR		m_lfFaceName2[LF_FACESIZE];
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	short		m_nCharPxWidthCache[0x10000];
-#else
-	BYTE		m_bCharWidthCache[0x10000/4];		//16KB 文字半角全角キャッシュ 2008/5/16 Uchi
-#endif
 	int			m_nCharWidthCacheTest;				//cache溢れ検出
 };
 

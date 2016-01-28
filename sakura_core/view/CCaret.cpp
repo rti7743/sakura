@@ -410,11 +410,7 @@ CLayoutInt CCaret::MoveCursorToClientPoint( const POINT& ptClientPos, bool test,
 	CLayoutPoint	ptLayoutPos;
 	m_pEditView->GetTextArea().ClientToLayout(ptClientPos, &ptLayoutPos);
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	int dx = 0; // ←これでいいらしい
-#else
-	int	dx = (ptClientPos.x - m_pEditView->GetTextArea().GetAreaLeft()) % ( m_pEditView->GetTextMetrics().GetHankakuDx() );
-#endif
 
 	nScrollRowNum = MoveCursorProperly( ptLayoutPos, true, test, pCaretPosNew, 1000, dx );
 	if( !test ){
@@ -427,7 +423,7 @@ CLayoutInt CCaret::MoveCursorToClientPoint( const POINT& ptClientPos, bool test,
 
 
 /*! 正しいカーソル位置を算出する(EOF以降のみ)
-	@param pptPosXY [in/out] カーソルのレイアウト座標
+	@param pptPosXY [in,out] カーソルのレイアウト座標
 	@retval	TRUE 座標を修正した
 	@retval	FALSE 座標は修正されなかった
 	@note	EOFの直前が改行でない場合は、その行に限りEOF以降にも移動可能
@@ -724,91 +720,45 @@ void CCaret::ShowCaretPosInfo()
 
 	// -- -- -- -- キャレット位置 -> ptCaret -- -- -- -- //
 	//
+	bool bCaretHabaMode = GetDllShareData().m_Common.m_sStatusbar.m_bDispColByChar == 0;
 	CMyPoint ptCaret;
 	//行番号をロジック単位で表示
 	if(pTypes->m_bLineNumIsCRLF){
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-		ptCaret = GetCaretLogicPos().GetPOINT();
-#else
-		ptCaret.x = 0;
-		ptCaret.y = (Int)GetCaretLogicPos().y;
-		if(pcLayout){
-			// 2014.01.10 改行のない大きい行があると遅いのでキャッシュする
-			CLayoutInt offset;
-			if( m_nLineLogicNoCache == pcLayout->GetLogicLineNo()
-				&& m_nLineNoCache == GetCaretLayoutPos().GetY2()
-				&& m_nLineLogicModCache == CModifyVisitor().GetLineModifiedSeq( pcLayout->GetDocLineRef() ) ){
-				offset = m_nOffsetCache;
-			}else if( m_nLineLogicNoCache == pcLayout->GetLogicLineNo()
-				&& m_nLineNoCache < GetCaretLayoutPos().GetY2()
-				&& m_nLineLogicModCache == CModifyVisitor().GetLineModifiedSeq( pcLayout->GetDocLineRef() ) ){
-				// 下移動
-				offset = pcLayout->CalcLayoutOffset(*pLayoutMgr, m_nLogicOffsetCache, m_nOffsetCache);
-				m_nOffsetCache = offset;
-				m_nLogicOffsetCache = pcLayout->GetLogicOffset();
-				m_nLineNoCache = GetCaretLayoutPos().GetY2();
-			}else if(m_nLineLogicNoCache == pcLayout->GetLogicLineNo()
-				&& m_nLineNo50Cache <= GetCaretLayoutPos().GetY2()
-				&& GetCaretLayoutPos().GetY2() <= m_nLineNo50Cache + 50
-				&& m_nLineLogicModCache == CModifyVisitor().GetLineModifiedSeq( pcLayout->GetDocLineRef() ) ){
-				// 上移動
-				offset = pcLayout->CalcLayoutOffset(*pLayoutMgr, m_nLogicOffset50Cache, m_nOffset50Cache);
-				m_nOffsetCache = offset;
-				m_nLogicOffsetCache = pcLayout->GetLogicOffset();
-				m_nLineNoCache = GetCaretLayoutPos().GetY2();
-			}else{
-				// 2013.05.11 折り返しなしとして計算する
-				const CLayout* pcLayout50 = pcLayout;
-				CLayoutInt nLineNum = GetCaretLayoutPos().GetY2();
-				for(;;){
-					if( pcLayout50->GetLogicOffset() == 0 ){
-						break;
+		if( bCaretHabaMode ){
+			ptCaret.y = GetCaretLogicPos().GetPOINT().y;
+			if( pcLayout ){
+				// 新レイアウト桁数を計算(1行のデータが長いと重い)
+				int nPosX = 0;
+				const CLayout* pcLayoutCalc = pcLayout;
+				while( pcLayoutCalc->GetPrevLayout() ){
+					if( pcLayoutCalc->GetLogicOffset() == 0 ){
+						break; // 先頭行
 					}
-					if( nLineNum + 50 == GetCaretLayoutPos().GetY2() ){
-						break;
-					}
-					pcLayout50 = pcLayout50->GetPrevLayout();
-					nLineNum--;
+					pcLayoutCalc = pcLayoutCalc->GetPrevLayout();
+					nPosX += Int((m_pEditView->LineIndexToColumn(pcLayoutCalc, pcLayoutCalc->GetLengthWithoutEOL()) - pcLayoutCalc->GetIndent()) / (Int)m_pEditView->GetTextMetrics().GetLayoutXDefault());
 				}
-				m_nOffset50Cache = pcLayout50->CalcLayoutOffset(*pLayoutMgr);
-				m_nLogicOffset50Cache = pcLayout50->GetLogicOffset();
-				m_nLineNo50Cache = nLineNum;
-				
-				offset = pcLayout->CalcLayoutOffset(*pLayoutMgr, m_nLogicOffset50Cache, m_nOffset50Cache);
-				m_nOffsetCache = offset;
-				m_nLogicOffsetCache = pcLayout->GetLogicOffset();
-				m_nLineLogicNoCache = pcLayout->GetLogicLineNo();
-				m_nLineNoCache = GetCaretLayoutPos().GetY2();
-				m_nLineLogicModCache = CModifyVisitor().GetLineModifiedSeq( pcLayout->GetDocLineRef() );
+				ptCaret.x = nPosX + (Int)(GetCaretLayoutPos().GetX() - pcLayout->GetIndent()) / (Int)m_pEditView->GetTextMetrics().GetLayoutXDefault();
+			}else{
+				ptCaret.x = 0;
 			}
-			CLayout cLayout(
-				pcLayout->GetDocLineRef(),
-				pcLayout->GetLogicPos(),
-				pcLayout->GetLengthWithEOL(),
-				pcLayout->GetColorTypePrev(),
-				offset,
-				NULL
-			);
-			ptCaret.x = (Int)m_pEditView->LineIndexToColumn(&cLayout, GetCaretLogicPos().x - pcLayout->GetLogicPos().x);
+		}else{
+			ptCaret = GetCaretLogicPos().GetPOINT();
 		}
-#endif
 	}
 	//行番号をレイアウト単位で表示
 	else {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-		// ルーラー基準
-//		ptCaret.x = (Int)GetCaretLayoutPos().GetX() / (Int)m_pEditView->GetTextMetrics().GetLayoutXDefault();
-		// 文字単位
-		if( pcLayout ){
-			ptCaret.x = (Int)GetCaretLogicPos().GetX() - pcLayout->GetLogicOffset();
+		if( bCaretHabaMode ){
+			// ルーラー基準
+			ptCaret.x = (Int)GetCaretLayoutPos().GetX() / (Int)m_pEditView->GetTextMetrics().GetLayoutXDefault();
 		}else{
-			ptCaret.x = (Int)GetCaretLogicPos().GetX();
+			// 文字単位
+			if( pcLayout ){
+				ptCaret.x = (Int)GetCaretLogicPos().GetX() - pcLayout->GetLogicOffset();
+			}else{
+				ptCaret.x = (Int)GetCaretLogicPos().GetX();
+			}
 		}
 		ptCaret.y = (Int)GetCaretLayoutPos().GetY();
-#else
-		ptCaret.x = (Int)GetCaretLayoutPos().GetX();
-		ptCaret.y = (Int)GetCaretLayoutPos().GetY();
-#endif
 	}
 	//表示値が1から始まるように補正
 	ptCaret.x++;
@@ -929,16 +879,6 @@ void CCaret::ShowCaretPosInfo()
 
 void CCaret::ClearCaretPosInfoCache()
 {
-#ifndef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-	m_nOffsetCache = CLayoutInt(-1);
-	m_nLineNoCache = CLayoutInt(-1);
-	m_nLogicOffsetCache = CLogicInt(-1);
-	m_nLineLogicNoCache = CLogicInt(-1);
-	m_nLineNo50Cache = CLayoutInt(-1);
-	m_nOffset50Cache = CLayoutInt(-1);
-	m_nLogicOffset50Cache = CLogicInt(-1);
-	m_nLineLogicModCache = -1;
-#endif
 }
 
 /* カーソル上下移動処理 */
@@ -1157,7 +1097,7 @@ POINT CCaret::CalcCaretDrawPos(const CLayoutPoint& ptCaretPos) const
 
 	@date 2007.08.23 ryoji 関数化（MoveCursorToPoint()から処理を抜き出し）
 	@date 2007.09.26 ryoji 半角文字でも中央で左右にカーソルを振り分ける
-	@date 2007.10.23 kobake 引数説明の誤りを修正 ([in/out]→[in])
+	@date 2007.10.23 kobake 引数説明の誤りを修正 ([in,out]→[in])
 	@date 2009.02.17 ryoji レイアウト行末以後のカラム位置指定なら末尾文字の前ではなく末尾文字の後に移動する
 */
 CLayoutInt CCaret::MoveCursorProperly(

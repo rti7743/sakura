@@ -37,17 +37,15 @@ void CFigure_Comma::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcVie
 	const CTextArea* pArea=&pcView->GetTextArea();
 
 	int nLineHeight = pMetrics->GetHankakuDy();
-	int nCharWidth = pMetrics->GetCharPxWidth();
+	int nCharWidth = pMetrics->GetCharPxWidth();	// Layout¨Px
 
 	CTypeSupport cTabType(pcView,COLORIDX_TAB);
 
 	// ‚±‚ê‚©‚ç•`‰æ‚·‚éƒ^ƒu•
 	CLayoutXInt nCol;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	if( pcView->m_bMiniMap ){
 		nCol = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpaceMiniMap( sPos.GetDrawCol(), L',' );
 	}else
-#endif
 	{
 		nCol = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpace( sPos.GetDrawCol(), L',' );
 	}

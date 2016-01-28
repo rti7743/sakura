@@ -688,9 +688,6 @@ void CEditDoc::OnChangeSetting(
 		// ファイル書込可能のチェック処理
 		bool bOld = m_cDocLocker.IsDocWritable();
 		m_cDocLocker.CheckWritable(bOld && !CAppMode::getInstance()->IsViewMode());	// 書込可から不可に遷移したときだけメッセージを出す（出過ぎると鬱陶しいよね？）
-		if(bOld != m_cDocLocker.IsDocWritable()){
-			pCEditWnd->UpdateCaption();
-		}
 
 		/* ファイルの排他ロック */
 		if( m_cDocLocker.IsDocWritable() ){
@@ -855,6 +852,9 @@ void CEditDoc::OnChangeSetting(
 		// 2015.08.21 タイプ別が変わったかもしれない(印刷設定番号はそのまま)
 		m_pcEditWnd->m_pPrintPreview->OnChangeSetting();
 	}
+
+	// 親ウィンドウのタイトルを更新
+	m_pcEditWnd->UpdateCaption();
 }
 
 /*! ファイルを閉じるときのMRU登録 & 保存確認 ＆ 保存実行

@@ -198,11 +198,7 @@ void CEditView::DrawBracketPair( bool bDraw )
 					int nHeight = GetTextMetrics().GetHankakuDy();
 					int nLeft = (GetTextArea().GetDocumentLeftClientPointX()) + GetTextMetrics().GetCharPxWidth(ptColLine.x);
 					int nTop  = (Int)( ptColLine.GetY2() - GetTextArea().GetViewTopLine() ) * nHeight + GetTextArea().GetAreaTop();
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 					CLayoutXInt charsWidth = m_pcEditDoc->m_cLayoutMgr.GetLayoutXOfChar(pLine, nLineLen, OutputX);
-#else
-					CLayoutXInt charsWidth = CNativeW::GetKetaOfChar(pLine, nLineLen, OutputX);
-#endif
 
 					//色設定
 					CTypeSupport cTextType(this,COLORIDX_TEXT);
@@ -304,7 +300,7 @@ static const KAKKO_T g_aKakkos[] = {
 
 	@param ptLayout [in] 検索開始点の物理座標
 	@param pptLayoutNew [out] 移動先のレイアウト座標
-	@param mode [in/out] bit0(in)  : 表示領域外を調べるか？ 0:調べない  1:調べる
+	@param mode [in,out] bit0(in)  : 表示領域外を調べるか？ 0:調べない  1:調べる
 						 bit1(in)  : 前方文字を調べるか？   0:調べない  1:調べる (このbitを参照)
 						 bit2(out) : 見つかった位置         0:後ろ      1:前     (このbitを更新)
 

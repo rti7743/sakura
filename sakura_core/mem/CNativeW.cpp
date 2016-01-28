@@ -264,7 +264,6 @@ CKetaXInt CNativeW::GetKetaOfChar( const wchar_t* pData, int nDataLen, int nIdx 
 }
 
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 //! 指定した位置の文字の文字幅を返す
 CHabaXInt CNativeW::GetHabaOfChar( const wchar_t* pData, int nDataLen, int nIdx )
 {
@@ -286,7 +285,6 @@ CHabaXInt CNativeW::GetHabaOfChar( const wchar_t* pData, int nDataLen, int nIdx 
 	}
 	return CHabaXInt(WCODE::CalcPxWidthByFont(pData[nIdx]));
 }
-#endif
 
 /* ポインタで示した文字の次にある文字の位置を返します */
 /* 次にある文字がバッファの最後の位置を越える場合は&pData[nDataLen]を返します */

@@ -72,18 +72,10 @@ const DWORD p_helpids[] = {	//12900
 #endif
 //	To Here Feb. 7, 2002 genta
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 #ifdef _UNICODE
 	#define TARGET_STRING_MODEL "WP"
 #else
 	#define TARGET_STRING_MODEL "AP"
-#endif
-#else
-#ifdef _UNICODE
-	#define TARGET_STRING_MODEL "W"
-#else
-	#define TARGET_STRING_MODEL "A"
-#endif
 #endif
 
 #ifdef _DEBUG
@@ -106,7 +98,7 @@ const DWORD p_helpids[] = {	//12900
 	#define MY_WIN32_WINNT 0
 #endif
 
-#define SKR_PATCH_INFO "mocaskr_ver 021.20150831-r4027"
+#define SKR_PATCH_INFO "mocaskr_ver 022.20160128-r4075"
 
 #ifdef SKR_PATCH_INFO
 const char* g_pszPatchInfo = SKR_PATCH_INFO;

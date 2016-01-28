@@ -447,7 +447,6 @@ void CViewCommander::Command_WORDLEFT( bool bSelect )
 	/* 指定された桁に対応する行のデータ内の位置を調べる */
 	CLayoutInt layoutEnd;
 	nIdx = m_pCommanderView->LineColumnToIndex2( pcLayout, GetCaret().GetCaretLayoutPos().GetX2(), &layoutEnd );
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	// 矩形選択で、EOLより右側のときは１カラム単位で左移動
 	if( (m_pCommanderView->GetSelectionInfo().IsBoxSelecting() || GetDllShareData().m_Common.m_sGeneral.m_bIsFreeCursorMode)
 	 && pcLayout->GetLengthWithEOL() <= nIdx ){
@@ -464,7 +463,6 @@ void CViewCommander::Command_WORDLEFT( bool bSelect )
 		GetCaret().m_nCaretPosX_Prev = GetCaret().GetCaretLayoutPos().GetX2();
 		return;
 	}
-#endif
 
 	/* 現在位置の左の単語の先頭位置を調べる */
 	CLayoutPoint ptLayoutNew;
@@ -581,7 +579,6 @@ try_again:;
 		GetCaret().m_nCaretPosX_Prev = GetCaret().GetCaretLayoutPos().GetX2();
 	}
 	else{
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		// 矩形選択/フリーカーソルで、EOLより右側のときは１カラム単位で右移動
 		if( (m_pCommanderView->GetSelectionInfo().IsBoxSelecting() || GetDllShareData().m_Common.m_sGeneral.m_bIsFreeCursorMode) &&
 			pcLayout->GetLengthWithEOL() <= nIdx ){
@@ -595,7 +592,6 @@ try_again:;
 			GetCaret().m_nCaretPosX_Prev = GetCaret().GetCaretLayoutPos().GetX2();
 			return;
 		}
-#endif
 		bool	bIsFreeCursorModeOld = GetDllShareData().m_Common.m_sGeneral.m_bIsFreeCursorMode;	/* フリーカーソルモードか */
 		GetDllShareData().m_Common.m_sGeneral.m_bIsFreeCursorMode = false;
 		/* カーソル右移動 */

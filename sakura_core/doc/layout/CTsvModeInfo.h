@@ -47,10 +47,8 @@ public:
 	CLayoutInt GetActualTabLength(CLayoutInt pos) const;	// 指定したレイアウト位置のタブ幅を取得（折り返しは考慮しない）
 
 	int m_nTsvMode;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	int m_nDx;
 	int m_nSpacing;
-#endif
 
 private:
 	std::vector<int> m_tabLength;

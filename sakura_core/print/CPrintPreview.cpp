@@ -849,11 +849,7 @@ void CPrintPreview::OnChangePrintSetting( void )
 	ref.m_bKinsokuRet = m_pPrintSetting->m_bPrintKinsokuRet,	/* 改行文字をぶら下げる */	//@@@ 2002.04.13 MIK
 	ref.m_bKinsokuKuto = m_pPrintSetting->m_bPrintKinsokuKuto,	/* 句読点をぶら下げる */	//@@@ 2002.04.17 MIK
 	m_pLayoutMgr_Print->SetLayoutInfo( true, false, ref, ref.m_nTabSpace, ref.m_nTsvMode, ref.m_nMaxLineKetas,
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		CLayoutXInt(m_pPrintSetting->m_nPrintFontWidth),
-#else
-		CLayoutXInt(1),
-#endif
 	NULL, false, CWM_CACHE_LOCAL );
 	m_nAllPageNum = (WORD)((Int)m_pLayoutMgr_Print->GetLineCount() / ( m_bPreview_EnableLines * m_pPrintSetting->m_nPrintDansuu ));		/* 全ページ数 */
 	if( 0 < m_pLayoutMgr_Print->GetLineCount() % ( m_bPreview_EnableLines * m_pPrintSetting->m_nPrintDansuu ) ){
@@ -1700,12 +1696,8 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 //	CLayoutInt nTabSpace = m_pParentWnd->GetDocument()->m_cLayoutMgr.GetTabSpace(); //	Sep. 23, 2002 genta LayoutMgrの値を使う
 	CLayoutXInt nTabSpace = m_pLayoutMgr_Print->GetTabSpace();	// docから自分のLayoutMgrに変更
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	CLayoutInt tabPadding = CLayoutInt(m_pLayoutMgr_Print->GetWidthPerKeta() - 1); //LayoutInt == 1描画単位
 	const int charWidth = 1; // 1 LayoutIntあたりの幅
-#else
-	const int charWidth = m_pPrintSetting->m_nPrintFontWidth;
-#endif
 
 	//文字間隔配列を生成
 	vector<int> vDxArray;
@@ -1739,15 +1731,9 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 		if(pLine[iLogic]==WCODE::TAB){
 			nKind = 2;
 		}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		else if(0 == WCODE::GetFontNo(pLine[iLogic])){
 			nKind = 0;
 		}
-#else
-		else if(WCODE::IsHankaku(pLine[iLogic])){
-			nKind = 0;
-		}
-#endif
 		else{
 			nKind = 1;
 		}
@@ -1775,24 +1761,15 @@ CColorStrategy* CPrintPreview::Print_DrawLine(
 
 				//桁進め
 				if (nKindLast == 2) {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 					nLayoutX += ( nTabSpace + tabPadding - (nLayoutX + tabPadding) % nTabSpace )
 						+ nTabSpace * (iLogic - nBgnLogic - 1);
-#else
-					nLayoutX += ( nTabSpace - nLayoutX % nTabSpace )
-						+ nTabSpace * (iLogic - nBgnLogic - 1);
-#endif
 					}
 				else{
 					int		nIncrement = 0;
 					for (int i = nBgnLogic - nLineStart; i < iLogic - nLineStart; i++) {
 						nIncrement += pDxArray[i];
 					}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 					nLayoutX += nIncrement;
-#else
-					nLayoutX += CLayoutInt(nIncrement/nDx);
-#endif
 				}
 				//ロジック進め
 				nBgnLogic = iLogic;
@@ -1892,11 +1869,7 @@ void CPrintPreview::Print_DrawBlock(
 			}
 		}
 	}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	const int charWidth = 1;
-#else
-	const int charWidth = m_pPrintSetting->m_nPrintFontWidth;
-#endif
 	::SelectObject( hdc, hFont );
 	UINT nOption = 0;
 	if (!bTransBack) {
@@ -1975,11 +1948,7 @@ void CPrintPreview::SetPreviewFontHan( const LOGFONT* lf )
 
 	//	PrintSettingからコピー
 	m_lfPreviewHan.lfHeight			= m_pPrintSetting->m_nPrintFontHeight;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	m_lfPreviewHan.lfWidth	= 0;
-#else
-	m_lfPreviewHan.lfWidth			= m_pPrintSetting->m_nPrintFontWidth;
-#endif
 	_tcscpy(m_lfPreviewHan.lfFaceName, m_pPrintSetting->m_szPrintFontFaceHan);
 
 }
@@ -1989,11 +1958,7 @@ void CPrintPreview::SetPreviewFontZen( const LOGFONT* lf )
 	m_lfPreviewZen = *lf;
 	//	PrintSettingからコピー
 	m_lfPreviewZen.lfHeight	= m_pPrintSetting->m_nPrintFontHeight;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	m_lfPreviewZen.lfWidth	= 0;
-#else
-	m_lfPreviewZen.lfWidth	= m_pPrintSetting->m_nPrintFontWidth;
-#endif
 	_tcscpy(m_lfPreviewZen.lfFaceName, m_pPrintSetting->m_szPrintFontFaceZen );
 }
 
@@ -2298,11 +2263,7 @@ void CPrintPreview::CreateFonts( HDC hdc )
 
 	// 印刷用半角フォントを作成 -> m_hFontHan
 	m_lfPreviewHan.lfHeight	= m_pPrintSetting->m_nPrintFontHeight;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	m_lfPreviewHan.lfWidth = 0;
-#else
-	m_lfPreviewHan.lfWidth	= m_pPrintSetting->m_nPrintFontWidth;
-#endif
 	_tcscpy( m_lfPreviewHan.lfFaceName, m_pPrintSetting->m_szPrintFontFaceHan );
 	m_cFont.UpdateFont( &m_lfPreviewHan, 0 );
 	// 半角文字のアセント（文字高）を取得
@@ -2313,11 +2274,7 @@ void CPrintPreview::CreateFonts( HDC hdc )
 	// 印刷用全角フォントを作成 -> m_hFontZen
 	if (auto_strcmp(m_pPrintSetting->m_szPrintFontFaceHan, m_pPrintSetting->m_szPrintFontFaceZen)) {
 		m_lfPreviewZen.lfHeight	= m_pPrintSetting->m_nPrintFontHeight;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		m_lfPreviewZen.lfWidth	= 0;
-#else
-		m_lfPreviewZen.lfWidth	= m_pPrintSetting->m_nPrintFontWidth;
-#endif
 		_tcscpy( m_lfPreviewZen.lfFaceName, m_pPrintSetting->m_szPrintFontFaceZen );
 		m_cFont.UpdateFont( &m_lfPreviewZen, 1 );
 		// 全角文字のアセント（文字高）を取得

@@ -51,11 +51,9 @@ void CFigure_Tab::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView,
 
 	// ‚±‚ê‚©‚ç•`‰æ‚·‚éƒ^ƒu•
 	CLayoutXInt tabDispWidthLayout;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	if( pcView->m_bMiniMap ){
 		tabDispWidthLayout = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpaceMiniMap(sPos.GetDrawCol(), WCODE::TAB);
 	}else
-#endif
 	{
 		tabDispWidthLayout = pcView->m_pcEditDoc->m_cLayoutMgr.GetActualTsvSpace(sPos.GetDrawCol(), WCODE::TAB);
 	}

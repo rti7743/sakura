@@ -789,6 +789,7 @@
 #define IDC_CHECK_INDENTCPPSTR          1719
 #define IDC_CHECK_INDENTCPPCMT          1720
 #define IDC_CHECK_INDENTCPPUNDO         1721
+#define IDC_CHECK_DISP_COL_BY_CHAR      1722
 #define IDC_BUTTON_ALLRESET             1723
 #define IDC_CHECK_USE_FONT              1724
 #define IDC_STATIC_FONT                 1725

@@ -93,16 +93,11 @@ void CViewCommander::Command_INDENT( const wchar_t* const pData, const CLogicInt
 			}
 			return m_szTab;
 		}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-		//BUILD_OPT_ENALBE_PPFONT_SUPPORT:不明
 		// TAB=4 だとしても、TAB="x"幅*4 なのでSPとは幅が違うので、PPFontだとレイアウト上は桁が一致しません
 		// @see CConvert_TabToSpace::DoConvert() convert/CConvert_TabToSpace.cpp
 		// とりあえずCMemoryIterator/CLayoutMgr::GetActualTabSpace互換で計算してx幅での個数分を追加する
 		// nColまでの文字のGetKetaOfCharとGetTabSpaceKetasを使うとTAB指定文字数分になる
 		int Len( CLayoutInt nCol ) { return (m_nTab + m_nXWidth - ((Int)nCol + m_nXWidth) % m_nTab) / m_nSpWidth; }
-#else
-		int Len( CLayoutInt nCol ) { return m_nTab - ((Int)nCol % m_nTab); }
-#endif
 		wchar_t* m_szTab;
 		int m_nTab;
 		int m_nXWidth;

@@ -28,10 +28,6 @@
 //2007.10.18 kobake 作成
 //2009.09.10 syat メモリリークチェックを追加
 
-// プロポーショナルフォント
-#ifndef BUILD_OPT_DISABLE_PPFONT_SUPPORT
-#define BUILD_OPT_ENALBE_PPFONT_SUPPORT
-#endif
 
 /*!
 	厳格なintを使うかどうか。

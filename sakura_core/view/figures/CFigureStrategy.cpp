@@ -187,7 +187,6 @@ void CFigureSpace::DrawImp_DrawUnderline(SColorStrategyInfo* pInfo, DispPos& sPo
 		pInfo->m_gr.PushMyFont(sFont);
 
 		int nHeightMargin = pInfo->m_pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		CLayoutXInt nColLength = CLayoutXInt(pInfo->m_pDispPos->GetDrawCol() - sPos.GetDrawCol());
 		int nSpWidth = pcView->GetTextMetrics().CalcTextWidth3(L" ", 1);
 		int nLength = (Int)(nColLength + nSpWidth - 1) / nSpWidth;
@@ -216,21 +215,6 @@ void CFigureSpace::DrawImp_DrawUnderline(SColorStrategyInfo* pInfo, DispPos& sPo
 			&vDxArray[0]
 		);
 		delete []pszText;
-#else
-		int nLength = (Int)(pInfo->m_pDispPos->GetDrawCol() - sPos.GetDrawCol());
-		wchar_t* pszText = new wchar_t[nLength];
-		for( int i = 0; i < nLength; i++ )
-			pszText[i] = L' ';
-		pInfo->m_pcView->GetTextDrawer().DispText(
-			pInfo->m_gr,
-			&sPos,
-			nHeightMargin,
-			pszText,
-			nLength,
-			true		// ”wŒi‚Í“§–¾
-		);
-		delete []pszText;
-#endif
 		pInfo->m_gr.PopMyFont();
 	}
 }

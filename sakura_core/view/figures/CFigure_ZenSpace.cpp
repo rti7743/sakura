@@ -25,7 +25,6 @@ bool CFigure_ZenSpace::Match(const wchar_t* pText, int nTextLen) const
 //! 全角スペース描画
 void CFigure_ZenSpace::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans) const
 {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	// 2010.09.21 PP用実装追加
 	// プロポーショナルでは、全角SPと□の幅が違うことがある。違う場合は独自に描画
 	CTypeSupport cZenSpace(pcView, COLORIDX_ZENSPACE);
@@ -87,45 +86,10 @@ void CFigure_ZenSpace::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pc
 
 	//位置進める
 	pDispPos->ForwardDrawCol(CLayoutXInt(dx[0]));
-#else
-	//クリッピング矩形を計算。画面外なら描画しない
-	RECT rc;
-	if(pcView->GetTextArea().GenerateClipRect(&rc,*pDispPos,CLayoutXInt(2)))
-	{
-		//描画
-		const wchar_t* szZenSpace =
-			CTypeSupport(pcView,COLORIDX_ZENSPACE).IsDisp()?L"□":L"　";
-		int fontNo = WCODE::GetFontNo(*szZenSpace);
-		if( fontNo ){
-			SFONT sFont;
-			sFont.m_sFontAttr = gr.GetCurrentMyFontAttr();
-			sFont.m_hFont = pcView->GetFontset().ChooseFontHandle(fontNo, sFont.m_sFontAttr);
-			gr.PushMyFont(sFont);
-		}
-		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
-		::ExtTextOutW_AnyBuild(
-			gr,
-			pDispPos->GetDrawPos().x,
-			pDispPos->GetDrawPos().y + nHeightMargin,
-			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0),
-			&rc,
-			szZenSpace,
-			wcslen(szZenSpace),
-			pcView->GetTextMetrics().GetDxArray_AllZenkaku()
-		);
-		if( fontNo ){
-			gr.PopMyFont();
-		}
-	}
-
-	//位置進める
-	pDispPos->ForwardDrawCol(CLayoutXInt(2));
-#endif
 }
 
 void Draw_ZenSpace( CGraphics& gr, const CMyRect& rc )
 {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	TEXTMETRIC tm;
 	tm.tmAscent = 0;
 	::GetTextMetrics(gr, &tm);
@@ -141,5 +105,4 @@ void Draw_ZenSpace( CGraphics& gr, const CMyRect& rc )
 	gr.PushPen(::GetTextColor(gr), 1);
 	gr.DrawRect(rc2);
 	gr.PopPen();
-#endif
 }

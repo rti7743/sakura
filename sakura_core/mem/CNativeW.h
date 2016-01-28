@@ -216,17 +216,10 @@ public:
 	{
 		return GetKetaOfChar(cStr.GetPtr(), cStr.GetLength(), nIdx);
 	}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	static CLayoutXInt GetColmOfChar( const wchar_t* pData, int nDataLen, int nIdx )
 		{ return GetHabaOfChar(pData,nDataLen,nIdx);}
 	static CLayoutXInt GetColmOfChar( const CStringRef& cStr, int nIdx )
 		{ return GetHabaOfChar(cStr.GetPtr(), cStr.GetLength(), nIdx);}
-#else
-	static CLayoutXInt GetColmOfChar( const wchar_t* pData, int nDataLen, int nIdx )
-		{ return GetKetaOfChar(pData,nDataLen,nIdx);}
-	static CLayoutXInt GetColmOfChar( const CStringRef& cStr, int nIdx )
-		{ return GetKetaOfChar(cStr.GetPtr(), cStr.GetLength(), nIdx);}
-#endif
 };
 
 namespace std {

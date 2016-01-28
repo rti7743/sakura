@@ -33,37 +33,31 @@ class CMemoryIterator
 {
 public:
 	//CDocLine用コンストラクタ
-	CMemoryIterator(const CDocLine* pcT, CLayoutInt nTabSpace, const CTsvModeInfo& tsvInfo,
-		CPixelXInt nCharDx, CPixelXInt nSpacing)
+	CMemoryIterator( const CDocLine* pcT, CLayoutInt nTabSpace, const CTsvModeInfo& tsvInfo, CPixelXInt nCharDx, CPixelXInt nSpacing )
 	: m_pLine( pcT ? pcT->GetPtr() : NULL )
 	, m_nLineLen( pcT ? pcT->GetLengthWithEOL() : 0 )
 	, m_nTabSpace( nTabSpace )
 	, m_tsvInfo( tsvInfo )
 	, m_nIndent( CLayoutInt(0) )
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	, m_nSpacing(nSpacing)
 	, m_nTabPadding(nCharDx - 1)
 	, m_nTabSpaceDx((Int)nTabSpace + nCharDx - 1)
 	, m_nCharDx(nCharDx)
-#endif
 	{
 		first();
 	}
 
 	//CLayout用コンストラクタ
-	CMemoryIterator(const CLayout* pcT, CLayoutInt nTabSpace, const CTsvModeInfo& tsvInfo,
-		CPixelXInt nCharDx, CPixelXInt nSpacing)
+	CMemoryIterator( const CLayout* pcT, CLayoutInt nTabSpace, const CTsvModeInfo& tsvInfo, CPixelXInt nCharDx, CPixelXInt nSpacing )
 	: m_pLine( pcT ? pcT->GetPtr() : NULL )
 	, m_nLineLen( pcT ? pcT->GetLengthWithEOL() : 0 )
 	, m_nTabSpace( nTabSpace )
 	, m_tsvInfo( tsvInfo )
 	, m_nIndent( pcT ? pcT->GetIndent() : CLayoutInt(0) )
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	, m_nSpacing(nSpacing)
 	, m_nTabPadding(nCharDx - 1)
 	, m_nTabSpaceDx((Int)nTabSpace + nCharDx - 1)
 	, m_nCharDx(nCharDx)
-#endif
 	{
 		first();
 	}
@@ -97,7 +91,6 @@ public:
 			m_nIndex_Delta = CLogicInt(1);
 
 		//桁増分を計算
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		if (m_pLine[m_nIndex] == WCODE::TAB){
 			if (m_tsvInfo.m_nTsvMode == TSV_MODE_TSV) {
 				m_nColumn_Delta = m_tsvInfo.GetActualTabLength(m_nColumn);
@@ -109,23 +102,13 @@ public:
 		} else if (m_pLine[m_nIndex] == L',' && m_tsvInfo.m_nTsvMode == TSV_MODE_CSV){
 			m_nColumn_Delta = m_tsvInfo.GetActualTabLength(m_nColumn);
 		}else{
-			m_nColumn_Delta = CNativeW::GetColmOfChar( m_pLine, m_nLineLen, m_nIndex ) + CLayoutInt(m_nSpacing);
-		}
-#else
-		if (m_pLine[m_nIndex] == WCODE::TAB){
-			if (m_tsvInfo.m_nTsvMode == TSV_MODE_TSV) {
-				m_nColumn_Delta = m_tsvInfo.GetActualTabLength(m_nColumn);
-			} else if (m_tsvInfo.m_nTsvMode == TSV_MODE_CSV) {
-				m_nColumn_Delta = 1;
-			} else {
-				m_nColumn_Delta = m_nTabSpace - ( m_nColumn % m_nTabSpace );
-			}
-		} else if (m_pLine[m_nIndex] == L',' && m_tsvInfo.m_nTsvMode == TSV_MODE_CSV){
-			m_nColumn_Delta = m_tsvInfo.GetActualTabLength(m_nColumn);
-		}else{
 			m_nColumn_Delta = CNativeW::GetColmOfChar( m_pLine, m_nLineLen, m_nIndex );
+			if( m_nSpacing ){
+				m_nColumn_Delta += CLayoutXInt(CNativeW::GetKetaOfChar(m_pLine, m_nLineLen, m_nIndex) * m_nSpacing);
+			}
+//			if( 0 == m_nColumn_Delta )				// 削除 サロゲートペア対策	2008/7/5 Uchi
+//				m_nColumn_Delta = CLayoutInt(1);
 		}
-#endif
 	}
 	
 	/*! 予め計算した差分を桁位置に加える．
@@ -156,12 +139,10 @@ private:
 	const CTsvModeInfo&	m_tsvInfo;
 	const CLayoutInt	m_nIndent;
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	const CPixelXInt	m_nSpacing;		//文字隙間(px)
 	const CPixelXInt	m_nTabPadding;	//タブ幅最少値-1
 	const CPixelXInt	m_nTabSpaceDx;	//タブ幅計算用(m_nTabSpace + m_nTabPadding - 1)
 	const CPixelXInt	m_nCharDx;
-#endif
 
 	//状態変数
 	CLogicInt	m_nIndex;        //データ位置。文字単位。

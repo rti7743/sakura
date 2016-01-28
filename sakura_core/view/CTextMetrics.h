@@ -54,27 +54,15 @@ public:
 	int GetHankakuDy() const{ return m_nDyBasis; }			//!< Y方向文字間隔。文字縦幅＋行間隔。単位はピクセル。
 
 	CPixelXInt GetCharSpacing() const {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		return GetHankakuDx() - GetHankakuWidth();
-#else
-		return 0;
-#endif
 	}
 	// レイアウト幅分のピクセル幅を取得する
 	int GetCharPxWidth(CLayoutXInt col) const{
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		return (Int)col;
-#else
-		return GetHankakuDx() * (Int)col;
-#endif
 	}
 
 	int GetCharPxWidth() const{
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		return 1;
-#else
-		return GetHankakuDx();
-#endif
 	}
 	int GetCharHeightMarginByFontNo(int n) const{
 		return m_aFontHeightMargin[n];
@@ -82,11 +70,7 @@ public:
 
 	// 固定文字x桁のレイアウト幅を取得する
 	CLayoutXInt GetLayoutXDefault(CKetaXInt chars) const{
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		return CLayoutXInt(GetHankakuDx() * (Int)chars);
-#else
-		return CLayoutXInt(chars);
-#endif
 	}
 	// 固定文字1桁あたりのレイアウト幅を取得する
 	CLayoutXInt GetLayoutXDefault() const{ return GetLayoutXDefault(CKetaXInt(1));}

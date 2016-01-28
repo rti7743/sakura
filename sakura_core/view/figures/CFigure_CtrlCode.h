@@ -33,14 +33,10 @@ public:
 	bool Match(const wchar_t* pText, int nTextLen) const;
 
 	//action
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	bool DrawImp(SColorStrategyInfo* pInfo);
 	virtual void DispSpaceEx(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans, int width) const;
 	virtual wchar_t GetAlternateChar() const{ return L'•'; }
 	void DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans) const{assert(0);};
-#else
-	void DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans) const;
-#endif
 	EColorIndexType GetColorIdx(void) const{ return COLORIDX_CTRLCODE; }
 };
 
@@ -51,11 +47,7 @@ public:
 	bool Match(const wchar_t* pText, int nTextLen) const;
 
 	//action
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	virtual wchar_t GetAlternateChar() const{ return L'Å¨'; }
-#else
-	void DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans) const;
-#endif
 	EColorIndexType GetColorIdx(void) const{ return COLORIDX_CTRLCODE; }
 };
 
@@ -66,11 +58,7 @@ public:
 	bool Match(const wchar_t* pText, int nTextLen) const;
 
 	//action
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	virtual wchar_t GetAlternateChar() const{ return L'Å¨'; }
-#else
-	void DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans) const;
-#endif
 	EColorIndexType GetColorIdx(void) const{ return COLORIDX_CTRLCODE; }
 };
 

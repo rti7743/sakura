@@ -144,17 +144,9 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 	}else{
 		szText = L" ";
 	}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	CLayoutXInt width = CLayoutXInt(pcView->GetTextMetrics().CalcTextWidth3(szText, 1));
-#else
-	CLayoutXInt width = CLayoutXInt(1);
-#endif
 	RECT rcClip2;
-	if(pcView->GetTextArea().GenerateClipRect(&rcClip2, *pDispPos, width)
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-		&& cWrapType.IsDisp()
-#endif
-	)
+	if(pcView->GetTextArea().GenerateClipRect(&rcClip2, *pDispPos, width))
 	{
 		//サポートクラス
 		CTypeSupport cWrapType(pcView,COLORIDX_WRAP);
@@ -245,38 +237,10 @@ void _DispEOF(
 	static const wchar_t	szEof[] = L"[EOF]";
 	const int		nEofLen = _countof(szEof) - 1;
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	cEofType.SetGraphicsState_WhileThisObj(gr);
 	int fontNo = WCODE::GetFontNo('E');
 	int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
 	pcView->GetTextDrawer().DispText(gr, pDispPos, nHeightMargin, szEof, nEofLen, bTrans);
-#else
-	const CLayoutXInt nEofCol = CLayoutXInt(nEofLen);
-	//クリッピング領域を計算
-	RECT rcClip;
-	if(pArea->GenerateClipRect(&rcClip,*pDispPos,nEofCol))
-	{
-		//色設定
-		cEofType.SetGraphicsState_WhileThisObj(gr);
-
-		int fontNo = WCODE::GetFontNo('E');
-		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
-		//描画
-		::ExtTextOutW_AnyBuild(
-			gr,
-			pDispPos->GetDrawPos().x,
-			pDispPos->GetDrawPos().y + nHeightMargin,
-			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0),
-			&rcClip,
-			szEof,
-			nEofLen,
-			pMetrics->GetDxArray_AllHankaku()
-		);
-	}
-
-	//描画位置を進める
-	pDispPos->ForwardDrawCol(nEofCol);
-#endif
 }
 
 
@@ -298,13 +262,9 @@ void _DrawEOL(
 //2007.08.30 kobake 追加
 void _DispEOL(CGraphics& gr, DispPos* pDispPos, CEol cEol, const CEditView* pcView, bool bTrans)
 {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	const CLayoutXInt nCol = CTypeSupport(pcView,COLORIDX_EOL).IsDisp()
 		? pcView->GetTextMetrics().GetLayoutXDefault(CKetaXInt(1)) + CLayoutXInt(4) // ONのときは1幅+4px
 		: CLayoutXInt(2); // HACK:EOL off なら2px
-#else
-	const CLayoutXInt nCol = CKetaXInt(2);
-#endif
 	RECT rcClip2;
 	if(pcView->GetTextArea().GenerateClipRect(&rcClip2,*pDispPos,nCol)){
 		int fontNo = WCODE::GetFontNo(' ');

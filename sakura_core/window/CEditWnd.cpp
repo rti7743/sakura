@@ -1103,8 +1103,8 @@ void CEditWnd::EndLayoutBars( BOOL bAdjust/* = TRUE*/ )
 		// その後、ウィンドウの下部境界を上下ドラッグしてサイズ変更するとゴミが現れることがあった。
 		::SetWindowPos( m_cDlgFuncList.GetHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE );
 	}
-	if( NULL != GetMiniMap().GetHwnd() ){
-		::ShowWindow( GetMiniMap().GetHwnd(), nCmdShow );
+	if (NULL != GetMiniMap().GetHwnd()) {
+		::ShowWindow(GetMiniMap().GetHwnd(), nCmdShow);
 	}
 
 	if( bAdjust )
@@ -1150,6 +1150,14 @@ void CEditWnd::MessageLoop( void )
 		else if( m_cToolbar.EatMessage(&msg ) ){ }													//!<ツールバー
 		//アクセラレータ
 		else{
+			// 補完ウィンドウが表示されているときはキーボード入力を先に処理させる（カーソル移動／決定／キャンセルの処理）
+			if( msg.message == WM_KEYDOWN ){
+				if( GetActiveView().m_bHokan ){
+					if( -1 == m_cHokanMgr.KeyProc( msg.wParam, msg.lParam ) )
+						continue;	// 補完ウィンドウが処理を実行した
+				}
+			}
+
 			if( m_hAccel && TranslateAccelerator( msg.hwnd, m_hAccel, &msg ) ){}
 			//通常メッセージ
 			else{
@@ -1736,7 +1744,7 @@ LRESULT CEditWnd::DispatchEvent(
 			CShareData::getInstance()->RefreshString();
 
 			// 2015.08.20 プリントプレビューのとき設定を延期する(戻るとき適用)
-			if( !m_pPrintPreview ){
+			if (!m_pPrintPreview) {
 				// メインメニュー	2010/5/16 Uchi
 				LayoutMainMenu();
 			}
@@ -1840,17 +1848,15 @@ LRESULT CEditWnd::DispatchEvent(
 			break;
 		case PM_CHANGESETTING_FONT:
 			GetDocument()->OnChangeSetting( true );	// フォントで文字幅が変わるので、レイアウト再構築
+			delete [] m_posSaveAry;
+			m_posSaveAry = NULL;
 			break;
 		case PM_CHANGESETTING_FONTSIZE:
 			if( (-1 == wParam && CWM_CACHE_SHARE == GetLogfontCacheMode())
 					|| GetDocument()->m_cDocType.GetDocumentType().GetIndex() == wParam ){
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 				// 文字幅で幅も変わるので再構築する
 				// 変更中にさらに変更されると困るのでBlockingHookは無効
 				GetDocument()->OnChangeSetting( true, false );
-#else
-				GetDocument()->OnChangeSetting( false );	// ビューに設定変更を反映させる(レイアウト情報の再作成しない)
-#endif
 			}
 			delete [] m_posSaveAry;
 			m_posSaveAry = NULL;
@@ -3071,8 +3077,8 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		::ShowWindow( m_cFuncKeyWnd.GetHwnd(), SW_SHOW );
 		::ShowWindow( m_cTabWnd.GetHwnd(), SW_SHOW );	//@@@ 2003.06.25 MIK
 		::ShowWindow( m_cDlgFuncList.GetHwnd(), SW_SHOW );	// 2010.06.25 ryoji
-		if( NULL != GetMiniMap().GetHwnd() ){
-			::ShowWindow( GetMiniMap().GetHwnd(), SW_SHOW );
+		if (NULL != GetMiniMap().GetHwnd()) {
+			::ShowWindow(GetMiniMap().GetHwnd(), SW_SHOW);
 		}
 		// 2015.08.21 アウトラインの遅延再解析
 		if( m_nPrintPreview_OutlineCode != F_0 ){
@@ -3113,8 +3119,8 @@ void CEditWnd::PrintPreviewModeONOFF( void )
 		::ShowWindow( m_cFuncKeyWnd.GetHwnd(), SW_HIDE );
 		::ShowWindow( m_cTabWnd.GetHwnd(), SW_HIDE );	//@@@ 2003.06.25 MIK
 		::ShowWindow( m_cDlgFuncList.GetHwnd(), SW_HIDE );	// 2010.06.25 ryoji
-		if( NULL != GetMiniMap().GetHwnd() ){
-			::ShowWindow( GetMiniMap().GetHwnd(), SW_HIDE );
+		if (NULL != GetMiniMap().GetHwnd()) {
+			::ShowWindow(GetMiniMap().GetHwnd(), SW_HIDE);
 		}
 
 		// その他のモードレスダイアログも隠す	// 2010.06.25 ryoji
@@ -4594,7 +4600,6 @@ void  CEditWnd::SetActivePane( int nIndex )
 		m_cDlgReplace.ChangeView( (LPARAM)&GetActiveView() );
 	}
 	if( NULL != m_cHokanMgr.GetHwnd() ){	/* 「入力補完」ダイアログ */
-		m_cHokanMgr.Hide();
 		/* モードレス時：検索対象となるビューの変更 */
 		m_cHokanMgr.ChangeView( (LPARAM)&GetActiveView() );
 	}

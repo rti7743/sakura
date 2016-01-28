@@ -49,7 +49,7 @@ CLayoutInt CLayout::CalcLayoutWidth(const CLayoutMgr& cLayoutMgr) const
 	CLayoutInt nWidth = GetIndent();
 	CLogicInt nLen = GetLogicPos().x + m_nLength; //EOL=0,1
 	for(CLogicInt i=m_ptLogicPos.GetX2();i<nLen;){
-		if(pText[i]==WCODE::TAB || pText[i] == L','){
+		if(pText[i]==WCODE::TAB || (pText[i] == L',' && cLayoutMgr.m_tsvInfo.m_nTsvMode == TSV_MODE_CSV)){
 			nWidth += cLayoutMgr.GetActualTsvSpace(nWidth, pText[i]);
 		}
 		else{

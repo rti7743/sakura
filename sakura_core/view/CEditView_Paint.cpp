@@ -558,7 +558,7 @@ COLORREF CEditView::GetBackColorByColorInfo2(const ColorInfo& info, const ColorI
 
 void CEditView::OnPaint( HDC _hdc, PAINTSTRUCT *pPs, BOOL bDrawFromComptibleBmp )
 {
-	if( m_pcEditWnd->m_pPrintPreview ){
+	if (m_pcEditWnd->m_pPrintPreview) {
 		return;
 	}
 	bool bChangeFont = m_bMiniMap;
@@ -878,7 +878,7 @@ void CEditView::OnPaint2( HDC _hdc, PAINTSTRUCT *pPs, BOOL bDrawFromComptibleBmp
 */
 bool CEditView::DrawLogicLine(
 	HDC				_hdc,			//!< [in]     作画対象
-	DispPos*		_pDispPos,		//!< [in/out] 描画する箇所、描画元ソース
+	DispPos*		_pDispPos,		//!< [in,out] 描画する箇所、描画元ソース
 	CLayoutInt		nLineTo			//!< [in]     作画終了するレイアウト行番号
 )
 {
@@ -1191,15 +1191,11 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 			pInfo->m_pDispPos->GetLayoutLineRef(),
 			CMyPoint(pInfo->m_sDispPosBegin.GetDrawPos().x, pInfo->m_pDispPos->GetDrawPos().y),
 			pcLayout->CalcLayoutWidth(m_pcEditDoc->m_cLayoutMgr)
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 				+ CLayoutInt(pcLayout->GetLayoutEol().GetLen()
 					? (CTypeSupport(this, COLORIDX_EOL).IsDisp()
 						? (GetTextMetrics().GetLayoutXDefault()+CLayoutXInt(4)) // HACK:EOLの描画幅分だけ確保する。4pxはCRLFのはみ出している分
 						: CLayoutXInt(2)) // 非表示 = 2px
 					: CLayoutInt(0))
-#else
-				  + CLayoutInt(pcLayout->GetLayoutEol().GetLen()?1:0)
-#endif
 		);
 	}
 
@@ -1282,11 +1278,7 @@ void CEditView::DispTextSelected(
 			{
 				HWND hWnd = ::GetForegroundWindow();
 				if( hWnd && (hWnd == m_pcEditWnd->m_cDlgFind.GetHwnd() || hWnd == m_pcEditWnd->m_cDlgReplace.GetHwnd()) ){
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 					rcClip.right = rcClip.left + 2;
-#else
-					rcClip.right = rcClip.left + (nCharWidth/3 == 0 ? 1 : nCharWidth/3);
-#endif
 					bOMatch = true;
 				}
 			}

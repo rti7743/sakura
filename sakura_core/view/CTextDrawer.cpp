@@ -95,15 +95,9 @@ void CTextDrawer::DispText( HDC hdc, DispPos* pDispPos, int marginy, const wchar
 		CLayoutInt nBeforeLayout = CLayoutInt(0);
 		if ( x < 0 ){
 			int nLeftLayout = ( 0 - x ) / nDx - 1;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 			CLayoutMgr& layoutMgr = m_pEditView->m_pcEditDoc->m_cLayoutMgr;
-#endif
 			while (nBeforeLayout < nLeftLayout){
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 				nBeforeLayout += layoutMgr.GetLayoutXOfChar(pData, nLength, nBeforeLogic);
-#else
-				nBeforeLayout += CNativeW::GetColmOfChar( pData, nLength, nBeforeLogic );
-#endif
 				nBeforeLogic  += CNativeW::GetSizeOfChar( pData, nLength, nBeforeLogic );
 			}
 		}

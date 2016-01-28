@@ -135,7 +135,6 @@ void CLayoutMgr::SetLayoutInfo(
 	m_pTypeConfig = &refType;
 	m_nMaxLineKetas = nMaxLineKetas;
 	m_nTabSpace = nTabSpace;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	m_nSpacing = refType.m_nColumnSpace;
 	if( nCharLayoutXPerKeta == -1 )
 	{
@@ -150,7 +149,6 @@ void CLayoutMgr::SetLayoutInfo(
 	}else{
 		m_nCharLayoutXPerKeta = nCharLayoutXPerKeta;
 	}
-#endif
 	int nTsvModeOld = m_tsvInfo.m_nTsvMode;
 	m_tsvInfo.m_nTsvMode = nTsvMode;
 	if (nTsvModeOld != nTsvMode) {
@@ -687,7 +685,6 @@ bool CLayoutMgr::ChangeLayoutParam(
 
 void CLayoutMgr::CreateTsvInfoMinimap(bool bMiniMap, const LOGFONT* pLogfont, ECharWidthCacheMode eTypeFontMode)
 {
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	m_tsvInfoMinimap.m_nTsvMode = m_tsvInfo.m_nTsvMode;
 	if( !bMiniMap ){
 		if( m_tsvInfoMinimap.m_nTsvMode == TSV_MODE_NONE ){
@@ -708,7 +705,6 @@ void CLayoutMgr::CreateTsvInfoMinimap(bool bMiniMap, const LOGFONT* pLogfont, EC
 	SelectCharWidthCache(CWM_FONT_MINIMAP, CWM_CACHE_LOCAL);
 	m_tsvInfoMinimap.CalcTabLength(this->m_pcDocLineMgr);
 	SelectCharWidthCache(CWM_FONT_EDIT, eTypeFontMode);
-#endif
 }
 
 
@@ -934,7 +930,7 @@ void CLayoutMgr::LogicToLayout(
 
 				//文字レイアウト幅 -> nCharKetas
 				CLayoutInt nCharKetas;
-				if( pData[i] ==	WCODE::TAB || pData[i] == L',' ){
+				if( pData[i] ==	WCODE::TAB || ( pData[i] == L',' && m_tsvInfo.m_nTsvMode == TSV_MODE_CSV) ){
 					nCharKetas = GetActualTsvSpace( nCaretPosX, pData[i] );
 				}
 				else{
@@ -1003,9 +999,7 @@ void CLayoutMgr::LayoutToLogicEx(
 {
 	pptLogic->Set(CLogicInt(0), CLogicInt(0));
 	pptLogic->ext = 0;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	pptLogic->haba = m_nCharLayoutXPerKeta;
-#endif
 	if( ptLayout.GetY2() > m_nLines ){
 		//2007.10.11 kobake Y値が間違っていたので修正
 		//pptLogic->Set(0, m_nLines);
@@ -1073,7 +1067,7 @@ checkloop:;
 		
 		//文字レイアウト幅 -> nCharKetas
 		CLayoutInt	nCharKetas;
-		if( pData[i] == WCODE::TAB || pData[i] == L',' ){
+		if( pData[i] == WCODE::TAB || (pData[i] == L',' && m_tsvInfo.m_nTsvMode == TSV_MODE_CSV ) ){
 			nCharKetas = GetActualTsvSpace( nX, pData[i] );
 		}
 		else{

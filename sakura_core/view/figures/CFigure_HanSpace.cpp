@@ -26,13 +26,8 @@ void CFigure_HanSpace::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pc
 {
 	//クリッピング矩形を計算。画面外なら描画しない
 	CMyRect rcClip;
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	const int Dx = pcView->GetTextMetrics().CalcTextWidth3(L" ", 1);
 	const CLayoutXInt nCol = CLayoutXInt(Dx);
-#else
-	const int Dx = pcView->GetTextMetrics().GetDxArray_AllHankaku()[0];
-	const CLayoutXInt nCol = CLayoutXInt(1);
-#endif
 	if(pcView->GetTextArea().GenerateClipRect(&rcClip,*pDispPos,nCol))
 	{
 		//小文字"o"の下半分を出力
@@ -44,12 +39,8 @@ void CFigure_HanSpace::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pc
 			pDispPos->GetDrawPos().y,
 			ExtTextOutOption() & ~(bTrans? ETO_OPAQUE: 0),
 			&rcClipBottom,
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 //FIXME:幅が違う
 			L"o",
-#else
-			L"o",
-#endif
 			1,
 			&Dx
 		);

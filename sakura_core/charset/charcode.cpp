@@ -201,7 +201,6 @@ namespace WCODE
 			s_MultiFont = m_bMultiFont;
 
 			// -- -- 半角基準 -- -- //
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 			// CTextMetrics::Update と同じでなければならない
 			HDC hdcArr[2] = {m_hdc, m_hdcFull};
 			int size = (bFullFont ? 2 : 1);
@@ -220,9 +219,6 @@ namespace WCODE
 					m_han_size.cy = sz.cy;
 				}
 			}
-#else
-			GetTextExtentPoint32W_AnyBuild(m_hdc,L"x",1,&m_han_size);
-#endif
 		}
 		void SelectCache( SCharWidthCache* pCache )
 		{
@@ -234,11 +230,7 @@ namespace WCODE
 			// キャッシュのクリア
 			memcpy(m_pCache->m_lfFaceName, m_lf.lfFaceName, sizeof(m_lf.lfFaceName));
 			memcpy(m_pCache->m_lfFaceName2, m_lf2.lfFaceName, sizeof(m_lf2.lfFaceName));
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 			memset(m_pCache->m_nCharPxWidthCache, 0, sizeof(m_pCache->m_nCharPxWidthCache));
-#else
-			memset(m_pCache->m_bCharWidthCache, 0, sizeof(m_pCache->m_bCharWidthCache));
-#endif
 			m_pCache->m_nCharWidthCacheTest=0x12345678;
 		}
 		bool IsSameFontFace( const LOGFONT &lf1, const LOGFONT &lf2 )
@@ -247,7 +239,6 @@ namespace WCODE
 			return ( memcmp(m_pCache->m_lfFaceName, lf1.lfFaceName, sizeof(lf1.lfFaceName)) == 0 &&
 				memcmp(m_pCache->m_lfFaceName2, lf2.lfFaceName, sizeof(lf2.lfFaceName)) == 0 );
 		}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		void SetCachePx(wchar_t c, short cache_pxwidth)
 		{
 			m_pCache->m_nCharPxWidthCache[c] = cache_pxwidth;
@@ -256,26 +247,10 @@ namespace WCODE
 		{
 			return _GetRawPx(c);
 		}
-#else
-		void SetCache(wchar_t c, bool cache_value)
-		{
-			int v=cache_value?0x1:0x2;
-			m_pCache->m_bCharWidthCache[c/4] &= ~( 0x3<< ((c%4)*2) ); //該当箇所クリア
-			m_pCache->m_bCharWidthCache[c/4] |=  ( v  << ((c%4)*2) ); //該当箇所セット
-		}
-		bool GetCache(wchar_t c) const
-		{
-			return _GetRaw(c)==0x1?true:false;
-		}
-#endif
 		bool ExistCache(wchar_t c) const
 		{
 			assert(m_pCache->m_nCharWidthCacheTest==0x12345678);
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 			return _GetRawPx(c)!=0x0;
-#else
-			return _GetRaw(c)!=0x0;
-#endif
 		}
 		bool CalcHankakuByFont(wchar_t c)
 		{
@@ -313,17 +288,10 @@ namespace WCODE
 		}
 		
 	protected:
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		int _GetRawPx(wchar_t c) const
 		{
 			return m_pCache->m_nCharPxWidthCache[c];
 		}
-#else
-		int _GetRaw(wchar_t c) const
-		{
-			return (m_pCache->m_bCharWidthCache[c/4]>>((c%4)*2))&0x3;
-		}
-#endif
 		HDC SelectHDC(wchar_t c) const
 		{
 			return m_hdcFull && WCODE::GetFontNo(c) ? m_hdcFull : m_hdc;
@@ -361,15 +329,8 @@ namespace WCODE
 	 	{
 			//	Fontfaceが変更されていたらキャッシュをクリアする	2013.04.08 aroka
 			m_localcache[fMode].Init(lf1, lf2, hdc);
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 			// サイズやHDCが変わってもクリアする必要がある
 			m_localcache[fMode].Clear();
-#else
-			if( !m_localcache[fMode].IsSameFontFace(lf1, lf2) )
-			{
-				m_localcache[fMode].Clear();
-			}
-#endif
 		}
 		void Select( ECharWidthFontMode fMode, ECharWidthCacheMode cMode )
 		{
@@ -400,8 +361,6 @@ namespace WCODE
 	static LocalCacheSelector selector;
 
 
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
-
 	//文字幅の動的計算。ピクセル幅
 	int CalcPxWidthByFont(wchar_t c)
 	{
@@ -430,25 +389,6 @@ namespace WCODE
 		return pcache->IsHankakuByWidth(CalcPxWidthByFont(c));
 	}
 
-#else
-
-	//文字幅の動的計算。半角ならtrue。
-	bool CalcHankakuByFont(wchar_t c)
-	{
-		LocalCache* pcache = selector.GetCache();
-		// -- -- キャッシュが存在すれば、それをそのまま返す -- -- //
-		if(pcache->ExistCache(c))return pcache->GetCache(c);
-
-		// -- -- 相対比較 -- -- //
-		bool value;
-		value = pcache->CalcHankakuByFont(c);
-
-		// -- -- キャッシュ更新 -- -- //
-		pcache->SetCache(c,value);
-
-		return pcache->GetCache(c);
-	}
-#endif
 	// 文字の使用フォントを返す
 	// @return 0:半角用 / 1:全角用
 	int GetFontNo( wchar_t c ){

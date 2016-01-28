@@ -525,8 +525,6 @@ bool CShareData::InitShareData()
 			sHelper.m_bHokanKey_TAB		= FALSE;		/* VK_TAB   補完決定キーが有効/無効 */
 			sHelper.m_bHokanKey_RIGHT	= TRUE;			/* VK_RIGHT 補完決定キーが有効/無効 */
 			sHelper.m_bHokanKey_SPACE	= FALSE;		/* VK_SPACE 補完決定キーが有効/無効 */
-
-			sHelper.m_bUseHokan = FALSE;					/* 入力補完機能を使用する */
 		}
 
 		// [アウトライン]タブ
@@ -648,6 +646,7 @@ bool CShareData::InitShareData()
 			sStatusbar.m_bDispSelCountByByte	= FALSE;	// 選択文字数を文字単位ではなくバイト単位で表示する
 			sStatusbar.m_bDispSelIncludeCrlf	= true;
 			sStatusbar.m_nDispSelTimeoutSec		= 10;
+			sStatusbar.m_bDispColByChar = FALSE; // 現在桁をルーラー単位ではなく文字単位で表示する
 		}
 
 		// [プラグイン]タブ

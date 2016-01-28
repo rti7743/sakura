@@ -194,21 +194,13 @@ void CViewSelect::DrawSelectArea(bool bDrawBracketCursorLine)
 					rc.top = rc.bottom = m_sSelect.GetTo().GetY2();
 					drawLeft  = t_min(m_sSelect.GetTo().x, m_sSelectOld.GetTo().x);
 					drawRight = t_max(m_sSelect.GetTo().x, m_sSelectOld.GetTo().x)
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 						+ pView->GetTextMetrics().GetLayoutXDefault() + 4; // 改行コード幅分余分に取る
-#else
-						+ 1;
-#endif
 				}else if(m_sSelect.GetTo() == m_sSelectOld.GetTo() && m_sSelect.GetFrom().x != m_sSelectOld.GetFrom().x){
 					// GetFromの行が対象
 					rc.top = rc.bottom = m_sSelect.GetFrom().GetY2();
 					drawLeft  = t_min(m_sSelectOld.GetFrom().x, m_sSelect.GetFrom().x);
 					drawRight = t_max(m_sSelectOld.GetFrom().x, m_sSelect.GetFrom().x)
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 						+ pView->GetTextMetrics().GetLayoutXDefault() + 4; // 改行コード幅分余分に取る
-#else
-						+ 1;
-#endif
 				}else{
 					rc.UnionStrictRect(rcOld, rcNew);
 				}
@@ -521,7 +513,6 @@ void CViewSelect::DrawSelectAreaLine(
 		while( !it.end() ){
 			it.scanNext();
 			if ( it.getIndex() + it.getIndexDelta() > pcLayout->GetLengthWithoutEOL() ){
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 				// HACK:改行コードは選択だけ1桁幅
 				if( CTypeSupport(pView, COLORIDX_EOL).IsDisp() ){
 					nPosX += pView->GetTextMetrics().GetLayoutXDefault();
@@ -531,9 +522,6 @@ void CViewSelect::DrawSelectAreaLine(
 				}else{
 					nPosX += 2; // 非表示なら()2px
 				}
-#else
-				nPosX ++;
-#endif
 				break;
 			}
 			// 2006.03.28 Moca 画面外まで求めたら打ち切る
@@ -690,14 +678,9 @@ void CViewSelect::PrintSelectionInfoMsg() const
 		if( select_col < 0 ){
 			select_col = -select_col;
 		}
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 		int select_col_keta = (Int)select_col / (Int)pView->GetTextMetrics().GetLayoutXDefault();
 		auto_sprintf( msg, _T("%d col (%dpx) * %d lines selected."),
 			select_col_keta, select_col, select_line );
-#else
-		auto_sprintf( msg, _T("%d Columns * %d lines selected."),
-			select_col, select_line );
-#endif
 	}
 	else {
 		//	通常の選択では選択範囲の中身を数える

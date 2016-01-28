@@ -145,7 +145,6 @@ void CRuler::DrawRulerBg(CGraphics& gr)
 	CLayoutXInt i  = m_pEditView->GetTextArea().GetViewLeftCol();
 	CKetaXInt keta = CKetaXInt(((Int)i) / oneColumn);
 	const int dx = m_pEditView->GetTextMetrics().GetHankakuDx(); // PPでもDx
-#ifdef BUILD_OPT_ENALBE_PPFONT_SUPPORT
 	// 先頭がかけている場合は次の桁に進む
 	const int pxOffset = (Int)i % oneColumn;
 	if( pxOffset ){
@@ -153,7 +152,6 @@ void CRuler::DrawRulerBg(CGraphics& gr)
 		i += CLayoutXInt(oneColumn - pxOffset); // CLayoutXInt == pixel
 		++keta;
 	}
-#endif
 	while(i <= m_pEditView->GetTextArea().GetRightCol() + 1 && keta <= nMaxLineKetas)
 	{
 		//ルーラー終端の区切り(大)
