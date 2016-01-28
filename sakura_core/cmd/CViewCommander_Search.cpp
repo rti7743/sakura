@@ -1034,13 +1034,13 @@ int CViewCommander::Command_REPLACE_ALL_core()
 	}
 
 	//$$ 単位混在
-	CLayoutPoint	ptOld;						//検索後の選択範囲
+	CLayoutPoint	ptOld;						//検索後の選択範囲(xはいつもLogic。yは矩形はLayout,通常はLogic)
 	/*CLogicInt*/int		lineCnt = 0;		//置換前の行数
 	/*CLayoutInt*/int		linDif = (0);		//置換後の行調整
-	/*CLayoutInt*/int		colDif = (0);		//置換後の桁調整
-	/*CLayoutInt*/int		linPrev = (0);		//前回の検索行(矩形) @@@2001.12.31 YAZAKI warning退治
+	CLogicInt		colDif = CLogicInt(0);		//置換後の桁調整
+	CLogicInt		boxSelToX = CLogicInt(0);	//矩形選択の現在の行の末尾のロジック位置
+	CLayoutInt		linPrev = CLayoutInt(-1);	//前回の検索行(矩形) @@@2001.12.31 YAZAKI warning退治
 	/*CLogicInt*/int		linOldLen = (0);	//検査後の行の長さ
-	/*CLayoutInt*/int		linNext;			//次回の検索行(矩形)
 
 	int nLoopCnt = -1;
 
@@ -1108,25 +1108,38 @@ int CViewCommander::Command_REPLACE_ALL_core()
 				lineCnt = (Int)rLayoutMgr.GetLineCount();
 				// 検索後の範囲終端
 				ptOld = GetSelect().GetTo();
+				bool bChangeLine = false;
 				// 前回の検索行と違う？
 				if(ptOld.y!=linPrev){
 					colDif=(0);
+					CLogicPoint boxTo;
+					rLayoutMgr.LayoutToLogic(CLayoutPoint(sRangeA.GetTo().x,ptOld.y), &boxTo);
+					boxSelToX = boxTo.x;
+					bChangeLine = true;
 				}
 				linPrev=(Int)ptOld.GetY2();
+				CLogicPoint logicTo;
+				rLayoutMgr.LayoutToLogic(ptOld, &logicTo);
+				ptOld.x = (Int)(logicTo.x); // 2016.01.13 矩形でもxは必ずLogic
 				// 行は範囲内？
-				if ((sRangeA.GetTo().y+linDif == ptOld.y && sRangeA.GetTo().GetX2()+colDif < ptOld.x) ||
+				if ((sRangeA.GetTo().y+linDif == ptOld.y && boxSelToX + colDif < logicTo.x) ||
 					(sRangeA.GetTo().y+linDif <  ptOld.y)) {
 					break;
 				}
-				// 桁は範囲内？
-				if(!(sRangeA.GetFrom().x<=GetSelect().GetFrom().x && ptOld.GetX2()<=sRangeA.GetTo().GetX2()+colDif)){
-					if(ptOld.x<sRangeA.GetTo().GetX2()+colDif){
-						linNext=(Int)GetSelect().GetTo().GetY2();
+				// 桁は範囲内？ colDifがLayout単位だと右側にタブがあった場合にずれるのでLogic単位
+				if(!(sRangeA.GetFrom().x <= GetSelect().GetFrom().x && logicTo.x <= boxSelToX + colDif)
+					|| (GetSelect().GetFrom().y != ptOld.y) ){
+					// 2016.01.13 行をまたいでいる場合もスキップ
+					CLayoutInt		linNext;			//次回の検索行(矩形)
+					if( boxSelToX + colDif < logicTo.x ){
+						linNext = GetSelect().GetTo().GetY2();
 					}else{
-						linNext=(Int)GetSelect().GetTo().GetY2()+1;
+						linNext = GetSelect().GetTo().GetY2() + CLayoutInt(1);
 					}
 					//次の検索開始位置へシフト
 					GetCaret().SetCaretLayoutPos(CLayoutPoint(sRangeA.GetFrom().x,CLayoutInt(linNext)));
+					//2016.01.13 範囲選択をクリアしないと位置移動できていなかった
+					m_pCommanderView->GetSelectionInfo().DisableSelectArea(bDisplayUpdate);
 					// 2004.05.30 Moca 現在の検索文字列を使って検索する
 					Command_SEARCH_NEXT_core( false, bDisplayUpdate, true, 0, NULL );
 					colDif=(0);
@@ -1280,7 +1293,6 @@ int CViewCommander::Command_REPLACE_ALL_core()
 				nIdx = m_pCommanderView->LineColumnToIndex( pcLayout, GetSelect().GetFrom().GetX2() ) + pcLayout->GetLogicOffset();
 				nLen = pcDocLine->GetLengthWithEOL();
 			}
-			CLogicInt colDiff = CLogicInt(0);
 			if( !bConsecutiveAll ){	// 一括置換
 				// 2007.01.16 ryoji
 				// 選択範囲置換の場合は行内の選択範囲末尾まで置換範囲を縮め，
@@ -1293,8 +1305,8 @@ int CViewCommander::Command_REPLACE_ALL_core()
 							&ptWork
 						);
 						ptColLineP.x = ptWork.x;
-						if( nLen - pcDocLine->GetEol().GetLen() > ptColLineP.x + colDif )
-							nLen = ptColLineP.GetX2() + CLogicInt(colDif);
+						if( nLen - pcDocLine->GetEol().GetLen() > ptColLineP.x )
+							nLen = ptColLineP.GetX2();
 					} else {	// 通常の選択
 						if( ptColLineP.y+linDif == (Int)ptOld.y ){ //$$ 単位混在
 							if( nLen - pcDocLine->GetEol().GetLen() > ptColLineP.x + colDif )
@@ -1311,6 +1323,7 @@ int CViewCommander::Command_REPLACE_ALL_core()
 
 			if( int nReplace = cRegexp.Replace(pLine, nLen, nIdx) ){
 				nReplaceNum += nReplace;
+				CLogicInt colDiff = CLogicInt(0);
 				if ( !bConsecutiveAll ) { // 2006.04.01 かろと	// 2007.01.16 ryoji
 					// 行単位での置換処理
 					// 選択範囲を物理行末までにのばす
@@ -1419,7 +1432,11 @@ int CViewCommander::Command_REPLACE_ALL_core()
 			// 検索→置換の行補正値取得
 			if( bBeginBoxSelect )
 			{
-				colDif += (Int)(ptLast.GetX2() - ptOld.GetX2());
+				if( bRegularExp && !bConsecutiveAll ){
+					colDif = 0; // 正規表現一括置換の矩形選択では横方向には伸ばさない
+				}else{
+					colDif += GetCaret().GetCaretLogicPos().x - CLogicInt(Int(ptOld.x)); // 矩形でもLogic
+				}
 				linDif += (Int)(rLayoutMgr.GetLineCount() - lineCnt);
 			}
 			else{
