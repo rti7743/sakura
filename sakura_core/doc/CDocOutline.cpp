@@ -357,9 +357,10 @@ void CDocOutline::MakeFuncList_RuleFile( CFuncInfoArr* pcFuncInfoArr, std::tstri
 		//行文字列から改行を取り除く pLine -> pszText
 		// 正規表現置換のときは設定済み
 		if( NULL == pszText ){
-			pszText = new wchar_t[nLineLen + 1];
-			wmemcpy( pszText, &pLine[i], nLineLen );
-			pszText[nLineLen] = L'\0';
+			int nLineLen2 = nLineLen - i;
+			pszText = new wchar_t[nLineLen2 + 1];
+			wmemcpy( pszText, &pLine[i], nLineLen2 );
+			pszText[nLineLen2] = L'\0';
 			bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
 			for( i = 0; pszText[i] != L'\0'; ++i ){
 				if( WCODE::IsLineDelimiter(pszText[i], bExtEol) ){

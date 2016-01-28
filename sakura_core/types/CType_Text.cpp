@@ -176,9 +176,10 @@ void CDocOutline::MakeTopicList_txt( CFuncInfoArr* pcFuncInfoArr )
 		*/
 
 		//s•¶Žš—ñ‚©‚ç‰üs‚ðŽæ‚èœ‚­ pLine -> pszText
-		wchar_t*	pszText = new wchar_t[nLineLen + 1];
-		wmemcpy( pszText, &pLine[i], nLineLen );
-		pszText[nLineLen] = L'\0';
+		int nLineLen2 = nLineLen - i;
+		wchar_t*	pszText = new wchar_t[nLineLen2 + 1];
+		wmemcpy( pszText, &pLine[i], nLineLen2 );
+		pszText[nLineLen2] = L'\0';
 		bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
 		for( i = 0; i < nLineLen; ++i ){
 			if( WCODE::IsLineDelimiter(pszText[i], bExtEol) ){
