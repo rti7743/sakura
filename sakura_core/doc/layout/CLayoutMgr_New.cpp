@@ -76,6 +76,16 @@ bool CLayoutMgr::IsKinsokuPosHead(
 	CLayoutInt nCharKetas2	//!< [in] 現在位置の次の文字サイズ
 )
 {
+	if( nRest < nCharKetas ){
+		// 次の文字で折り返しの場合
+		return true;
+	}
+	if( nRest < nCharKetas + nCharKetas2 ){
+		// 次の次の文字で折り返しの場合
+		return true;
+	}
+	return false;
+#if 0
 	switch( (Int)nRest )
 	{
 	//    321012  ↓マジックナンバー
@@ -107,6 +117,7 @@ bool CLayoutMgr::IsKinsokuPosHead(
 		break;
 	}
 	return false;
+#endif
 }
 
 /*!
@@ -118,6 +129,16 @@ bool CLayoutMgr::IsKinsokuPosTail(
 	CLayoutInt nCharKetas2	//!< [in] 現在位置の次の文字サイズ
 )
 {
+	if( nRest < nCharKetas ){
+		// 次の文字で折り返しの場合
+		return true;
+	}
+	if( nRest < nCharKetas + nCharKetas2 ){
+		// 次の次の文字で折り返しの場合
+		return true;
+	}
+	return false;
+#if 0
 	switch( (Int)nRest )
 	{
 	case 3:	// 3文字前
@@ -144,6 +165,7 @@ bool CLayoutMgr::IsKinsokuPosTail(
 		break;
 	}
 	return false;
+#endif
 }
 
 
