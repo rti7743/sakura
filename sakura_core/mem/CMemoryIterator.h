@@ -104,7 +104,9 @@ public:
 		}else{
 			m_nColumn_Delta = CNativeW::GetColmOfChar( m_pLine, m_nLineLen, m_nIndex );
 			if( m_nSpacing ){
-				m_nColumn_Delta += CLayoutXInt(CNativeW::GetKetaOfChar(m_pLine, m_nLineLen, m_nIndex) * m_nSpacing);
+				if( !WCODE::IsLineDelimiter(m_pLine[m_nIndex], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) ){
+					m_nColumn_Delta += CLayoutXInt(CNativeW::GetKetaOfChar(m_pLine, m_nLineLen, m_nIndex) * m_nSpacing);
+				}
 			}
 //			if( 0 == m_nColumn_Delta )				// 削除 サロゲートペア対策	2008/7/5 Uchi
 //				m_nColumn_Delta = CLayoutInt(1);

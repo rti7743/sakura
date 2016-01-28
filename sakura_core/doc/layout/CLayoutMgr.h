@@ -312,7 +312,9 @@ public:
 	CLayoutXInt GetLayoutXOfChar( const wchar_t* pData, int nDataLen, int i ) const {
 		CLayoutXInt nSpace = CLayoutXInt(0);
 		if( m_nSpacing ){
-			nSpace = CLayoutXInt(CNativeW::GetKetaOfChar(pData, nDataLen, i)) * m_nSpacing;
+			if( !WCODE::IsLineDelimiter(pData[i], GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol) ){
+				nSpace = CLayoutXInt(CNativeW::GetKetaOfChar(pData, nDataLen, i)) * m_nSpacing;
+			}
 		}
 		return CNativeW::GetColmOfChar( pData, nDataLen, i ) + nSpace;
 	}
