@@ -8,7 +8,7 @@
 
 ##バイナリの入手
 x86版 release tagのページからどうぞ  
-https://github.com/mocaskr/sakura/releases/tag/v022.20160128-r4075  
+https://github.com/mocaskr/sakura/releases/tag/v023.20160201-r4075  
 
 chm版ヘルプは release tagのページにあります  
 https://github.com/mocaskr/sakura_help/releases/tag/v012  
@@ -25,7 +25,7 @@ https://github.com/mocaskr/sakura_help
 マージ困難な場合などでtrunk2側を優先し適用済みパッチを削除する可能性もあります。
 
 ## 変更内容
-sakura 2.3.0.0 mocaskr_ver 022.20160128-r4075  
+sakura 2.3.0.0 mocaskr_ver 023.20160201-r4075  
 baseバージョンからの変更点一覧  
 New/Imp/Chg
 * ウィンドウ一覧ダイアログ
