@@ -631,10 +631,14 @@ int CDlgGrep::GetData( void )
 	/* サブフォルダからも検索する*/
 	m_bSubFolder = ::IsDlgButtonChecked( GetHwnd(), IDC_CHK_SUBFOLDER );
 
-	m_pShareData->m_Common.m_sSearch.m_bGrepSubFolder = m_bSubFolder;		/* Grep：サブフォルダも検索 */
-
 	/* この編集中のテキストから検索する */
 	m_bFromThisText = ::IsDlgButtonChecked( GetHwnd(), IDC_CHK_FROMTHISTEXT );
+
+	// 2016.03.08 Moca 「このファイルから検索」の場合はサブフォルダ共通設定を更新しない
+	if( FALSE == m_bFromThisText ){
+		m_pShareData->m_Common.m_sSearch.m_bGrepSubFolder = m_bSubFolder;	// Grep：サブフォルダも検索
+	}
+
 	/* 英大文字と英小文字を区別する */
 	m_sSearchOption.bLoHiCase = (0!=::IsDlgButtonChecked( GetHwnd(), IDC_CHK_LOHICASE ));
 
