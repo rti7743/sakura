@@ -3564,6 +3564,12 @@ BEGIN
 	F_TAB_GROUPIZE			"Create Tab group"			// LMP -- added
     F_TAB_CLOSELEFT         "Close all tabs to the Left"
     F_TAB_CLOSERIGHT        "Close all tabs to the Right"
+    F_TAB_NO_CLOSE          "Tab no close"
+    F_TAB_NO_CLOSE_ON       "Enable Tab no close"
+    F_TAB_NO_CLOSE_OFF      "Disable Tab no close"
+    F_TAB_ICON              "Tab iconic"
+    F_TAB_ICON_ON           "Enable Tab iconic"
+    F_TAB_ICON_OFF          "Disable Tab iconic"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -4001,6 +4007,7 @@ BEGIN
 	STR_FILE_LOCK_ERR			"%ts\n [%ts] could not obtain lock\nThe exclusive lock on the current file is now invalid."
 
 	STR_TITLE_GREP				"[Grep] %ls%ts"
+	STR_DLG_NO_CLOSE			"%ts\nEnable 'Tab no close'. Do you close?"
 	STR_ERR_DLGEDITDOC30		"%ts\nhas been altered. Save before closing? \n\nDue to opening as view-mode it is suggested to save under a different name.\n"
 	STR_CHANGE_CHARSET			"%ts\nis no change.\nhowever change encoding.\nSave before closing?"
 	STR_ERR_DLGEDITDOC31		"%ts\nhas been altered. Save before closing?"

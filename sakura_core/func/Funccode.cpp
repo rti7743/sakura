@@ -485,6 +485,8 @@ const EFunctionCode pnFuncList_Win[] = {	//Oct. 16, 2000 JEPRO •Ï”–¼•ÏX(List7
 	F_TAB_JOINTPREV		,	//‘O‚ÌƒOƒ‹[ƒv‚ÉˆÚ“®	// 2007.06.20 ryoji
 	F_TAB_CLOSELEFT 	,	//¶‚ð‚·‚×‚Ä•Â‚¶‚é		// 2008.11.22 syat
 	F_TAB_CLOSERIGHT	,	//‰E‚ð‚·‚×‚Ä•Â‚¶‚é		// 2008.11.22 syat
+	F_TAB_NO_CLOSE		,	//ƒ^ƒu‚ð•Â‚¶‚È‚¢
+	F_TAB_ICON			,	//ƒ^ƒu‚ÌƒAƒCƒRƒ“‰»
 	F_MAXIMIZE_V		,	//c•ûŒü‚ÉÅ‘å‰»
 	F_MAXIMIZE_H		,	//‰¡•ûŒü‚ÉÅ‘å‰» //2001.02.10 by MIK
 	F_MINIMIZE_ALL		,	//‚·‚×‚ÄÅ¬‰»	//Sept. 17, 2000 jepro à–¾‚Ìu‘S‚Äv‚ðu‚·‚×‚Äv‚É“ˆê
@@ -966,6 +968,10 @@ int FuncID_To_HelpContextID( EFunctionCode nFuncID )
 	case F_TAB_CLOSEOTHER:	return HLP000333;	//‚±‚Ìƒ^ƒuˆÈŠO‚ð•Â‚¶‚é	// 2009.07.07 syat
 	case F_TAB_CLOSELEFT:	return HLP000334;	//¶‚ð‚·‚×‚Ä•Â‚¶‚é		// 2009.07.07 syat
 	case F_TAB_CLOSERIGHT:	return HLP000335;	//‰E‚ð‚·‚×‚Ä•Â‚¶‚é		// 2009.07.07 syat
+#if 0
+	case F_TAB_NO_CLOSE:	return HLP000;	//ƒ^ƒu‚ð•Â‚¶‚È‚¢
+	case F_TAB_ICON:		return HLP000;	//ƒ^ƒu‚ÌƒAƒCƒRƒ“‰»
+#endif
 
 
 	/* Žx‰‡ */
@@ -1264,6 +1270,7 @@ bool IsFuncEnable( const CEditDoc* pcEditDoc, const DLLSHAREDATA* pShareData, EF
 	case F_TAB_MOVELEFT:	// 2007.06.20 ryoji ’Ç‰Á
 	case F_TAB_CLOSELEFT:	// 2009.12.26 syat ’Ç‰Á
 	case F_TAB_CLOSERIGHT:	// 2009.12.26 syat ’Ç‰Á
+	case F_TAB_ICON:
 		//”ñƒ^ƒuƒ‚[ƒhŽž‚ÍƒEƒBƒ“ƒhƒE‚ðŒ‹‡‚µ‚Ä•\Ž¦‚Å‚«‚È‚¢
 		return pShareData->m_Common.m_sTabBar.m_bDispTabWnd != FALSE;
 	case F_GROUPCLOSE:		// 2007.06.20 ryoji ’Ç‰Á
@@ -1345,6 +1352,10 @@ bool IsFuncChecked( const CEditDoc* pcEditDoc, const DLLSHAREDATA* pShareData, E
 	case F_OUTLINE_TOGGLE: // 20060201 aroka ƒAƒEƒgƒ‰ƒCƒ“ƒEƒBƒ“ƒhƒE
 		// ToDo:ƒuƒbƒNƒ}[ƒNƒŠƒXƒg‚ªo‚Ä‚¢‚é‚Æ‚«‚à‚Ö‚±‚ñ‚Å‚µ‚Ü‚¤B
 		return pcEditDoc->m_pcEditWnd->m_cDlgFuncList.GetHwnd() != NULL;
+	case F_TAB_NO_CLOSE:
+		return pCEditWnd->m_bNoClose;
+	case F_TAB_ICON:
+		return pCEditWnd->m_bTabIcon;
 	}
 	//End 2004.07.14 Kazika
 

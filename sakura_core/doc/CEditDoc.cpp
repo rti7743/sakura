@@ -865,6 +865,7 @@ BOOL CEditDoc::OnFileClose(bool bGrepNoConfirm)
 {
 	int			nRet;
 	int			nBool;
+	bool bNoCloseMessage = false;
 
 	//クローズ事前処理
 	ECallbackResult eBeforeCloseResult = NotifyBeforeClose();
@@ -872,8 +873,13 @@ BOOL CEditDoc::OnFileClose(bool bGrepNoConfirm)
 
 
 	// デバッグモニタモードのときは保存確認しない
-	if(CAppMode::getInstance()->IsDebugMode())return TRUE;
-
+	if( CAppMode::getInstance()->IsDebugMode() && !m_pcEditWnd->m_bNoClose ){
+		if( m_pcEditWnd->m_bNoClose ) {
+			bNoCloseMessage = true;
+		}else{
+			return TRUE;
+		}
+	}else
 	//GREPモードで、かつ、「GREPモードで保存確認するか」がOFFだったら、保存確認しない
 	// 2011.11.13 GrepモードでGrep直後は"未編集"状態になっているが保存確認が必要
 	if( CEditApp::getInstance()->m_pcGrepAgent->m_bGrepMode ){
@@ -881,12 +887,20 @@ BOOL CEditDoc::OnFileClose(bool bGrepNoConfirm)
 			return TRUE;
 		}
 		if( !GetDllShareData().m_Common.m_sSearch.m_bGrepExitConfirm ){
-			return TRUE;
+			if( m_pcEditWnd->m_bNoClose ) {
+				bNoCloseMessage = true;
+			}else{
+				return TRUE;
+			}
 		}
 	}else{
 		//テキスト,文字コードセットが変更されていない場合は保存確認しない
-		if (!m_cDocEditor.IsModified() && !m_cDocFile.IsChgCodeSet()) {
-			return TRUE;
+		if( !m_cDocEditor.IsModified() && !m_cDocFile.IsChgCodeSet() ){
+			if( m_pcEditWnd->m_bNoClose ) {
+				bNoCloseMessage = true;
+			}else{
+				return TRUE;
+			}
 		}
 	}
 
@@ -903,6 +917,9 @@ BOOL CEditDoc::OnFileClose(bool bGrepNoConfirm)
 			( nLen > cmemDes.GetStringLength() ) ? _T("...") : _T("")
 		);
 		pszTitle = szGrepTitle;
+	}else if( CAppMode::getInstance()->IsDebugMode() ){
+		_tcscpy( szGrepTitle, LS(STR_CAPTION_ACTIVE_OUTPUT));
+		pszTitle = szGrepTitle;
 	}
 	if( NULL == pszTitle ){
 		const EditNode* node = CAppNodeManager::getInstance()->GetEditNode( CEditWnd::getInstance()->GetHwnd() );
@@ -912,7 +929,23 @@ BOOL CEditDoc::OnFileClose(bool bGrepNoConfirm)
 	/* ウィンドウをアクティブにする */
 	HWND	hwndMainFrame = CEditWnd::getInstance()->GetHwnd();
 	ActivateFrameWindow( hwndMainFrame );
-	if( CAppMode::getInstance()->IsViewMode() ){	/* ビューモード */
+	if( bNoCloseMessage ){
+		ConfirmBeep();
+		nRet = ::MYMESSAGEBOX(
+			hwndMainFrame,
+			MB_YESNO | MB_ICONQUESTION | MB_TOPMOST,
+			GSTR_APPNAME,
+			LS(STR_DLG_NO_CLOSE),
+			pszTitle
+		);
+		switch( nRet ){
+		case IDYES:
+			return TRUE;
+		case IDNO:
+		default:
+			return FALSE;
+		}
+	}else if( CAppMode::getInstance()->IsViewMode() ){	/* ビューモード */
 		ConfirmBeep();
 		nRet = ::MYMESSAGEBOX(
 			hwndMainFrame,

@@ -200,7 +200,8 @@ LRESULT CTabWnd::OnTabLButtonDown( WPARAM wParam, LPARAM lParam )
 		return 1L;
 
 	// タブの閉じるボタン押下処理
-	if( m_pShareData->m_Common.m_sTabBar.m_bDispTabClose ){
+	if( m_pShareData->m_Common.m_sTabBar.m_bDispTabClose && false == m_vecNoClose[nSrcTab]
+		&& !(false != m_vecIcon[nSrcTab] && m_pShareData->m_Common.m_sTabBar.m_bDispTabClose == DISPTABCLOSE_AUTO) ){
 		// 閉じるボタンのチェック
 		RECT rcItem;
 		RECT rcClose;
@@ -242,7 +243,8 @@ LRESULT CTabWnd::OnTabLButtonUp( WPARAM wParam, LPARAM lParam )
 		RECT rcClose;
 		TabCtrl_GetItemRect(m_hwndTab, m_nTabCloseCapture, &rcItem);
 		GetTabCloseBtnRect(&rcItem, &rcClose, m_nTabCloseCapture == TabCtrl_GetCurSel(m_hwndTab));
-		if( ::PtInRect(&rcClose, hitinfo.pt) ){
+		if( ::PtInRect(&rcClose, hitinfo.pt) && false == m_vecNoClose[nDstTab]
+				&& !(false != m_vecIcon[nDstTab] && m_pShareData->m_Common.m_sTabBar.m_bDispTabClose == DISPTABCLOSE_AUTO) ){
 			ExecTabCommand( F_WINCLOSE, MAKEPOINTS(lParam) );
 		}
 		// キャプチャー解除
@@ -540,7 +542,8 @@ LRESULT CTabWnd::OnTabMButtonDown( WPARAM wParam, LPARAM lParam )
 LRESULT CTabWnd::OnTabMButtonUp( WPARAM wParam, LPARAM lParam )
 {
 	// ウィンドウを閉じるコマンドを実行する
-	return ExecTabCommand( F_WINCLOSE, MAKEPOINTS(lParam) );
+	const bool bNoCloseMode = true; // 「タブを閉じない」の場合は右クリックでのタブ閉じる抑制
+	return ExecTabCommand( F_WINCLOSE, MAKEPOINTS(lParam), bNoCloseMode );
 }
 
 /*! タブ部 WM_NOTIFY 処理
@@ -589,6 +592,8 @@ BOOL CTabWnd::ReorderTab( int nSrcTab, int nDstTab )
 	if( ! CAppNodeManager::getInstance()->ReorderTab( hwndSrc, hwndDst ) ){
 		return FALSE;
 	}
+	std::swap(m_vecNoClose[nSrcTab], m_vecNoClose[nDstTab]);
+	std::swap(m_vecIcon[nSrcTab], m_vecIcon[nDstTab]);
 	return TRUE;
 }
 
@@ -778,7 +783,7 @@ BOOL CTabWnd::SeparateGroup( HWND hwndSrc, HWND hwndDst, POINT ptDrag, POINT ptD
 /*! タブ部 コマンド実行処理
 	@date 2006.01.28 ryoji 新規作成
 */
-LRESULT CTabWnd::ExecTabCommand( int nId, POINTS pts )
+LRESULT CTabWnd::ExecTabCommand( int nId, POINTS pts, bool bNoCloseMode )
 {
 	// マウス位置(pt)のタブを取得する
 	TCHITTESTINFO	hitinfo;
@@ -787,6 +792,12 @@ LRESULT CTabWnd::ExecTabCommand( int nId, POINTS pts )
 	int nTab = TabCtrl_HitTest( m_hwndTab, (LPARAM)&hitinfo );
 	if( nTab < 0 )
 		return 1L;
+	// タブ閉じるモードのときは閉じない
+	if( bNoCloseMode ){
+		if( false != m_vecNoClose[nTab] ){
+			return 0L;
+		}
+	}
 
 	// 対象ウィンドウを取得する
 	TCITEM	tcitem;
@@ -1028,6 +1039,8 @@ void CTabWnd::Close( void )
 		}
 
 		this->DestroyWindow();
+		m_vecNoClose.clear();
+		m_vecIcon.clear();
 	}
 }
 
@@ -1435,6 +1448,11 @@ LRESULT CTabWnd::OnDrawItem( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam 
 		bool bDrawTabCloseBtn = (bDispTabClose == DISPTABCLOSE_ALLWAYS || (bDispTabClose == DISPTABCLOSE_AUTO && nTabIndex == m_nTabHover));
 		RECT rcGetItemRect;
 		TabCtrl_GetItemRect(m_hwndTab, nTabIndex, &rcGetItemRect);
+		// アイコン化自動表示または タブを閉じない場合は非表示
+		if( false != m_vecNoClose[nTabIndex] || (false != m_vecIcon[nTabIndex] && m_pShareData->m_Common.m_sTabBar.m_bDispTabClose == DISPTABCLOSE_AUTO) ){
+			bDrawTabCloseBtn = false;
+		}
+
 		if( bDrawTabCloseBtn ){
 			RECT rcClose;
 			GetTabCloseBtnRect(&rcGetItemRect, &rcClose, nTabIndex == TabCtrl_GetCurSel(m_hwndTab));
@@ -1684,7 +1702,7 @@ LRESULT CTabWnd::OnNotify( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			{
 				EditNode* pEditNode;
 				pEditNode = CAppNodeManager::getInstance()->GetEditNode( (HWND)tcitem.lParam );
-				GetTabName( pEditNode, TRUE, FALSE, m_szTextTip, _countof(m_szTextTip) );
+				GetTabName( pEditNode, TRUE, FALSE, m_szTextTip, _countof(m_szTextTip), false );
 				((NMTTDISPINFO*)pnmh)->lpszText = m_szTextTip;	// NMTTDISPINFO::szText[80]では短い
 				((NMTTDISPINFO*)pnmh)->hinst = NULL;
 			}
@@ -1736,6 +1754,8 @@ void CTabWnd::TabWindowNotify( WPARAM wParam, LPARAM lParam )
 			tcitem.iImage = GetImageIndex( NULL );
 
 			TabCtrl_InsertItem( m_hwndTab, nCount, &tcitem );
+			m_vecNoClose.push_back(0);
+			m_vecIcon.push_back(0);
 			nIndex = nCount;
 		}
 
@@ -1769,6 +1789,8 @@ void CTabWnd::TabWindowNotify( WPARAM wParam, LPARAM lParam )
 				}
 			}
 			TabCtrl_DeleteItem( m_hwndTab, nIndex );
+			m_vecNoClose.erase(m_vecNoClose.begin() + nIndex);
+			m_vecIcon.erase(m_vecIcon.begin() + nIndex);
 
 			// 2005.09.01 ryoji スクロール位置調整
 			// （右端のほうのタブアイテムを削除したとき、スクロール可能なのに右に余白ができることへの対策）
@@ -1845,6 +1867,13 @@ void CTabWnd::TabWindowNotify( WPARAM wParam, LPARAM lParam )
 				tcitem.iImage = GetImageIndex( p );
 
 				TabCtrl_SetItem( m_hwndTab, nIndex, &tcitem );
+			}
+			if( p ){
+				m_vecNoClose[nIndex] = p->m_bTabNoClose;
+				m_vecIcon[nIndex] = p->m_bTabIcon;
+			}else{
+				m_vecNoClose[nIndex] = 0; // false
+				m_vecIcon[nIndex] = 0; // false
 			}
 		}
 		else
@@ -2035,6 +2064,9 @@ void CTabWnd::Refresh( BOOL bEnsureVisible/* = TRUE*/, BOOL bRebuild/* = FALSE*/
 				TabCtrl_InsertItem( m_hwndTab, nSel + 1, &tcitem );	// 不足を追加
 		}
 
+		m_vecNoClose.resize(nCount);
+		m_vecIcon.resize(nCount);
+
 		// 作成したタブに各ウィンドウ情報を設定する
 		for( i = 0, j = 0; i < nCount; i++ )
 		{
@@ -2055,6 +2087,8 @@ void CTabWnd::Refresh( BOOL bEnsureVisible/* = TRUE*/, BOOL bRebuild/* = FALSE*/
 
 			TabCtrl_SetItem( m_hwndTab, j, &tcitem );
 			j++;
+			m_vecNoClose[i] = pEditNode[i].m_bTabNoClose;
+			m_vecIcon[i] = pEditNode[i].m_bTabIcon;
 		}
 
 		::SendMessageAny( m_hwndTab, WM_SETREDRAW, (WPARAM)TRUE, (LPARAM)0 );	// 2005.09.01 ryoji 再描画許可
@@ -2366,6 +2400,14 @@ void CTabWnd::LayoutTab( void )
 		else if( min > cx )
 			cx = min;
 		TabCtrl_SetItemSize( m_hwndTab, cx, TAB_ITEM_HEIGHT );
+	}
+	// 2016.02.24 Minも設定
+	{
+		int nTabMin = TAB_ITEM_HEIGHT;
+		if( bDispTabIcon ){
+			nTabMin = 3;
+		}
+		TabCtrl_SetMinTabWidth( m_hwndTab, nTabMin );
 	}
 
 	// タブ余白設定（「閉じるボタン」や「アイコン」の設定切替時の余白切替）
@@ -2794,7 +2836,7 @@ void CTabWnd::GetTabCloseBtnRect( const LPRECT lprcTab, LPRECT lprc, bool select
 
 	@date 2007.06.28 ryoji 新規作成
 */
-void CTabWnd::GetTabName( EditNode* pEditNode, BOOL bFull, BOOL bDupamp, LPTSTR pszName, int nLen )
+void CTabWnd::GetTabName( EditNode* pEditNode, BOOL bFull, BOOL bDupamp, LPTSTR pszName, int nLen, bool bTabCaption )
 {
 	LPTSTR pszText = new TCHAR[nLen];
 
@@ -2821,6 +2863,57 @@ void CTabWnd::GetTabName( EditNode* pEditNode, BOOL bFull, BOOL bDupamp, LPTSTR 
 		CFileNameManager::getInstance()->GetTransformFileNameFast( pEditNode->m_szFilePath, pszText, nLen, hdc, false );
 		SelectObject(hdc, hFontOld);
 		::ReleaseDC(m_hwndTab, hdc);
+	}
+	if( bTabCaption ){
+		bool bIconic = false;
+		if( pEditNode ){
+			bIconic = pEditNode->m_bTabIcon;
+		}
+		if( bIconic ){
+			if( m_pShareData->m_Common.m_sTabBar.m_bDispTabIcon ){
+				pszText[0] = _T('\0'); // アイコンだけ表示
+			}else{
+				// 2文字幅のみ表示
+				std::wstring wstr = to_wchar(pszText);
+				int chars = CNativeW::GetSizeOfChar(wstr.c_str(), wstr.length(), 0);
+				int ketas = CNativeW::GetKetaOfChar(wstr.c_str(), wstr.length(), 0);
+				if( ketas <= 1 ){
+					int chars2 = CNativeW::GetSizeOfChar(wstr.c_str(), wstr.length(), chars);
+					int ketas2 = CNativeW::GetKetaOfChar(wstr.c_str(), wstr.length(), chars);
+					if( ketas + ketas2 <= 2 ){
+						chars += chars2;
+					}
+				}
+				std::tstring tstr = to_tchar(std::wstring(wstr.c_str(), wstr.c_str() + chars).c_str());
+				::lstrcpy(pszText, tstr.c_str());
+			}
+		}else{
+			// 最小幅までスペースを詰める
+			HDC hdc = ::GetDC(m_hwndTab);
+			HFONT fontOld = (HFONT)::SelectObject(hdc, m_hFont);
+			CTextWidthCalc calc(hdc);
+			int nPadLen = lstrlen(pszText);
+			int nMinWidth = MIN_TABITEM_WIDTH;
+			if( m_pShareData->m_Common.m_sTabBar.m_bTabMultiLine ){
+				nMinWidth = MIN_TABITEM_WIDTH_MULTI;
+			}
+			std::tstring strNext = pszText;
+			strNext += _T(" ");
+			while(calc.GetTextWidth(strNext.c_str()) <= nMinWidth && nPadLen + 1 < nLen){
+				_tcscat(pszText, _T(" "));
+				strNext += _T(" ");
+			}
+#ifdef _UNICODE
+			strNext = pszText;
+			strNext += _T("\u200A"); // hair space
+			while(calc.GetTextWidth(strNext.c_str()) <= nMinWidth && nPadLen + 1 < nLen){
+				_tcscat(pszText, _T("\u200A"));
+				strNext += _T("\u200A");
+			}
+#endif
+			::SelectObject(hdc, fontOld);
+			::ReleaseDC(m_hwndTab, hdc);
+		}
 	}
 
 	if( bDupamp )
@@ -2900,7 +2993,7 @@ LRESULT CTabWnd::TabListMenu( POINT pt, BOOL bSel/* = TRUE*/, BOOL bFull/* = FAL
 					continue;
 				if( pEditNode[i].m_bClosing )	// このあとすぐに閉じるウィンドウなのでタブ表示しない
 					continue;
-				GetTabName( &pEditNode[i], bFull, TRUE, pData[nSelfTab].szText, _countof(pData[0].szText) );
+				GetTabName( &pEditNode[i], bFull, TRUE, pData[nSelfTab].szText, _countof(pData[0].szText), false );
 				pData[nSelfTab].hwnd = pEditNode[i].m_hWnd;
 				pData[nSelfTab].iItem = i;
 				pData[nSelfTab].iImage = GetImageIndex( &pEditNode[i] );
@@ -2919,7 +3012,7 @@ LRESULT CTabWnd::TabListMenu( POINT pt, BOOL bSel/* = TRUE*/, BOOL bFull/* = FAL
 				continue;
 			if( pEditNode[i].m_bClosing )	// このあとすぐに閉じるウィンドウなのでタブ表示しない
 				continue;
-			GetTabName( &pEditNode[i], bFull, TRUE, pData[nTab].szText, _countof(pData[0].szText) );
+			GetTabName( &pEditNode[i], bFull, TRUE, pData[nTab].szText, _countof(pData[0].szText), false );
 			pData[nTab].hwnd = pEditNode[i].m_hWnd;
 			pData[nTab].iItem = i;
 			pData[nTab].iImage = GetImageIndex( &pEditNode[i] );

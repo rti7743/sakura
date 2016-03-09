@@ -405,6 +405,8 @@ public:
 	void Command_TAB_CLOSEOTHER( void );/* このタブ以外を閉じる */	// 2008.11.22 syat
 	void Command_TAB_CLOSELEFT( void );	/* 左をすべて閉じる */		// 2008.11.22 syat
 	void Command_TAB_CLOSERIGHT( void );/* 右をすべて閉じる */		// 2008.11.22 syat
+	void Command_TAB_NO_CLOSE( int nOption );	/* タブを閉じない */
+	void Command_TAB_ICON( int nOption );	/*! タブをアイコン化 */
 
 
 	void Command_ToggleKeySearch( int );	/* キャレット位置の単語を辞書検索する機能ON-OFF */	// 2006.03.24 fon

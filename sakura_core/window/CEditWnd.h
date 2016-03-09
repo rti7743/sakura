@@ -445,6 +445,9 @@ public:
 	CMacro				m_cMacroResultParam;
 	// コマンド戻り値
 	CMacroParam			m_cMacroResultVal;
+
+	bool	m_bNoClose;
+	bool	m_bTabIcon;
 };
 
 

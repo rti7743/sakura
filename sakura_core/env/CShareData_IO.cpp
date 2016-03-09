@@ -1998,6 +1998,8 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 			{1, F_MODIFYLINE_PREV_SEL, F_GOFILEEND_SEL, L'\0', true, false}, 	// (選択)前の変更行へ
 			{1, F_MODIFYLINE_NEXT_SEL, F_MODIFYLINE_PREV_SEL, L'\0', false, false}, 	// (選択)次の変更行へ
 			{2, F_DLGWINLIST, F_WIN_OUTPUT, L'D', false, false}, 	// ウインドウ一覧表示
+			{2, F_TAB_NO_CLOSE, F_TAB_JOINTPREV, L'N', false, false}, 	// タブを閉じない
+			{2, F_TAB_ICON, F_TAB_NO_CLOSE, L'I', false, false}, 	// タブをアイコン化
 		};
 		for( int i = 0; i < _countof(addInfos); i++ ){
 			SMainMenuAddItemInfo& item = addInfos[i];

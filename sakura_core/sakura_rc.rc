@@ -3558,6 +3558,12 @@ BEGIN
 	F_TAB_GROUPIZE			"グループ化"				// LMP -- added
     F_TAB_CLOSELEFT         "左をすべて閉じる"
     F_TAB_CLOSERIGHT        "右をすべて閉じる"
+    F_TAB_NO_CLOSE          "タブを閉じない"
+    F_TAB_NO_CLOSE_ON       "タブを閉じないの有効化"
+    F_TAB_NO_CLOSE_OFF      "タブを閉じないの解除"
+    F_TAB_ICON              "タブのアイコン化"
+    F_TAB_ICON_ON           "タブのアイコン化をする"
+    F_TAB_ICON_OFF          "タブのアイコン化の解除"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -3995,6 +4001,7 @@ BEGIN
 	STR_FILE_LOCK_ERR			"%ts\nを%tsでロックできませんでした。\n現在このファイルに対する排他制御は無効となります。"
 
 	STR_TITLE_GREP				"【Grep】%ls%ts"
+	STR_DLG_NO_CLOSE			"%ts\nは閉じないタブに指定されています。閉じますか？"
 	STR_ERR_DLGEDITDOC30		"%ts\nは変更されています。 閉じる前に保存しますか？\n\nビューモードで開いているので、名前を付けて保存すればいいと思います。\n"
 	STR_CHANGE_CHARSET			"%ts\nはテキストの変更は有りませんが、\n文字コードセットが変更されています。\n閉じる前に保存しますか？"
 	STR_ERR_DLGEDITDOC31		"%ts\nは変更されています。 閉じる前に保存しますか？"

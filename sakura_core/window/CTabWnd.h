@@ -94,7 +94,7 @@ protected:
 	void TabWnd_ActivateFrameWindow( HWND hwnd, bool bForce = true );	//2004.08.27 Kazika 引数追加
 	HWND GetNextGroupWnd( void );	/* 次のグループの先頭ウィンドウを探す */	// 2007.06.20 ryoji
 	HWND GetPrevGroupWnd( void );	/* 前のグループの先頭ウィンドウを探す */	// 2007.06.20 ryoji
-	void GetTabName( EditNode* pEditNode, BOOL bFull, BOOL bDupamp, LPTSTR pszName, int nLen );	/* タブ名取得処理 */	// 2007.06.28 ryoji 新規作成
+	void GetTabName( EditNode* pEditNode, BOOL bFull, BOOL bDupamp, LPTSTR pszName, int nLen, bool bTabCaption = true );	/* タブ名取得処理 */	// 2007.06.28 ryoji 新規作成
 
 	/* 仮想関数 */
 	virtual void AfterCreateWindow( void ){}	/*!< ウィンドウ作成後の処理 */	// 2007.03.13 ryoji 可視化しない
@@ -132,7 +132,7 @@ protected:
 	BOOL ReorderTab( int nSrcTab, int nDstTab );	/*!< タブ順序変更処理 */
 	void BroadcastRefreshToGroup( void );
 	BOOL SeparateGroup( HWND hwndSrc, HWND hwndDst, POINT ptDrag, POINT ptDrop );	/*!< タブ分離処理 */	// 2007.06.20 ryoji
-	LRESULT ExecTabCommand( int nId, POINTS pts );	/*!< タブ部 コマンド実行処理 */
+	LRESULT ExecTabCommand( int nId, POINTS pts, bool bNoCloseMode=false );	/*!< タブ部 コマンド実行処理 */
 	void LayoutTab( void );							/*!< タブのレイアウト調整処理 */
 
 	HIMAGELIST InitImageList( void );				/*!< イメージリストの初期化処理 */
@@ -208,7 +208,8 @@ private:
 
 	HWND		m_hwndSizeBox;
 	bool		m_bSizeBox;
-
+	std::vector<int> m_vecNoClose;		//!< タブを閉じない
+	std::vector<int> m_vecIcon;			//!< タブのアイコン化
 private:
 	DISALLOW_COPY_AND_ASSIGN(CTabWnd);
 };

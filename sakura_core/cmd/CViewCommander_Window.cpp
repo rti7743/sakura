@@ -591,6 +591,44 @@ void CViewCommander::Command_TAB_CLOSERIGHT( void )
 
 
 
+/*! タブを閉じない */
+void CViewCommander::Command_TAB_NO_CLOSE( int nOption )
+{
+	bool bNoClose = false;
+	int nOption01 = nOption & 0x3;
+	if( nOption01 == 1 ){
+		bNoClose = true;
+	}else if( nOption01 == 2 ){
+		bNoClose = false;
+	}else{
+		// 0,3
+		bNoClose = !(GetEditWindow()->m_bNoClose);
+	}
+	GetEditWindow()->m_bNoClose = bNoClose;
+	GetEditWindow()->UpdateCaption();
+}
+
+
+
+/*! タブをアイコン化 */
+void CViewCommander::Command_TAB_ICON( int nOption )
+{
+	bool bIconic = false;
+	int nOption01 = nOption & 0x3;
+	if( nOption01 == 1 ){
+		bIconic = true;
+	}else if( nOption01 == 2 ){
+		bIconic = false;
+	}else{
+		// 0,3
+		bIconic = !(GetEditWindow()->m_bTabIcon);
+	}
+	GetEditWindow()->m_bTabIcon = bIconic;
+	GetEditWindow()->UpdateCaption();
+}
+
+
+
 //縦方向に最大化
 void CViewCommander::Command_MAXIMIZE_V( void )
 {

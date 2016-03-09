@@ -121,6 +121,8 @@ static const SFuncMenuName	sFuncMenuName[] = {
 	{F_SHOWSTATUSBAR,		{F_SHOWSTATUSBAR_ON,			F_SHOWSTATUSBAR_OFF}},
 	{F_SHOWMINIMAP,			{F_SHOWMINIMAP_ON,				F_SHOWMINIMAP_OFF}},
 	{F_TOGGLE_KEY_SEARCH,	{F_TOGGLE_KEY_SEARCH_ON,		F_TOGGLE_KEY_SEARCH_OFF}},
+	{F_TAB_NO_CLOSE,		{F_TAB_NO_CLOSE_ON,				F_TAB_NO_CLOSE_OFF}},
+	{F_TAB_ICON,			{F_TAB_ICON_ON,					F_TAB_ICON_OFF}},
 };
 
 static void ShowCodeBox( HWND hWnd, CEditDoc* pcEditDoc )
@@ -235,6 +237,8 @@ CEditWnd::CEditWnd()
 , m_bSaveResultParamParent( false )
 , m_cMacroResultParam( F_0 )
 , m_cMacroResultVal()
+, m_bNoClose(false)
+, m_bTabIcon(false)
 {
 	g_pcEditWnd=this;
 }
@@ -2622,8 +2626,10 @@ void CEditWnd::InitMenu_Function(HMENU hMenu, EFunctionCode eFunc, const wchar_t
 				!m_pShareData->m_Common.m_sWindow.m_bMenuIcon | !GetMiniMap().GetHwnd() );
 			break;
 		case F_TOGGLE_KEY_SEARCH:
+		case F_TAB_NO_CLOSE:
+		case F_TAB_ICON:
 			SetMenuFuncSel( hMenu, eFunc, pszKey, 
-				!m_pShareData->m_Common.m_sWindow.m_bMenuIcon | !IsFuncChecked( GetDocument(), m_pShareData, F_TOGGLE_KEY_SEARCH ) );
+				!m_pShareData->m_Common.m_sWindow.m_bMenuIcon | !IsFuncChecked( GetDocument(), m_pShareData, eFunc ) );
 			break;
 		case F_WRAPWINDOWWIDTH:
 			{
@@ -4204,6 +4210,8 @@ void CEditWnd::ChangeFileNameNotify( const TCHAR* pszTabCaption, const TCHAR* _p
 			p->m_szFilePath[ size ] = _T('\0');
 
 			p->m_bIsGrep = bIsGrep;
+			p->m_bTabNoClose = m_bNoClose;
+			p->m_bTabIcon = m_bTabIcon;
 		}
 	}
 	cRecentEditNode.Terminate();

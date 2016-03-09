@@ -747,6 +747,8 @@ bool CMacro::HandleCommand(
 	case F_1PageDown:
 	case F_1PageUp_Sel:
 	case F_1PageDown_Sel:
+	case F_TAB_NO_CLOSE:
+	case F_TAB_ICON:
 		pcEditView->GetCommander().HandleCommand( Index, true, (Argument[0] != NULL ? _wtoi(Argument[0]) : 0 ), 0, 0, 0 );
 		break;
 	case F_UP_BOX:

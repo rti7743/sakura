@@ -507,8 +507,8 @@ CMenuDrawer::CMenuDrawer()
 /* 347 */		F_EXTHELP1		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//外部ヘルプ１
 /* 348 */		F_EXTHTMLHELP	/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//外部HTMLヘルプ
 /* 349 */		F_ABOUT			/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//バージョン情報	//Dec. 24, 2000 JEPRO 追加
-/* 350 */		F_DISABLE		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 351 */		F_DISABLE		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
+/* 350 */		F_TAB_NO_CLOSE	/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//タブを閉じない
+/* 351 */		F_TAB_ICON		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//タブのアイコン化
 /* 352 */		F_DISABLE		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
 
 //2002.01.17 hor ｢その他｣のエリアを外部マクロ用に割当て
