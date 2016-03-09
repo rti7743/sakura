@@ -186,8 +186,8 @@ const EFunctionCode pnFuncList_Move[] = {	//Oct. 16, 2000 JEPRO 変数名変更(List1
 	F_JUMPHIST_SET		,	//現在位置を移動履歴に登録
 	F_WndScrollDown		,	//テキストを１行下へスクロール	// 2001/06/20 asa-o
 	F_WndScrollUp		,	//テキストを１行上へスクロール	// 2001/06/20 asa-o
-	F_GONEXTPARAGRAPH	,	//次の段落へ移動
 	F_GOPREVPARAGRAPH	,	//前の段落へ移動
+	F_GONEXTPARAGRAPH	,	//次の段落へ移動
 	F_AUTOSCROLL		,	//オートスクロール
 	F_WHEELUP			,	//ホイールアップ
 	F_WHEELDOWN			,	//ホイールダウン
@@ -197,8 +197,8 @@ const EFunctionCode pnFuncList_Move[] = {	//Oct. 16, 2000 JEPRO 変数名変更(List1
 	F_WHEELPAGEDOWN		,	//ホイールページダウン
 	F_WHEELPAGELEFT		,	//ホイールページ左
 	F_WHEELPAGERIGHT	,	//ホイールページ右
-	F_MODIFYLINE_NEXT	,	//次の変更行へ移動
 	F_MODIFYLINE_PREV	,	//前の変更行へ移動
+	F_MODIFYLINE_NEXT	,	//次の変更行へ移動
 };
 const int nFincList_Move_Num = _countof( pnFuncList_Move );	//Oct. 16, 2000 JEPRO 変数名変更(List1→List_Move)
 
@@ -228,10 +228,10 @@ const EFunctionCode pnFuncList_Select[] = {
 	F_1PageDown_Sel			,	//(範囲選択)１ページダウン	//Oct. 10, 2000 JEPRO 従来のページダウンを半ページダウンと名称変更し１ページダウンを追加
 	F_GOFILETOP_SEL			,	//(範囲選択)ファイルの先頭に移動
 	F_GOFILEEND_SEL			,	//(範囲選択)ファイルの最後に移動
-	F_GONEXTPARAGRAPH_SEL	,	//(範囲選択)次の段落へ移動
 	F_GOPREVPARAGRAPH_SEL	,	//(範囲選択)前の段落へ移動
-	F_MODIFYLINE_NEXT_SEL	,	//(範囲選択)次の変更行へ移動
+	F_GONEXTPARAGRAPH_SEL	,	//(範囲選択)次の段落へ移動
 	F_MODIFYLINE_PREV_SEL	,	//(範囲選択)前の変更行へ移動
+	F_MODIFYLINE_NEXT_SEL	,	//(範囲選択)次の変更行へ移動
 };
 const int nFincList_Select_Num = _countof( pnFuncList_Select );
 

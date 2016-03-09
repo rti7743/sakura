@@ -1991,12 +1991,12 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 			{1, F_SHOWMINIMAP, F_SHOWTAB, L'N', false, false}, 	// ミニマップ表示(Sub)
 			{1, F_SHOWMINIMAP, F_SHOWFUNCKEY, L'N', false, false}, 	// ミニマップ表示(Sub)
 			{1, F_SHOWMINIMAP, F_SHOWTOOLBAR, L'N', false, false}, 	// ミニマップ表示(Sub)
-			{1, F_FUNCLIST_NEXT, F_JUMPHIST_SET, L'\0', true, false}, 	// 次の関数リストマーク(セパレータ追加)
-			{1, F_FUNCLIST_PREV, F_FUNCLIST_NEXT, L'\0', false, false}, 	// 前の関数リストマーク
-			{1, F_MODIFYLINE_NEXT, F_FUNCLIST_PREV, L'\0', false, false}, 	// 次の変更行へ
-			{1, F_MODIFYLINE_PREV, F_MODIFYLINE_NEXT, L'\0', false, false}, 	// 前の変更行へ
-			{1, F_MODIFYLINE_NEXT_SEL, F_GOFILEEND_SEL, L'\0', true, false}, 	// (選択)次の変更行へ
-			{1, F_MODIFYLINE_PREV_SEL, F_MODIFYLINE_NEXT_SEL, L'\0', false, false}, 	// (選択)前の変更行へ
+			{1, F_FUNCLIST_PREV, F_JUMPHIST_SET, L'\0', true, false}, 	// 前の関数リストマーク(セパレータ追加)
+			{1, F_FUNCLIST_NEXT, F_FUNCLIST_PREV, L'\0', false, false}, 	// 次の関数リストマーク
+			{1, F_MODIFYLINE_PREV, F_FUNCLIST_NEXT, L'\0', false, false}, 	// 前の変更行へ
+			{1, F_MODIFYLINE_NEXT, F_MODIFYLINE_PREV, L'\0', false, false}, 	// 次の変更行へ
+			{1, F_MODIFYLINE_PREV_SEL, F_GOFILEEND_SEL, L'\0', true, false}, 	// (選択)前の変更行へ
+			{1, F_MODIFYLINE_NEXT_SEL, F_MODIFYLINE_PREV_SEL, L'\0', false, false}, 	// (選択)次の変更行へ
 			{2, F_DLGWINLIST, F_WIN_OUTPUT, L'D', false, false}, 	// ウインドウ一覧表示
 		};
 		for( int i = 0; i < _countof(addInfos); i++ ){
