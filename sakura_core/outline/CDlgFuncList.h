@@ -192,6 +192,8 @@ private:
 	// 0 デフォルト(ノードに関連づけれられた値順)
 	// 1 アルファベット順
 	int m_nSortType;
+	bool m_bDummyLParamMode;
+	std::vector<int> m_vecDummylParams;
 
 	// 選択中の関数情報
 	CFuncInfo* m_cFuncInfo;
