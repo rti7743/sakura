@@ -69,6 +69,7 @@ void CType_Vb::InitTypeConfigImp(STypeConfig* pType)
 	Jul. 21, 2003 genta キーワードの大文字・小文字を同一視するようにした
 	Aug  7, 2003 little YOSHI  ダブルクォーテーションで囲まれたテキストを無視するようにした
 	                           関数名などをVBの名前付け規則より255文字に拡張
+	2016.02.29 Moca            obj.Type等の対応
 */
 void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 {
@@ -89,6 +90,7 @@ void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 	bool		bProcedure;		// プロシージャフラグ（プロシージャ内ではTrue）
 	bool		bDQuote;		// ダブルクォーテーションフラグ（ダブルクォーテーションがきたらTrue）
 	bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
+	bool		bMethodName = false;	// obj.Type かどうかの判定
 
 
 	// 調べるファイルがクラスモジュールのときはType、Constの挙動が異なるのでフラグを立てる
@@ -123,6 +125,7 @@ void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 			}
 			/* 単語読み込み中 */
 			if( 1 == nMode ){
+				bool bNextMode0 = false;
 				if( (1 == nCharChars && (
 					L'_' == pLine[i] ||
 					L'~' == pLine[i] ||
@@ -145,8 +148,13 @@ void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 				} else if (1 == nCharChars && '"' == pLine[i]) {
 					// Aug 7, 2003 little YOSHI  追加
 					// テキストの中は無視します。
+					bMethodName = false;
 					nMode	= 3;
+				} else if(bMethodName) {
+					// 2016.02.29 object.Typeなどのメソッド名の場合はキーワード判定をしない
+					bNextMode0 = true;
 				}else{
+					bNextMode0 = true;
 					if ( 0 == nParseCnt && 0 == wcsicmp(szWord, L"Public") ) {
 						// パブリック宣言を見つけた！
 						nFuncId |= 0x10;
@@ -275,13 +283,17 @@ void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 						nFuncId	= 0;	// Jul 10, 2003  little YOSHI  論理和を使用するため、必ず初期化
 					}
 
+				}
+				if( bNextMode0 ){
 					wcscpy( szWordPrev, szWord );
 					nWordIdx = 0;
 					szWord[0] = L'\0';
+					bMethodName = false;
 					nMode = 0;
 					i--;
 					continue;
 				}
+				// i + ... を実行
 			}
 			/* 記号列読み込み中 */
 			else if( 2 == nMode ){
@@ -316,12 +328,18 @@ void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 				} else if (1 == nCharChars && L'"' == pLine[i]) {
 					// Aug 7, 2003 little YOSHI  追加
 					// テキストの中は無視します。
+					bMethodName = false;
 					nMode	= 3;
 				}else{
 					if( nWordIdx >= nMaxWordLeng ){
 						nMode = 999;
 						continue;
 					}else{
+						if( L'.' == pLine[i] ){
+							bMethodName = true;
+						}else{
+							bMethodName = false;
+						}
 						wmemcpy( &szWord[nWordIdx], &pLine[i], nCharChars );
 						szWord[nWordIdx + nCharChars] = L'\0';
 						nWordIdx += (nCharChars);
@@ -353,6 +371,7 @@ void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 				} else if (1 == nCharChars && L'"' == pLine[i]) {
 					// Aug 7, 2003 little YOSHI  追加
 					// テキストの中は無視します。
+					bMethodName = false;
 					nMode	= 3;
 				}else{
 					if( (1 == nCharChars && (
@@ -374,6 +393,11 @@ void CDocOutline::MakeFuncList_VisualBasic( CFuncInfoArr* pcFuncInfoArr )
 						nMode = 1;
 					}else{
 						nWordIdx = 0;
+						if( L'.' == pLine[i] ){
+							bMethodName = true;
+						}else{
+							bMethodName = false;
+						}
 						auto_memcpy( &szWord[nWordIdx], &pLine[i], nCharChars );
 						szWord[nWordIdx + nCharChars] = L'\0';
 						nWordIdx += (nCharChars);
