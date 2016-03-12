@@ -165,10 +165,11 @@ protected:
 	void CreateSizeBox( void );
 	BOOL OnCommand( WPARAM, LPARAM );
 
-	HWND GetItemHwnd(int nID){ return ::GetDlgItem( GetHwnd(), nID ); }
-
 	// コントロールに画面のフォントを設定	2012/11/27 Uchi
 	HFONT SetMainFont( HWND hTarget );
+
+public:
+	HWND GetItemHwnd(int nID){ return ::GetDlgItem( GetHwnd(), nID ); }
 };
 
 

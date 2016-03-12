@@ -75,6 +75,9 @@ public:
 	//”äŠr‰‰ŽZŽq
 	bool operator == (const SUPER& rhs) const{ return x==rhs.x && y==rhs.y; }
 	bool operator != (const SUPER& rhs) const{ return !this->operator==(rhs); }
+	bool operator < (const SUPER& rhs) const{ return (y < rhs.y) || (y == rhs.y && x < rhs.x); }
+	bool operator <= (const SUPER& rhs) const{ return (*this < rhs) || *this == rhs; }
+	bool operator > (const SUPER& rhs) const{ return rhs < *this; }
 
 	//Ý’è
 	void Clear(){ x=SuperIntType(0); y=SuperIntType(0); }

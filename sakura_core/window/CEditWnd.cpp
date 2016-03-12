@@ -2571,6 +2571,13 @@ void CEditWnd::InitMenu_Function(HMENU hMenu, EFunctionCode eFunc, const wchar_t
 			m_cMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING | MF_GRAYED,
 				eFunc, psName, pszKey );
 		}
+	}
+	// カラーマーカー
+	else if (F_SETCOLORMARKER1 <= eFunc && eFunc <= F_SETCOLORMARKER_LAST) {
+		WCHAR buf[256];
+		GetDocument()->m_cFuncLookup.Funccode2Name(eFunc, buf, _countof(buf));
+		m_cMenuDrawer.MyAppendMenu( hMenu, MF_BYPOSITION | MF_STRING,
+			eFunc, buf, pszKey);
 	}else{
 		switch (eFunc) {
 		case F_RECKEYMACRO:

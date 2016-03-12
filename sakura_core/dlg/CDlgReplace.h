@@ -76,6 +76,7 @@ protected:
 
 	void SetData( void );		/* ダイアログデータの設定 */
 	void SetCombosList( void );	/* 検索文字列/置換後文字列リストの設定 */
+public:
 	int GetData( void );		/* ダイアログデータの取得 */
 };
 

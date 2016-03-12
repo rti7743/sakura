@@ -18,6 +18,7 @@
 */
 #include "StdAfx.h"
 #include "dlg/CDlgReplace.h"
+#include "dlg/CDlgFind.h"
 #include "view/CEditView.h"
 #include "util/shell.h"
 #include "util/window.h"
@@ -610,6 +611,14 @@ BOOL CDlgReplace::OnBnClicked( int wID )
 			return TRUE;
 		}else if(nRet == 0){
 			OkMessage( GetHwnd(), LS(STR_DLGREPLC_REPSTR) );
+		}
+		return TRUE;
+	case IDC_BUTTON_MARKER:
+		nRet = GetData();
+		if( 0 < nRet ){
+			CDlgFind::SetColorMarkerSearch(this, pcEditView, m_pShareData->m_Common.m_sSearch.m_bAutoCloseDlgReplace);
+		}else if(nRet == 0){
+			OkMessage( GetHwnd(), LS(STR_DLGREPLC_STR) );
 		}
 		return TRUE;
 //	case IDCANCEL:

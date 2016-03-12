@@ -241,6 +241,28 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 		}
 		break;
 
+	case F_SETCOLORMARKER_STR:
+	case F_SETCOLORMARKER_DIRECT:
+	case F_DELCOLORMARKER_STR:
+	case F_COLORMARKER_LOAD:
+	case F_COLORMARKER_SAVE:
+		{
+			if( lParam != NULL ){
+				AddStringParam( (const wchar_t*)lParam );	//	lParamを追加。
+			}else{
+				AddStringParam( L"" );
+			}
+		}
+		break;
+
+	case F_COLORMARKER_SETPRESET:
+		{
+			AddIntParam( lParam );
+			AddStringParam( (const wchar_t*)lParams[1] );
+			AddStringParam( (const wchar_t*)lParams[2] );
+		}
+		break;
+
 	case F_JUMP:	//	指定行へジャンプ（ただしPL/SQLコンパイルエラー行へのジャンプは未対応）
 		{
 			AddIntParam( pcEditView->m_pcEditWnd->m_cDlgJump.m_nLineNum );
@@ -254,6 +276,8 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 	case F_BOOKMARK_PATTERN:	//2002.02.08 hor
 	case F_SEARCH_NEXT:
 	case F_SEARCH_PREV:
+	case F_SETCOLORMARKER_SEARCH_SET:
+	case F_SETCOLORMARKER_SEARCH_STR:
 		{
 			AddStringParam( pcEditView->m_strCurSearchKey.c_str() );	//	lParamを追加。
 
@@ -265,6 +289,11 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 			lFlag |= GetDllShareData().m_Common.m_sSearch.m_bAutoCloseDlgFind				? 0x10 : 0x00;
 			lFlag |= GetDllShareData().m_Common.m_sSearch.m_bSearchAll					? 0x20 : 0x00;
 			AddIntParam( lFlag );
+			if( F_SETCOLORMARKER_SEARCH_SET == m_nFuncID ){
+				AddIntParam( lParam );
+			}else if( F_SETCOLORMARKER_SEARCH_STR == m_nFuncID ){
+				AddStringParam( (const wchar_t*)lParam );
+			}
 		}
 		break;
 	case F_REPLACE:
@@ -296,7 +325,12 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 	/*	数値パラメータを追加 */
 	case F_WCHAR:
 	case F_CTRL_CODE:
+	case F_SETCOLORMARKER:
 		AddIntParam( lParam ); //※文字コードが渡される
+		break;
+	case F_DELCOLORMARKER_EXTVALUE:
+		AddIntParam( lParam );
+		AddIntParam( lParams[1] );
 		break;
 	case F_CHGMOD_EOL:
 		{
@@ -368,7 +402,7 @@ void CMacro::AddLParam( const LPARAM* lParams, const CEditView* pcEditView )
 	}
 }
 
-void CMacroParam::SetStringParam( const WCHAR* szParam, int nLength )
+void CMacroParam::SetStringParam( const WCHAR* szParam, int nLength, EMacroParamType eType )
 {
 	Clear();
 	int nLen;
@@ -381,16 +415,33 @@ void CMacroParam::SetStringParam( const WCHAR* szParam, int nLength )
 	auto_memcpy( m_pData, szParam, nLen );
 	m_pData[nLen] = LTEXT('\0');
 	m_nDataLen = nLen;
-	m_eType = EMacroParamTypeStr;
+	m_eType = eType;
 }
 
 void CMacroParam::SetIntParam( const int nParam )
 {
-	Clear();
-	m_pData = new WCHAR[16];	//	数値格納（最大16桁）用
-	_itow(nParam, m_pData, 10);
-	m_nDataLen = auto_strlen(m_pData);
-	m_eType = EMacroParamTypeInt;
+	WCHAR szBuf[16]; // 数値格納（最大16桁）用
+	_itow(nParam, szBuf, 10);
+	SetStringParam(szBuf, -1, EMacroParamTypeInt);
+}
+
+void CMacroParam::SetUIntParam( const UINT nParam )
+{
+	WCHAR szBuf[16];
+	auto_sprintf(szBuf, L"%u", nParam);
+	SetStringParam(szBuf, -1, EMacroParamTypeUInt);
+}
+
+void CMacro::AddMacroParamList( CMacroParam* param ){
+	//	リストの整合性を保つ
+	if (m_pParamTop){
+		m_pParamBot->m_pNext = param; 
+		m_pParamBot = param;
+	}
+	else {
+		m_pParamTop = param;
+		m_pParamBot = m_pParamTop;
+	}
 }
 
 /*	引数に文字列を追加。
@@ -400,16 +451,7 @@ void CMacro::AddStringParam( const WCHAR* szParam, int nLength )
 	CMacroParam* param = new CMacroParam();
 
 	param->SetStringParam( szParam, nLength );
-
-	//	リストの整合性を保つ
-	if (m_pParamTop){
-		m_pParamBot->m_pNext = param; 
-		m_pParamBot = param;
-	}
-	else {
-		m_pParamTop = param;
-		m_pParamBot = m_pParamTop;
-	}
+	AddMacroParamList( param );
 }
 
 /*	引数に数値を追加。
@@ -419,16 +461,15 @@ void CMacro::AddIntParam( const int nParam )
 	CMacroParam* param = new CMacroParam();
 
 	param->SetIntParam( nParam );
+	AddMacroParamList( param );
+}
 
-	//	リストの整合性を保つ
-	if (m_pParamTop){
-		m_pParamBot->m_pNext = param; 
-		m_pParamBot = param;
-	}
-	else {
-		m_pParamTop = param;
-		m_pParamBot = m_pParamTop;
-	}
+void CMacro::AddUIntParam( const UINT nParam )
+{
+	CMacroParam* param = new CMacroParam();
+
+	param->SetUIntParam( nParam );
+	AddMacroParamList( param );
 }
 
 void CMacro::AddParamCopyFromCMacro( const CMacro* pMacro )
@@ -537,6 +578,11 @@ static inline int wtoi_def( const WCHAR* arg, int def_val )
 	return (arg == NULL ? def_val: _wtoi(arg));
 }
 
+static inline UINT wtoui_def( const WCHAR* arg, UINT def_val )
+{
+	return (arg == NULL ? def_val: (UINT)wcstoul(arg, NULL, 0));
+}
+
 static inline const WCHAR* wtow_def( const WCHAR* arg, const WCHAR* def_val )
 {
 	return (arg == NULL ? def_val: arg);
@@ -633,6 +679,7 @@ void CMacro::Save( HINSTANCE hInstance, CTextOutputStream& out ) const
 			}
 			switch( pParam->m_eType ){
 			case EMacroParamTypeInt:
+			case EMacroParamTypeUInt:
 				out.WriteString( pParam->m_pData );
 				break;
 			case EMacroParamTypeStr:
@@ -749,8 +796,8 @@ bool CMacro::HandleCommand(
 	case F_1PageDown_Sel:
 	case F_TAB_NO_CLOSE:
 	case F_TAB_ICON:
-		pcEditView->GetCommander().HandleCommand( Index, true, (Argument[0] != NULL ? _wtoi(Argument[0]) : 0 ), 0, 0, 0 );
-		break;
+	case F_SETCOLORMARKER:
+		return FALSE != pcEditView->GetCommander().HandleCommand( Index, true, (Argument[0] != NULL ? _wtoi(Argument[0]) : 0 ), 0, 0, 0 );
 	case F_UP_BOX:
 	case F_DOWN_BOX:
 	case F_LEFT_BOX:
@@ -811,8 +858,16 @@ bool CMacro::HandleCommand(
 			}
 		}
 		break;
-	case F_SET_QUOTESTRING:	// Jan. 29, 2005 genta 追加 テキスト引数1つを取るマクロはここに統合していこう．
+	case F_DELCOLORMARKER_EXTVALUE:
 		{
+			UINT nExtVal = wtoui_def(Argument[0], 0);
+			UINT nExtVal2 = wtoui_def(Argument[1], nExtVal);
+			return FALSE != pcEditView->GetCommander().HandleCommand(Index, true, nExtVal, nExtVal2, 0, 0);
+		}
+	case F_SET_QUOTESTRING:	// Jan. 29, 2005 genta 追加 テキスト引数1つを取るマクロはここに統合していこう．
+	case F_SETCOLORMARKER_STR:
+	case F_SETCOLORMARKER_DIRECT:
+	case F_DELCOLORMARKER_STR:
 		if( Argument[0] == NULL ){
 			::MYMESSAGEBOX(
 				NULL,
@@ -822,11 +877,16 @@ bool CMacro::HandleCommand(
 			);
 			return false;
 		}
+	case F_COLORMARKER_LOAD:
+	case F_COLORMARKER_SAVE:
 		{
-			pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[0], 0, 0, 0 );	//	標準
+			return FALSE != pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[0], 0, 0, 0 );	//	標準
 		}
+	case F_COLORMARKER_SETPRESET:
+		{
+			return FALSE != pcEditView->GetCommander().HandleCommand( Index, true,
+				wtoi_def(Argument[0], 0), (LPARAM)Argument[1], (LPARAM)Argument[2], 0 );
 		}
-		break;
 	case F_INSTEXT_W:		//	テキスト挿入
 	case F_ADDTAIL_W:		//	この操作はキーボード操作では存在しないので保存することができない？
 	case F_INSBOXTEXT:
@@ -897,6 +957,20 @@ bool CMacro::HandleCommand(
 			return false;
 		}
 		/* NO BREAK */
+	case F_SETCOLORMARKER_SEARCH_SET:
+	case F_SETCOLORMARKER_SEARCH_STR:
+		if( F_SETCOLORMARKER_SEARCH_STR == LOWORD(Index) ){
+			if( wtow_def(Argument[2], L"")[0] == L'\0' ){
+				::MYMESSAGEBOX(
+					NULL,
+					MB_OK | MB_ICONSTOP | MB_TOPMOST,
+					EXEC_ERROR_TITLE,
+					LS(STR_ERR_DLGMACRO07)
+				);
+				return false;
+			}
+		}
+		/* NO BREAK */
 	case F_SEARCH_NEXT:
 	case F_SEARCH_PREV:
 		//	Argument[0] を検索。(省略時、元の検索文字列・オプションを使う)
@@ -956,9 +1030,16 @@ bool CMacro::HandleCommand(
 			GetDllShareData().m_Common.m_sSearch.m_bNOTIFYNOTFOUND	= lFlag & 0x08 ? 1 : 0;
 			GetDllShareData().m_Common.m_sSearch.m_bAutoCloseDlgFind	= lFlag & 0x10 ? 1 : 0;
 			GetDllShareData().m_Common.m_sSearch.m_bSearchAll			= lFlag & 0x20 ? 1 : 0;
+			bool bRet = true;
 
-			//	コマンド発行
-			pcEditView->GetCommander().HandleCommand( Index, true, 0, 0, 0, 0);
+			if( F_SETCOLORMARKER_SEARCH_SET == LOWORD(Index) ){
+				bRet = FALSE != pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)wtoi_def(Argument[2],0), 0, 0, 0);
+			}else if( F_SETCOLORMARKER_SEARCH_STR == LOWORD(Index) ){
+				bRet = FALSE != pcEditView->GetCommander().HandleCommand( Index, true, (LPARAM)Argument[2], 0, 0, 0);
+			}else{
+				//	コマンド発行
+				pcEditView->GetCommander().HandleCommand( Index, true, 0, 0, 0, 0);
+			}
 			if( bBackupFlag ){
 				GetDllShareData().m_Common.m_sSearch = backupFlags;
 				pcEditView->m_sCurSearchOption = backupLocalFlags;
@@ -972,8 +1053,8 @@ bool CMacro::HandleCommand(
 				}
 				pcEditView->m_nCurSearchKeySequence = nBackupSearchKeySequence;
 			}
+			return bRet;
 		}
-		break;
 	case F_DIFF:
 		//	Argument[0]とDiff差分表示。オプションはArgument[1]に。
 		//	Argument[1]:
@@ -2823,6 +2904,130 @@ bool CMacro::HandleFunction(CEditView *View, EFunctionCode ID, const VARIANT *Ar
 			int ret = cParams.GetParamCount();
 			Wrap( &Result )->Receive( ret );
 			return true;
+		}
+	case F_GETCOLORMARKER_COUNT:
+		{
+			if( ArgSize < 1 ) return false;
+			int nLineNum;
+			if( !variant_to_int(Arguments[0], nLineNum) ){ return false; }
+			if( 0 == nLineNum ){
+				nLineNum = (Int)View->GetCaret().GetCaretLogicPos().GetY2();
+			}else if( nLineNum < 0 ){ return false;
+			}else{
+				nLineNum--;
+			}
+			if( nLineNum == View->m_pcEditDoc->m_cDocLineMgr.GetLineCount() ){
+				// EOF行対応
+				Wrap(&Result)->Receive(0);
+			}
+			const CDocLine* docLine = View->m_pcEditDoc->m_cDocLineMgr.GetLine(CLogicYInt(nLineNum));
+			if( docLine != NULL ){
+				int nCount = CColorMarkerVisitor().GetColorMarkerCount(docLine);
+				Wrap(&Result)->Receive(nCount);
+				return true;
+			}
+			return false;
+		}
+	case F_GETCOLORMARKER_INFO:
+		{
+			if( ArgSize < 1 ) return false;
+			int nLineNum;
+			int nMarkerIndex;
+			if( !variant_to_int(Arguments[0], nLineNum) ){ return false; }
+			if( !variant_to_int(Arguments[1], nMarkerIndex) ){ return false; }
+			nMarkerIndex--;
+			if( 0 == nLineNum ){
+				nLineNum = (Int)View->GetCaret().GetCaretLogicPos().GetY2();
+			}else if( nLineNum < 0 ){ return false;
+			}else{
+				nLineNum--;
+			}
+			const CDocLine* docLine = View->m_pcEditDoc->m_cDocLineMgr.GetLine(CLogicYInt(nLineNum));
+			if( docLine != NULL ){
+				const CMarkerItem* item = CColorMarkerVisitor().GetColorMarker(docLine, nMarkerIndex);
+				if( item ){
+					wchar_t szBuf[MAX_MARKER_INFO];
+					CColorMarkerVisitor().MarkerItemToStr(*item, CLogicYInt(0), szBuf);
+					// "0,1,2..." の行番号分を削除
+					const wchar_t* pszBegin = szBuf + 2;
+					SysString ret(pszBegin, auto_strlen(pszBegin));
+					Wrap(&Result)->Receive(ret);
+					return true;
+				}
+			}
+			return false;
+		}
+	case F_DELCOLORMARKER_DIRECT:
+		{
+			if( ArgSize <= 1 ) return false;
+			int nLineNum;
+			int nMarkerIndex;
+			int nMarkerIndexEnd;
+			if( !variant_to_int(Arguments[0], nLineNum) ){ return false; }
+			if( !variant_to_int(Arguments[1], nMarkerIndex) ){ return false; }
+			nMarkerIndex--;
+			if( ArgSize <= 2 ){
+				nMarkerIndexEnd = nMarkerIndex + 1;
+			}else{
+				if( !variant_to_int(Arguments[2], nMarkerIndexEnd) ){ return false; }
+				nMarkerIndexEnd--;
+				if( nMarkerIndexEnd <= nMarkerIndex ){ return false; }
+			}
+			if( 0 == nLineNum ){
+				nLineNum = (Int)View->GetCaret().GetCaretLogicPos().GetY2();
+			}else if( nLineNum < 0 ){ return false;
+			}else{
+				nLineNum--;
+			}
+			CDocLine* docLine = View->m_pcEditDoc->m_cDocLineMgr.GetLine(CLogicYInt(nLineNum));
+			if( docLine != NULL ){
+				bool bRet = CColorMarkerVisitor().DelColorMarker(docLine, nMarkerIndex, nMarkerIndexEnd);
+				if( bRet ){
+					View->m_pcEditWnd->Views_Redraw();
+					Wrap(&Result)->Receive(1);
+					return true;
+				}
+			}
+			return false;
+		}
+	case F_GETCOLORMARKER_PRESET:
+		{
+			if( ArgSize < 1 ) return false;
+			int nSetIndex;
+			int nRetType;
+			if( !variant_to_int(Arguments[0], nSetIndex) ){ return false; }
+			if( ArgSize <= 1 ){
+				nRetType = 0;
+			}else{
+				if( !variant_to_int(Arguments[1], nRetType) ){ return false; }
+				if( !(0 <= nRetType && nRetType <= 2) ){ return false; }
+			}
+			const Setting_ColorMarker& sMarker = GetDllShareData().m_Common.m_sSearch.m_sColorMarker;
+			if( nSetIndex <= _countof(sMarker.m_ColorItems) ){
+				const CMarkerItem* pItem;
+				const wchar_t* pData;
+				if( nSetIndex == 0 ){
+					pItem = &sMarker.m_ColorItemLast;
+					pData = L""; // 名無し
+				}else{
+					pItem = &sMarker.m_ColorItems[nSetIndex- 1];
+					pData = sMarker.m_szSetNames[nSetIndex- 1];
+				}
+				wchar_t szBuf[MAX_MARKER_INFO + MAX_MARKER_NAME + 2];
+				if( nRetType == 0 ){
+					CColorMarkerVisitor().MarkerItemToStr2(*pItem, szBuf);
+					pData = szBuf;
+				}else if( nRetType == 2 ){
+					CColorMarkerVisitor().MarkerItemToStr2(*pItem, szBuf);
+					wcscat(szBuf, L",");
+					wcscat(szBuf, pData);
+					pData = szBuf;
+				}
+				SysString ret(pData, wcslen(pData));
+				Wrap(&Result)->Receive(ret);
+				return true;
+			}
+			return false;
 		}
 	default:
 		return false;

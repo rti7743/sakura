@@ -304,6 +304,23 @@ MacroFuncInfo CSMacroMgr::m_MacroFuncInfoCommandArr[] =
 	{F_FUNCLIST_NEXT,			LTEXT("FuncListNext"),		{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //次の関数リストマークへ
 	{F_FUNCLIST_PREV,			LTEXT("FuncListPrev"),		{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //前の関数リストマークへ
 
+	{F_SETCOLORMARKER,			L"ColorMarkerSet",			{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー設定
+	{F_DELCOLORMARKER,			L"ColorMarkerDel",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー削除
+	{F_DLGCOLORMARKER,			L"ColorMarkerDlg",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー詳細設定
+	{F_COLORMARKER_NEXT,		L"ColorMarkerNext",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //次のカラーマーカー
+	{F_COLORMARKER_PREV,		L"ColorMarkerPrev",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //前のカラーマーカー
+	{F_COLORMARKER_VIEW,		L"ColorMarkerView",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー一覧
+	{F_SETCOLORMARKER_STR,		L"ColorMarkerStr",			{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー設定
+	{F_SETCOLORMARKER_DIRECT,	L"ColorMarkerDirect",		{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカーダイレクト設定
+	{F_SETCOLORMARKER_SEARCH_SET,L"ColorMarkerSearch",		{VT_BSTR,  VT_I4,    VT_I4,    VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー検索設定(セット)
+	{F_SETCOLORMARKER_SEARCH_STR,L"ColorMarkerSearchStr",	{VT_BSTR,  VT_I4,    VT_BSTR,  VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー検索設定
+	{F_DELCOLORMARKER_STR,		L"ColorMarkerDelStr",		{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー指定削除
+	{F_DELCOLORMARKER_ALL,		L"ColorMarkerDelAll",		{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー全削除
+	{F_DELCOLORMARKER_EXTVALUE,	L"ColorMarkerDelExtValue",	{VT_UI4,   VT_UI4,   VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー削除識別値
+	{F_COLORMARKER_LOAD,		L"ColorMarkerLoad",			{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー読み込み
+	{F_COLORMARKER_SAVE,		L"ColorMarkerSave",			{VT_BSTR,  VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカー書き込み
+	{F_COLORMARKER_SETPRESET,	L"ColorMarkerSetPreset",	{VT_I4,    VT_BSTR,  VT_BSTR,  VT_EMPTY},	VT_EMPTY,	NULL}, //カラーマーカープリセット設定
+
 	/* モード切り替え系 */
 	{F_CHGMOD_INS,				LTEXT("ChgmodINS"),			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //挿入／上書きモード切り替え
 	{F_CHG_CHARSET,				LTEXT("ChgCharSet"),		{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_EMPTY,	NULL}, //文字コードセット指定		2010/6/14 Uchi
@@ -499,6 +516,10 @@ MacroFuncInfo CSMacroMgr::m_MacroFuncInfoArr[] =
 	{F_GETRESULTVAL,			L"GetResultVal",			{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_BSTR,	NULL }, //マクロ結果を取得
 	{F_GETRESULTPARAM,			L"GetResultParam",			{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_BSTR,	NULL }, //マクロパラメータを取得
 	{F_GETRESULTPARAMCOUNT,		L"GetResultParamCount",		{VT_EMPTY, VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_I4,		NULL }, //マクロパラメータの数を取得
+	{F_GETCOLORMARKER_COUNT,	L"GetColorMarkerCount",		{VT_I4,    VT_EMPTY, VT_EMPTY, VT_EMPTY},	VT_I4,		NULL }, //マーカー数取得
+	{F_GETCOLORMARKER_INFO,		L"GetColorMarkerInfo",		{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_BSTR,	NULL }, //マーカー情報取得
+	{F_DELCOLORMARKER_DIRECT,	L"ColorMarkerDelDirect",	{VT_I4,    VT_I4,    VT_I4,    VT_EMPTY},	VT_I4,		NULL }, //マーカー直接削除
+	{F_GETCOLORMARKER_PRESET,	L"GetColorMarkerPreset",	{VT_I4,    VT_I4,    VT_EMPTY, VT_EMPTY},	VT_BSTR,	NULL }, //マーカープリセット情報取得
 
 	//	終端
 	//	Jun. 27, 2002 genta
@@ -1139,6 +1160,24 @@ BOOL CSMacroMgr::CanFuncIsKeyMacro( int nFuncID )
 	case F_BOOKMARK_PATTERN			://検索しして該当行をマーク	// 2002.02.08 hor
 	case F_FUNCLIST_NEXT			://次の関数リストマークへ
 	case F_FUNCLIST_PREV			://前の関数リストマークへ
+
+	//カラーマーカー
+	case F_SETCOLORMARKER:			//カラーマーカー設定
+	case F_DELCOLORMARKER:			//カラーマーカー削除
+	//case F_DLGCOLORMARKER			//カラーマーカー詳細設定
+	case F_COLORMARKER_NEXT:		//次のカラーマーカー
+	case F_COLORMARKER_PREV:		//前のカラーマーカー
+	case F_COLORMARKER_VIEW:		//カラーマーカー一覧
+	case F_SETCOLORMARKER_STR:		//カラーマーカー設定
+	case F_SETCOLORMARKER_DIRECT:	//カラーマーカー設定
+	case F_SETCOLORMARKER_SEARCH_SET: 	//カラーマーカー検索設定(セット)
+	case F_SETCOLORMARKER_SEARCH_STR: 	//カラーマーカー検索設定
+	case F_DELCOLORMARKER_STR:		//カラーマーカー指定削除
+	case F_DELCOLORMARKER_ALL:		//カラーマーカー全削除
+	case F_DELCOLORMARKER_EXTVALUE:	//カラーマーカー削除識別値
+	case F_COLORMARKER_LOAD:		//カラーマーカー読み込み
+	case F_COLORMARKER_SAVE:		//カラーマーカー書き込み
+	case F_COLORMARKER_SETPRESET:	//カラーマーカープリセット設定
 
 	/* モード切り替え系 */
 	case F_CHGMOD_INS				://挿入／上書きモード切り替え

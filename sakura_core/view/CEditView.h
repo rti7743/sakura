@@ -253,9 +253,9 @@ protected:
 	//色分け
 public:
 	CColor3Setting GetColorIndex( const CLayout* pcLayout, CLayoutYInt nLineNum, int nIndex, SColorStrategyInfo* pInfo, bool bPrev = false );	/* 指定位置のColorIndexの取得 02/12/13 ai */
-	void SetCurrentColor( CGraphics& gr, EColorIndexType, EColorIndexType, EColorIndexType);
-	COLORREF GetTextColorByColorInfo2(const ColorInfo& info, const ColorInfo& info2);
-	COLORREF GetBackColorByColorInfo2(const ColorInfo& info, const ColorInfo& info2);
+	void SetCurrentColor( CGraphics& gr, const CColor3Setting& cColor );
+	COLORREF GetTextColorByColorInfo2(const ColorInfoBase& info, const ColorInfoBase& info2);
+	COLORREF GetBackColorByColorInfo2(const ColorInfoBase& info, const ColorInfoBase& info2);
 
 	//画面バッファ
 protected:

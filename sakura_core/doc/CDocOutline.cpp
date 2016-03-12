@@ -506,3 +506,92 @@ void CDocOutline::MakeFuncList_BookMark( CFuncInfoArr* pcFuncInfoArr )
 	return;
 }
 // To Here 2001.12.03 hor
+
+/*! カラーマーカー一覧作成
+
+	@date 2016.03.01 Moca 新規作成
+*/
+void CDocOutline::MakeFuncList_ColorMarker( CFuncInfoArr* pcFuncInfoArr )
+{
+	const CLogicInt nLineCount = m_pcDocRef->m_cDocLineMgr.GetLineCount();
+	enum ECOLORMARKER_INFO_TAG{
+		CM_INFO_TAG_STRING = 100,
+		CM_INFO_TAG_GYOU,
+		CM_INFO_TAG_LINE,
+		CM_INFO_TAG_GYOULINE,
+	};
+
+	// マーカー全部に"テキスト"と表示されるとうっとうしいのでやめる
+	// pcFuncInfoArr->SetAppendText( CM_INFO_TAG_STRING,   LSW(STR_MARKER_TAG_STRING),   false );
+
+	pcFuncInfoArr->SetAppendText( CM_INFO_TAG_GYOU,     LSW(STR_MARKER_TAG_GYOU),     false );
+	pcFuncInfoArr->SetAppendText( CM_INFO_TAG_LINE,     LSW(STR_MARKER_TAG_LINE),     false );
+	pcFuncInfoArr->SetAppendText( CM_INFO_TAG_GYOULINE, LSW(STR_MARKER_TAG_GYOULINE), false );
+
+	for( CLogicYInt nLineNum = CLogicYInt(0); nLineNum < nLineCount; nLineNum++ ){
+		const CDocLine* docLine = m_pcDocRef->m_cDocLineMgr.GetLine(nLineNum);
+		if( NULL == docLine ){
+			break;
+		}
+		CLogicXInt nLineLen;
+		const wchar_t* pLine = docLine->GetDocLineStrWithEOL(&nLineLen);
+		CLogicXInt LineLenWithoutEOL = docLine->GetLengthWithoutEOL();
+
+		int nMarkerCount = CColorMarkerVisitor().GetColorMarkerCount(docLine);
+		for( int i = 0; i < nMarkerCount; i++ ){
+			const CMarkerItem& item = *(CColorMarkerVisitor().GetColorMarker(docLine, i));
+			int nFrom;
+			int nTo;
+			if( item.IsGyouOrLine() ){
+				nFrom = 0;
+				nTo = nLineLen;
+			}else{
+				nFrom = (int)t_min(nLineLen, item.m_nBegin);
+				nTo   = (int)t_min(nLineLen, item.m_nEnd);
+			}
+
+			// 左を削除
+			int leftspace;
+			for( leftspace = nFrom; leftspace < nTo; ++leftspace ){
+				if( WCODE::IsBlank(pLine[leftspace]) ){
+					continue;
+				}
+				break;
+			}
+			const bool bExtEol = GetDllShareData().m_Common.m_sEdit.m_bEnableExtEol;
+			int pos_wo_space = nTo;
+			for( int k = nTo - 1; leftspace <= k; k-- ){
+				if( WCODE::IsLineDelimiter(pLine[k], bExtEol) || WCODE::IsBlank(pLine[k]) ){
+					pos_wo_space = k;
+				}else{
+					break;
+				}
+			}
+			int nLen = pos_wo_space - leftspace;
+			CNativeW strText;
+			if( 0 < nLen ){
+				strText.SetString(&pLine[leftspace], nLen);
+			}else{
+				strText.SetString(L"(Blank)");
+			}
+			int info = CM_INFO_TAG_STRING;
+			switch( item.m_nGyouLine ){
+			default:
+			case E_GYOULINE_STRING:
+				info = CM_INFO_TAG_STRING;
+				break;
+			case E_GYOULINE_GYOU:
+				info = CM_INFO_TAG_GYOU;
+				break;
+			case E_GYOULINE_LINE:
+				info = CM_INFO_TAG_LINE;
+				break;
+			case E_GYOULINE_LINEGYOU:
+				info = CM_INFO_TAG_GYOULINE;
+				break;
+			}
+			pcFuncInfoArr->AppendData2(&m_pcDocRef->m_cLayoutMgr, CLogicPoint(item.m_nBegin, nLineNum), strText.GetStringPtr(), NULL, info);
+		}
+	}
+	return;
+}

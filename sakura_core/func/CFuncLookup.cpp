@@ -136,6 +136,15 @@ bool CFuncLookup::Funccode2Name( int funccode, WCHAR* ptr, int bufsize ) const
 		ptr[bufsize-1] = LTEXT('\0');
 		return true;
 	}
+	else if( F_SETCOLORMARKER1 <= funccode && funccode <= F_SETCOLORMARKER_LAST ){
+		int nSetIndex = funccode - F_SETCOLORMARKER1;
+		const wchar_t *pName = m_pCommon->m_sSearch.m_sColorMarker.m_szSetNames[nSetIndex];
+		if( L'\0' == pName[0] ){
+			pName = LSW(STR_MARKER_PRESET_NAME1 + nSetIndex);
+		}
+		auto_snprintf_s(ptr, bufsize, LSW(STR_MENU_COLORMARKER_SET), nSetIndex + 1, pName);
+		return true;
+	}
 	else if( F_MENU_FIRST <= funccode && funccode < F_MENU_NOT_USED_FIRST ){
 		if( ( pszStr = LSW( funccode ) )[0] != L'\0' ){
 			wcsncpy( ptr, pszStr, bufsize );
@@ -281,6 +290,10 @@ const WCHAR* CFuncLookup::Custmenu2Name( int index, WCHAR buf[], int bufSize ) c
 	// 共通設定で未設定の場合、リソースのデフォルト名を返す
 	if( index == 0 ){
 		wcscpyn( buf, LSW( STR_CUSTMENU_RIGHT_CLICK ), bufSize );
+		return buf;
+	}
+	else if( index == 2 ){
+		wcscpyn( buf, LSW( STR_CUSTMENU_COLORMARKER ), bufSize );
 		return buf;
 	}
 	else if( index == CUSTMENU_INDEX_FOR_TABWND ){

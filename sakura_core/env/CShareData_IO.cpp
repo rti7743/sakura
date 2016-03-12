@@ -533,6 +533,57 @@ void CShareData_IO::ShareData_IO_Common( CDataProfile& cProfile, CDataProfile& c
 	cProfile.IOProfileData( pszSecName, LTEXT("szRegexpLib")			, MakeStringBufferT(common.m_sSearch.m_szRegexpLib) );
 	cProfile.IOProfileData( pszSecName, LTEXT("bGTJW_RETURN")			, common.m_sSearch.m_bGTJW_RETURN );
 	cProfile.IOProfileData( pszSecName, LTEXT("bGTJW_LDBLCLK")			, common.m_sSearch.m_bGTJW_LDBLCLK );
+
+	Setting_ColorMarker& sMarker = common.m_sSearch.m_sColorMarker;
+	cProfile.IOProfileData( pszSecName, LTEXT("bSaveColorMarker")		, sMarker.m_bSaveColorMarker );
+	struct ShareData_IO_ColorMarker{
+		bool IO_ColorMarker(CDataProfile& cProfile, LPCWSTR pszSecName, LPCWSTR pszKey, CMarkerItem& item){
+			bool ret = false;
+			if( cProfile.IsReadingMode() ){
+				wchar_t buf[MAX_MARKER_INFO];
+				buf[0] = L'\0';
+				ret = cProfile.IOProfileData(pszSecName, pszKey, MakeStringBufferW(buf));
+				if( ret ){
+					ret = CColorMarkerVisitor().StrToMarkerItem2(1, buf, item);
+				}
+			}else{
+				wchar_t buf[MAX_MARKER_INFO];
+				buf[0] = L'\0';
+				CColorMarkerVisitor().MarkerItemToStr2(item, buf);
+				ret = cProfile.IOProfileData(pszSecName, pszKey, MakeStringBufferW(buf));
+			}
+			return ret;
+		}
+	}markerIO;
+	markerIO.IO_ColorMarker(cProfile, pszSecName, L"ColorMarkerLast", 		sMarker.m_ColorItemLast);
+	for( int i = 0; i < _countof(sMarker.m_ColorItems); i++ ){
+		wchar_t szKey[50];
+		auto_sprintf( szKey, L"ColorMarker%d", i);
+		markerIO.IO_ColorMarker(cProfile, pszSecName, szKey, 				sMarker.m_ColorItems[i]);
+		auto_sprintf( szKey, L"ColorMarkerName%d", i);
+		cProfile.IOProfileData(pszSecName, szKey, 		MakeStringBufferW(sMarker.m_szSetNames[i]));
+	}
+	for( int i = 0; i < _countof(sMarker.m_dwChooseColor); i++ ){
+		bool ret;
+		wchar_t szKey[50];
+		auto_sprintf(szKey, L"ColorMarkerSample%d", i);
+		if( cProfile.IsReadingMode() ){
+			wchar_t buf[100];
+			buf[0]=L'\0';
+			ret = cProfile.IOProfileData(pszSecName, szKey, MakeStringBufferW(buf));
+			if( ret ){
+				swscanf(buf, L"%06x", &sMarker.m_dwChooseColor[i]);
+			}
+		}else{
+			wchar_t buf[100];
+			buf[0]=L'\0';
+			ret = cProfile.IOProfileData(pszSecName, szKey, MakeStringBufferW(buf));
+			if( ret ){
+				auto_sprintf(buf, L"%06x", sMarker.m_dwChooseColor[i]);
+			}
+		}
+	}
+
 	cProfile.IOProfileData( pszSecName, LTEXT("bBackUp")				, common.m_sBackup.m_bBackUp );
 	cProfile.IOProfileData( pszSecName, LTEXT("bBackUpDialog")			, common.m_sBackup.m_bBackUpDialog );
 	cProfile.IOProfileData( pszSecName, LTEXT("bBackUpFolder")			, common.m_sBackup.m_bBackUpFolder );
@@ -1949,6 +2000,9 @@ struct SMainMenuAddItemInfo
 	wchar_t m_cAccKey;
 	bool m_bAddPrevSeparete;
 	bool m_bAddNextSeparete;
+	bool m_bNextCode; //!< m_nPrevFuncCodeは次のコマンド
+	int m_nType;
+	int m_nLevelDiff;
 };
 
 void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
@@ -1959,7 +2013,7 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 	const WCHAR*	pszSecName = LTEXT("MainMenu");
 	int& nVersion = GetDllShareData().m_Common.m_sMainMenu.m_nVersion;
 	// ※メニュー定義を追加したらnCurrentVerを修正
-	const int nCurrentVer = 2;
+	const int nCurrentVer = 3;
 	nVersion = nCurrentVer;
 	if( cProfile.IOProfileData(pszSecName, LTEXT("nMainMenuVer"), nVersion) ){
 	}else{
@@ -1976,30 +2030,42 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 	if( cProfile.IsReadingMode() && nVersion < nCurrentVer ){
 		CommonSetting_MainMenu& mainmenu = GetDllShareData().m_Common.m_sMainMenu;
 		SMainMenuAddItemInfo addInfos[] = {
-			{1, F_FILENEW_NEWWINDOW, F_FILENEW, L'M', false, false},	// 新しいウインドウを開く
-			{1, F_CHG_CHARSET, F_TOGGLE_KEY_SEARCH, L'A', false, false},	// 文字コード変更
-			{1, F_CHG_CHARSET, F_VIEWMODE, L'A', false, false}, 	// 文字コード変更(Sub)
-			{1, F_FILE_REOPEN_LATIN1, F_FILE_REOPEN_EUC, L'L', false, false}, 	// Latin1で開き直す
-			{1, F_FILE_REOPEN_LATIN1, F_FILE_REOPEN, L'L', false, false}, 	// Latin1で開き直す(Sub)
-			{1, F_COPY_COLOR_HTML, F_COPYLINESWITHLINENUMBER, L'C', false, false}, 	// 選択範囲内色付きHTMLコピー
-			{1, F_COPY_COLOR_HTML_LINENUMBER, F_COPY_COLOR_HTML, L'F', false, false}, 	// 選択範囲内行番号色付きHTMLコピー
+			{1, F_FILENEW_NEWWINDOW, F_FILENEW, L'M', false, false, false, 1, 0},	// 新しいウインドウを開く
+			{1, F_CHG_CHARSET, F_TOGGLE_KEY_SEARCH, L'A', false, false, false, 1, 0},	// 文字コード変更
+			{1, F_CHG_CHARSET, F_VIEWMODE, L'A', false, false, false, 1, 0}, 	// 文字コード変更(Sub)
+			{1, F_FILE_REOPEN_LATIN1, F_FILE_REOPEN_EUC, L'L', false, false, false, 1, 0}, 	// Latin1で開き直す
+			{1, F_FILE_REOPEN_LATIN1, F_FILE_REOPEN, L'L', false, false, false, 1, 0}, 	// Latin1で開き直す(Sub)
+			{1, F_COPY_COLOR_HTML, F_COPYLINESWITHLINENUMBER, L'C', false, false, false, 1, 0}, 	// 選択範囲内色付きHTMLコピー
+			{1, F_COPY_COLOR_HTML_LINENUMBER, F_COPY_COLOR_HTML, L'F', false, false, false, 1, 0}, 	// 選択範囲内行番号色付きHTMLコピー
 			// 矩形選択類は省略...
-			{1, F_GREP_REPLACE_DLG, F_GREP_DIALOG, L'\0', false, false}, 	// Grep置換
-			{1, F_FILETREE, F_OUTLINE, L'E', false, false}, 	// ファイルツリー表示
-			{1, F_FILETREE, F_OUTLINE_TOGGLE, L'E', false, false}, 	// ファイルツリー表示(Sub)
-			{1, F_SHOWMINIMAP, F_SHOWSTATUSBAR, L'N', false, false}, 	// ミニマップ表示
-			{1, F_SHOWMINIMAP, F_SHOWTAB, L'N', false, false}, 	// ミニマップ表示(Sub)
-			{1, F_SHOWMINIMAP, F_SHOWFUNCKEY, L'N', false, false}, 	// ミニマップ表示(Sub)
-			{1, F_SHOWMINIMAP, F_SHOWTOOLBAR, L'N', false, false}, 	// ミニマップ表示(Sub)
-			{1, F_FUNCLIST_PREV, F_JUMPHIST_SET, L'\0', true, false}, 	// 前の関数リストマーク(セパレータ追加)
-			{1, F_FUNCLIST_NEXT, F_FUNCLIST_PREV, L'\0', false, false}, 	// 次の関数リストマーク
-			{1, F_MODIFYLINE_PREV, F_FUNCLIST_NEXT, L'\0', false, false}, 	// 前の変更行へ
-			{1, F_MODIFYLINE_NEXT, F_MODIFYLINE_PREV, L'\0', false, false}, 	// 次の変更行へ
-			{1, F_MODIFYLINE_PREV_SEL, F_GOFILEEND_SEL, L'\0', true, false}, 	// (選択)前の変更行へ
-			{1, F_MODIFYLINE_NEXT_SEL, F_MODIFYLINE_PREV_SEL, L'\0', false, false}, 	// (選択)次の変更行へ
-			{2, F_DLGWINLIST, F_WIN_OUTPUT, L'D', false, false}, 	// ウインドウ一覧表示
-			{2, F_TAB_NO_CLOSE, F_TAB_JOINTPREV, L'N', false, false}, 	// タブを閉じない
-			{2, F_TAB_ICON, F_TAB_NO_CLOSE, L'I', false, false}, 	// タブをアイコン化
+			{1, F_GREP_REPLACE_DLG, F_GREP_DIALOG, L'\0', false, false, false, 1, 0}, 	// Grep置換
+			{1, F_FILETREE, F_OUTLINE, L'E', false, false, false, 1, 0}, 	// ファイルツリー表示
+			{1, F_FILETREE, F_OUTLINE_TOGGLE, L'E', false, false, false, 1, 0}, 	// ファイルツリー表示(Sub)
+			{1, F_SHOWMINIMAP, F_SHOWSTATUSBAR, L'N', false, false, false, 1, 0}, 	// ミニマップ表示
+			{1, F_SHOWMINIMAP, F_SHOWTAB, L'N', false, false, false, 1, 0}, 	// ミニマップ表示(Sub)
+			{1, F_SHOWMINIMAP, F_SHOWFUNCKEY, L'N', false, false, false, 1, 0}, 	// ミニマップ表示(Sub)
+			{1, F_SHOWMINIMAP, F_SHOWTOOLBAR, L'N', false, false, false, 1, 0}, 	// ミニマップ表示(Sub)
+			{1, F_FUNCLIST_PREV, F_JUMPHIST_SET, L'\0', true, false, false, 1, 0}, 	// 前の関数リストマーク(セパレータ追加)
+			{1, F_FUNCLIST_NEXT, F_FUNCLIST_PREV, L'\0', false, false, false, 1, 0}, 	// 次の関数リストマーク
+			{1, F_MODIFYLINE_PREV, F_FUNCLIST_NEXT, L'\0', false, false, false, 1, 0}, 	// 前の変更行へ
+			{1, F_MODIFYLINE_NEXT, F_MODIFYLINE_PREV, L'\0', false, false, false, 1, 0}, 	// 次の変更行へ
+			{1, F_MODIFYLINE_PREV_SEL, F_GOFILEEND_SEL, L'\0', true, false, false, 1, 0}, 	// (選択)前の変更行へ
+			{1, F_MODIFYLINE_NEXT_SEL, F_MODIFYLINE_PREV_SEL, L'\0', false, false, false, 1, 0}, 	// (選択)次の変更行へ
+			{2, F_DLGWINLIST, F_WIN_OUTPUT, L'D', false, false, false, 1, 0}, 	// ウインドウ一覧表示
+			{3, F_TAB_NO_CLOSE, F_TAB_JOINTPREV, L'N', false, false, false, 1, 0}, 	// タブを閉じない
+			{3, F_TAB_ICON, F_TAB_NO_CLOSE, L'I', false, false, false, 1, 0}, 	// タブをアイコン化
+			{3, EFunctionCode(F_COLORLMARKER_SUBMENU), F_GREP_DIALOG, L'O', false, false, true, 0, 0}, 	// カラーマーカー(サブメニュー)
+			{3, F_SETCOLORMARKER, EFunctionCode(F_COLORLMARKER_SUBMENU), L'C', false, false, false, 1, 1}, 	// カラーマーカー設定
+			{3, F_SETCOLORMARKER1, F_SETCOLORMARKER, L'1', false, false, false, 1, 0}, 	// カラーマーカーセット1
+			{3, F_SETCOLORMARKER2, F_SETCOLORMARKER1, L'2', false, false, false, 1, 0}, 	// カラーマーカーセット2
+			{3, F_SETCOLORMARKER3, F_SETCOLORMARKER2, L'3', false, false, false, 1, 0}, 	// カラーマーカーセット3
+			{3, F_SETCOLORMARKER4, F_SETCOLORMARKER3, L'4', false, false, false, 1, 0}, 	// カラーマーカーセット4
+			{3, F_SETCOLORMARKER5, F_SETCOLORMARKER4, L'5', false, false, false, 1, 0}, 	// カラーマーカーセット5
+			{3, F_DELCOLORMARKER,  F_SETCOLORMARKER5, L'D', false, false, false, 1, 0}, 	// カラーマーカー削除
+			{3, F_DLGCOLORMARKER,  F_DELCOLORMARKER,  L'E', false, false, false, 1, 0}, 	// カラーマーカセット詳細設定
+			{3, F_COLORMARKER_NEXT, F_DLGCOLORMARKER,   L'N', false, false, false, 1, 0}, 	// 次のカラーマーカー
+			{3, F_COLORMARKER_PREV, F_COLORMARKER_NEXT, L'P', false, false, false, 1, 0}, 	// 前のカラーマーカー
+			{3, F_COLORMARKER_VIEW, F_COLORMARKER_VIEW, L'L', false, false, false, 1, 0}, 	// カラーマーカー一覧
 		};
 		for( int i = 0; i < _countof(addInfos); i++ ){
 			SMainMenuAddItemInfo& item = addInfos[i];
@@ -2024,17 +2090,28 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 				// メニュー内にまだ追加されていないので追加する
 				for( int r = 0; r < mainmenu.m_nMainMenuNum; r++ ){
 					if( pcMenuTlb[r].m_nFunc == item.m_nPrevFuncCode && 0 < pcMenuTlb[r].m_nLevel ){
+						int fixPos = r;
+						if( item.m_bNextCode ){
+							// 追加位置はターゲットの前
+							fixPos--;
+						}
 						// 追加分後ろにずらす
-						for( int n = mainmenu.m_nMainMenuNum - 1; r < n; n-- ){
+						for( int n = mainmenu.m_nMainMenuNum - 1; fixPos < n; n-- ){
 							pcMenuTlb[n + 1 + nAddSep] = pcMenuTlb[n];
 						}
 						for( int n = 0; n < MAX_MAINMENU_TOP; n++ ){
-							if( r < mainmenu.m_nMenuTopIdx[n] ){
+							if( fixPos < mainmenu.m_nMenuTopIdx[n] ){
 								mainmenu.m_nMenuTopIdx[n] += 1 + nAddSep;
 							}
 						}
-						CMainMenu* pcMenu = &pcMenuTlb[r+1];
-						const int nLevel = pcMenuTlb[r].m_nLevel;
+						int insPos = r + 1;
+						int prevItemPos = r;
+						if( item.m_bNextCode ){
+							insPos = r;
+							prevItemPos++; // ずらしたので++
+						}
+						CMainMenu* pcMenu = &pcMenuTlb[insPos];
+						const int nLevel = pcMenuTlb[prevItemPos].m_nLevel + item.m_nLevelDiff;
 						if( item.m_bAddPrevSeparete ){
 							pcMenu->m_nType    = T_SEPARATOR;
 							pcMenu->m_nFunc    = F_SEPARATOR;
@@ -2045,7 +2122,7 @@ void CShareData_IO::ShareData_IO_MainMenu( CDataProfile& cProfile )
 							pcMenu++;
 							mainmenu.m_nMainMenuNum++;
 						}
-						pcMenu->m_nType    = T_LEAF;
+						pcMenu->m_nType    = EMainMenuType(item.m_nType);
 						pcMenu->m_nFunc    = item.m_nAddFuncCode;
 						pcMenu->m_nLevel   = nLevel;
 						pcMenu->m_sName[0] = L'\0';

@@ -72,6 +72,7 @@ const uint16_t nsFuncCode::ppszFuncKind[] = {
 	STR_ERR_DLGFUNCLKUP10,	//_T("挿入系"),
 	STR_ERR_DLGFUNCLKUP11,	//_T("変換系"),
 	STR_ERR_DLGFUNCLKUP12,	//_T("検索系"),
+	STR_ERR_DLGFUNCLKUP12_1,	// マーカー系
 	STR_ERR_DLGFUNCLKUP13,	//_T("モード切り替え系"),
 	STR_ERR_DLGFUNCLKUP14,	//_T("設定系"),
 	STR_ERR_DLGFUNCLKUP15,	//("マクロ系"),
@@ -372,6 +373,31 @@ const EFunctionCode pnFuncList_Search[] = {	//Oct. 16, 2000 JEPRO 変数名変更(Lis
 const int nFincList_Search_Num = _countof( pnFuncList_Search );	//Oct. 16, 2000 JEPRO 変数名変更(List4→List_Search)
 
 
+/* マーカー系 */
+const EFunctionCode pnFuncList_Marker[] = {
+	F_SETCOLORMARKER	,	//カラーマーカー設定
+	F_DELCOLORMARKER	,	//カラーマーカー削除
+	F_DLGCOLORMARKER	,	//カラーマーカー詳細設定
+	F_COLORMARKER_NEXT	,	//次のカラーマーカー
+	F_COLORMARKER_PREV	,	//前のカラーマーカー
+	F_COLORMARKER_VIEW	,	//カラーマーカー一覧
+	F_DELCOLORMARKER_ALL,	//カラーマーカー全削除
+	F_COLORMARKER_LOAD	,	//カラーマーカー読み込み
+	F_COLORMARKER_SAVE	,	//カラーマーカー保存
+	F_SETCOLORMARKER1	,	//カラーマーカーセット1
+	F_SETCOLORMARKER2	,	//カラーマーカーセット2
+	F_SETCOLORMARKER3	,	//カラーマーカーセット3
+	F_SETCOLORMARKER4	,	//カラーマーカーセット4
+	F_SETCOLORMARKER5	,	//カラーマーカーセット5
+	F_SETCOLORMARKER6	,	//カラーマーカーセット6
+	F_SETCOLORMARKER7	,	//カラーマーカーセット7
+	F_SETCOLORMARKER8	,	//カラーマーカーセット8
+	F_SETCOLORMARKER9	,	//カラーマーカーセット9
+	F_SETCOLORMARKER10	,	//カラーマーカーセット10
+};
+const int nFincList_Marker_Num = _countof( pnFuncList_Marker );
+
+
 /* モード切り替え系 */	//Oct. 16, 2000 JEPRO 変数名変更(List8→List_Mode)
 const EFunctionCode pnFuncList_Mode[] = {
 	F_CHGMOD_INS		,	//挿入／上書きモード切り替え
@@ -542,6 +568,7 @@ const int nsFuncCode::pnFuncListNumArr[] = {
 	nFincList_Insert_Num,	/* 挿入系 */
 	nFincList_Convert_Num,	/* 変換系 */			//Oct. 16, 2000 JEPRO 変数名変更(List6→List_Convert)
 	nFincList_Search_Num,	/* 検索系 */			//Oct. 16, 2000 JEPRO 変数名変更(List4→List_Search)
+	nFincList_Marker_Num,	// マーカー系
 	nFincList_Mode_Num,		/* モード切り替え系 */	//Oct. 16, 2000 JEPRO 変数名変更(List8→List_Mode)
 	nFincList_Set_Num,		/* 設定系 */			//Oct. 16, 2000 JEPRO 変数名変更(List9→List_Set)
 	nFincList_Macro_Num,	/* マクロ系 */			//Oct. 16, 2000 JEPRO 変数名変更(List10→List_Macro)
@@ -562,6 +589,7 @@ const EFunctionCode* nsFuncCode::ppnFuncListArr[] = {
 	pnFuncList_Insert,/* 挿入系 */
 	pnFuncList_Convert,/* 変換系 */			//Oct. 16, 2000 JEPRO 変数名変更(List6→List_Convert)
 	pnFuncList_Search,/* 検索系 */			//Oct. 16, 2000 JEPRO 変数名変更(List4→List_Search)
+	pnFuncList_Marker,
 	pnFuncList_Mode,	/* モード切り替え系 */	//Oct. 16, 2000 JEPRO 変数名変更(List8→List_Mode)
 	pnFuncList_Set,	/* 設定系 */			//Oct. 16, 2000 JEPRO 変数名変更(List9→List_Set)
 	pnFuncList_Macro,	/* マクロ系 */			//Oct. 16, 2000 JEPRO 変数名変更(List10→List_Macro)
@@ -843,6 +871,25 @@ int FuncID_To_HelpContextID( EFunctionCode nFuncID )
 	case F_FUNCLIST_NEXT:		return HLP000364;	//次の関数リストマーク
 	case F_FUNCLIST_PREV:		return HLP000365;	//前の関数リストマーク
 	case F_FILETREE:			return HLP000368;	//ファイルツリー
+
+#if 0
+	case F_SETCOLORMARKER:		return HLP000;	//カラーマーカー設定
+	case F_COLORMARKER_NEXT:	return HLP000;	//次のカラーマーカー
+	case F_COLORMARKER_PREV:	return HLP000;	//前のカラーマーカー
+	case F_DELCOLORMARKER:		return HLP000;	//カラーマーカー削除
+	case F_DLGCOLORMARKER:		return HLP000;	//カラーマーカー詳細設定
+	case F_COLORMARKER_VIEW:	return HLP000;	//カラーマーカー一覧
+	case F_SETCOLORMARKER1:		return HLP000;	//カラーマーカーセット1
+	case F_SETCOLORMARKER2:		return HLP000;	//カラーマーカーセット2
+	case F_SETCOLORMARKER3:		return HLP000;	//カラーマーカーセット3
+	case F_SETCOLORMARKER4:		return HLP000;	//カラーマーカーセット4
+	case F_SETCOLORMARKER5:		return HLP000;	//カラーマーカーセット5
+	case F_SETCOLORMARKER6:		return HLP000;	//カラーマーカーセット6
+	case F_SETCOLORMARKER7:		return HLP000;	//カラーマーカーセット7
+	case F_SETCOLORMARKER8:		return HLP000;	//カラーマーカーセット8
+	case F_SETCOLORMARKER9:		return HLP000;	//カラーマーカーセット9
+	case F_SETCOLORMARKER10:	return HLP000;	//カラーマーカーセット10
+#endif
 
 	/* モード切り替え系 */
 	case F_CHGMOD_INS:		return HLP000046;	//挿入／上書きモード切り替え

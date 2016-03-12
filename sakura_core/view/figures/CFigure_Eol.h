@@ -42,5 +42,17 @@ public:
 	EColorIndexType GetColorIdx(void) const{ return COLORIDX_EOL; }
 };
 
+class CFigure_Wrap : public CFigureSpace{
+public:
+	//traits
+	bool Match(const wchar_t* pText, int nTextLen) const{ return false; };
+
+	//action
+	bool DrawImp(SColorStrategyInfo* pInfo);
+	void DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans) const;
+	EColorIndexType GetColorIdx(void) const{ return COLORIDX_WRAP; }
+
+};
+
 #endif /* SAKURA_CFIGURE_EOL_F6A22B9F_DDED_4BE9_9A2C_62931DB224F6_H_ */
 /*[EOF]*/

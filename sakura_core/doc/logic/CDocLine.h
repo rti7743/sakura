@@ -26,6 +26,7 @@
 #include "docplus/CDiffManager.h"
 #include "docplus/CModifyManager.h"
 #include "docplus/CFuncListManager.h"
+#include "docplus/CColorMarker.h"
 
 class CDocLine;
 class COpeBlk;
@@ -107,6 +108,7 @@ public:
 		CLineBookmarked	m_cBookmarked;	//ブックマーク
 		CLineFuncList	m_cFuncList;	//関数リストマーク
 		CLineDiffed		m_cDiffmarked;	//DIFF差分情報
+		CColorMarker	m_cColorMarker;	//!< カラーマーカー
 	};
 	MarkType m_sMark;
 

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include "outline/CFuncInfoArr.h"
 #include "outline/CFuncInfo.h"
+#include "doc/layout/CLayoutMgr.h"
 
 
 /* CFuncInfoArrクラス構築 */
@@ -142,6 +143,31 @@ void CFuncInfoArr::AppendData(
 	AppendData(nFuncLineCRLF,nFuncLineLAYOUT,to_tchar(pszFuncName),nInfo,nDepth);
 }
 
+void CFuncInfoArr::AppendData2(
+	CLayoutMgr* pcLayoutLineMgr,
+	const CLogicPoint& ptPos,
+	const wchar_t* pszFuncName,
+	const wchar_t* pszFileName,
+	int nInfo,
+	int nDepth
+)
+{
+	CLayoutPoint ptLay;
+	if( 0 < ptPos.y ){
+		pcLayoutLineMgr->LogicToLayout(ptPos, &ptLay);
+	}else{
+		// 無効な座標:ジャンプ無しタグ
+		ptLay.y = CLayoutYInt(-1);
+		ptLay.x = CLayoutXInt(-1);
+	}
+	// AppendDataは座標が1開始
+	AppendData(
+		ptPos.y + CLogicYInt(1), ptPos.x + CLogicXInt(1),
+		ptLay.y + CLayoutYInt(1), ptLay.x + CLayoutXInt(1),
+		pszFuncName, pszFileName,
+		nInfo, nDepth);
+}
+
 
 void CFuncInfoArr::DUMP( void )
 {
@@ -182,6 +208,11 @@ void CFuncInfoArr::SetAppendText( int info, std::wstring s, bool overwrite )
 			m_AppendTextArr[ info ] = s;
 		}
 	}
+}
+
+bool CFuncInfoArr::ContainAppendText( int info ) const
+{
+	return m_AppendTextArr.find( info ) != m_AppendTextArr.end();
 }
 
 std::wstring CFuncInfoArr::GetAppendText( int info )

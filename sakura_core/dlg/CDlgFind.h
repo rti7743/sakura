@@ -18,6 +18,7 @@
 #ifndef SAKURA_CDLGFIND_H_
 #define SAKURA_CDLGFIND_H_
 
+class CEditView;
 
 /*-----------------------------------------------------------------------
 クラスの宣言
@@ -36,6 +37,7 @@ public:
 	HWND DoModeless( HINSTANCE, HWND, LPARAM );	/* モードレスダイアログの表示 */
 
 	void ChangeView( LPARAM );
+	static void SetColorMarkerSearch(CDialog* this_, CEditView* pcEditView, BOOL);
 
 	SSearchOption m_sSearchOption;	// 検索オプション
 	int		m_bNOTIFYNOTFOUND;	// 検索／置換  見つからないときメッセージを表示

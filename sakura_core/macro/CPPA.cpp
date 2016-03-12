@@ -229,7 +229,7 @@ char* CPPA::GetDeclarations( const MacroFuncInfo& cMacroFuncInfo, char* szBuffer
 		if (cMacroFuncInfo.m_varResult == VT_BSTR){
 			strcpy( szReturn, ": string" );
 		}
-		else if ( cMacroFuncInfo.m_varResult == VT_I4 ){
+		else if ( cMacroFuncInfo.m_varResult == VT_I4 || cMacroFuncInfo.m_varResult == VT_UI4 ){
 			strcpy( szReturn, ": Integer" );
 		}
 		else {
@@ -250,6 +250,9 @@ char* CPPA::GetDeclarations( const MacroFuncInfo& cMacroFuncInfo, char* szBuffer
 		}
 		if ( type == VT_EMPTY ){
 			break;
+		}
+		if( type == VT_UI4 ){
+			type = VT_I4;
 		}
 		if ( type == VT_BSTR ){
 			strcpy( szArguments[i], "s0: string" );
@@ -468,6 +471,9 @@ void __stdcall CPPA::stdIntFunc(
 		case VT_I4:
 			*ResultValue = Ret.lVal;
 			break;
+		case VT_UI4:
+			*ResultValue = Ret.ulVal;
+			break;
 		case VT_INT:
 			*ResultValue = Ret.intVal;
 			break;
@@ -551,6 +557,9 @@ bool CPPA::CallHandleFunction(
 		}
 		if(VT_EMPTY == type){
 			break;
+		}
+		if( VT_UI4 == type ){
+			type = VT_I4;
 		}
 
 		switch( type ){

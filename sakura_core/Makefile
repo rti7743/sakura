@@ -109,6 +109,7 @@ charset/CUtf8.o \
 cmd/CViewCommander.o \
 cmd/CViewCommander_Bookmark.o \
 cmd/CViewCommander_Clipboard.o \
+cmd/CViewCommander_ColorMarker.o \
 cmd/CViewCommander_Convert.o \
 cmd/CViewCommander_Cursor.o \
 cmd/CViewCommander_CustMenu.o \
@@ -153,6 +154,7 @@ debug/Debug3.o \
 dlg/CDialog.o \
 dlg/CDlgAbout.o \
 dlg/CDlgCancel.o \
+dlg/CDlgColorMarker.o \
 dlg/CDlgCompare.o \
 dlg/CDlgCtrlCode.o \
 dlg/CDlgDiff.o \
@@ -198,6 +200,7 @@ doc/layout/CTsvModeInfo.o \
 doc/logic/CDocLine.o \
 doc/logic/CDocLineMgr.o \
 docplus/CBookmarkManager.o \
+docplus/CColorMarker.o \
 docplus/CDiffManager.o \
 docplus/CFuncListManager.o \
 docplus/CModifyManager.o \

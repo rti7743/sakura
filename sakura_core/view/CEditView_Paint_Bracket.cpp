@@ -156,23 +156,24 @@ void CEditView::DrawBracketPair( bool bDraw )
 			const wchar_t*	pLine = m_pcEditDoc->m_cLayoutMgr.GetLineStr( ptColLine.GetY2(), &nLineLen, &pcLayout );
 			if( pLine )
 			{
-				EColorIndexType		nColorIndex;
+				CColor3Setting cColor;
+				SColorStrategyInfo sInfo_;
+				SColorStrategyInfo* pInfo = &sInfo_;
+				cColor.InitMarker();
 				CLogicInt	OutputX = LineColumnToIndex( pcLayout, ptColLine.GetX2() );
-				if( bDraw )	{
-					nColorIndex = COLORIDX_BRACKET_PAIR;
+				if( bDraw ) {
+					cColor.eColorIndex = COLORIDX_BRACKET_PAIR;
+					cColor.eColorIndex2 = COLORIDX_BRACKET_PAIR;
 				}
 				else{
 					if( IsBracket( pLine, OutputX, CLogicInt(1) ) ){
 						DispPos _sPos(0,0); // 注意：この値はダミー。CheckChangeColorでの参照位置は不正確
-						SColorStrategyInfo _sInfo;
-						SColorStrategyInfo* pInfo = &_sInfo;
 						pInfo->m_pDispPos = &_sPos;
 						pInfo->m_pcView = this;
 
 						// 03/10/24 ai 折り返し行のColorIndexが正しく取得できない問題に対応
 						// 2009.02.07 ryoji GetColorIndex に渡すインデックスの仕様変更（元はこっちの仕様だった模様）
-						CColor3Setting cColor = GetColorIndex( pcLayout, ptColLine.GetY2(), OutputX, pInfo );
-						nColorIndex = cColor.eColorIndex2;
+						cColor = GetColorIndex( pcLayout, ptColLine.GetY2(), OutputX, pInfo );
 					}
 					else{
 						SetBracketPairPos( false );
@@ -202,20 +203,17 @@ void CEditView::DrawBracketPair( bool bDraw )
 
 					//色設定
 					CTypeSupport cTextType(this,COLORIDX_TEXT);
-					cTextType.SetGraphicsState_WhileThisObj(gr);
 					// 2013.05.24 背景色がテキストの背景色と同じならカーソル行の背景色を適用
-					CTypeSupport cColorIndexType(this,nColorIndex);
-					CTypeSupport cColorIndexBgType(this,nColorIndexBg);
-					CTypeSupport* pcColorBack = &cColorIndexType;
-					if( cColorIndexType.GetBackColor() == cTextType.GetBackColor() && nColorIndexBg != COLORIDX_TEXT ){
-						pcColorBack = &cColorIndexBgType;
+					CTypeSupport cColorIndexType(this,cColor.eColorIndex);
+					COLORREF  crBack = cColorIndexType.GetBackColor();
+					if( bDraw ){
+						cColor.eColorIndexBg = nColorIndexBg;
 					}
-
-					SetCurrentColor( gr, nColorIndex, nColorIndex, nColorIndexBg );
+					SetCurrentColor( gr, cColor );
 					bool bTrans = false;
 					// DEBUG_TRACE( _T("DrawBracket %d %d ") , ptColLine.y, ptColLine.x );
 					if( IsBkBitmap() &&
-							cTextType.GetBackColor() == pcColorBack->GetBackColor() ){
+							cTextType.GetBackColor() == gr.GetTextBackColor() ){
 						bTrans = true;
 						RECT rcChar;
 						rcChar.left  = nLeft;
@@ -234,7 +232,6 @@ void CEditView::DrawBracketPair( bool bDraw )
 					GetTextDrawer().DispNoteLine(gr, nTop, nTop + nHeight, nLeft, nLeft + (Int)charsWidth * nWidth);
 					// 2006.04.30 Moca 対括弧の縦線対応
 					GetTextDrawer().DispVerticalLines(gr, nTop, nTop + nHeight, ptColLine.x, ptColLine.x + charsWidth); //※括弧が全角幅である場合を考慮
-					cTextType.RewindGraphicsState(gr);
 				}
 
 				if( ( m_pcEditWnd->GetActivePane() == m_nMyIndex )

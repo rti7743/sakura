@@ -64,7 +64,7 @@ public:
 	void DispWrapLine( CGraphics& gr, int nTop, int nBottom ) const;
 
 	// -- -- 行番号 -- -- //
-	void DispLineNumber( CGraphics& gr, CLayoutInt nLineNum, int y ) const;		// 行番号表示
+	void DispLineNumber( CGraphics& gr, CLayoutInt nLineNum, int y, bool bEnableMarker, CMarkerItem marker, COLORREF backColorLineAll ) const;		// 行番号表示
 
 private:
 	const CEditView* m_pEditView;

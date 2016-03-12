@@ -352,7 +352,7 @@ BOOL CKeyMacroMgr::LoadKeyMacro( HINSTANCE hInstance, const TCHAR* pszPath )
  				else if ( Is09(szLine[i]) || szLine[i] == L'-' ){	//	数字で始まったら数字列だ(-記号も含む)。
 					// Jun. 16, 2002 genta プロトタイプチェック
 					// Jun. 27, 2002 genta 余分な引数を無視するよう，VT_EMPTYを許容する．
-					if( type != VT_I4 &&
+					if( (type != VT_I4 && type != VT_UI4) &&
 						type != VT_EMPTY){
 						::MYMESSAGEBOX(
 							NULL,
@@ -368,10 +368,21 @@ BOOL CKeyMacroMgr::LoadKeyMacro( HINSTANCE hInstance, const TCHAR* pszPath )
 						break;
 					}
 					nBgn = nEnd = i;	//	nBgnは引数の先頭の文字
+					bool bHex = false;
 					//	行末の検出のため，ループ回数を1増やした
 					for( i = nBgn + 1; i <= nLineLen; ++i ){		//	最後の文字+1までスキャン
-						if( Is09(szLine[i]) ){	// まだ数値
+						wchar_t c = szLine[i];
+						if( i == nBgn + 1 && L'0' == szLine[nBgn] ){
+							if( L'x' == c|| 'X' == c ){
+								bHex = true; // 16進数を許可
+								continue;
+							}
+						}
+						if( Is09(c) ){	// まだ数値
 //							++i;
+							continue;
+						}
+						else if( bHex && ((L'A' <= c && c <= L'F') || (L'a' <= c && c <= L'f')) ){
 							continue;
 						}
 						else {
@@ -387,7 +398,13 @@ BOOL CKeyMacroMgr::LoadKeyMacro( HINSTANCE hInstance, const TCHAR* pszPath )
 					//	数字の中にquotationは入っていないよ
 					//cmemWork.Replace( L"\\\'", L"\'" );
 					//cmemWork.Replace( L"\\\\", L"\\" );
-					macro->AddIntParam( _wtoi(cmemWork.GetStringPtr()) );	//	引数を数字として追加
+					if( type == VT_UI4 ){
+						UINT uivalue = (UINT)wcstoul(cmemWork.GetStringPtr(), NULL, 0);
+						macro->AddUIntParam(uivalue);
+					}else{
+						int ivalue = (int)wcstol(cmemWork.GetStringPtr(), NULL, 0);	// 16進数を許可
+						macro->AddIntParam(ivalue);	//	引数を数字として追加
+					}
 				}
 				//	Jun. 16, 2002 genta
 				else if( szLine[i] == LTEXT(')') ){

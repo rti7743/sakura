@@ -20,8 +20,10 @@
 
 #include "StdAfx.h"
 #include "dlg/CDlgFind.h"
+#include "dlg/CDlgColorMarker.h"
 #include "view/CEditView.h"
 #include "util/shell.h"
+#include "util/os.h"
 #include "sakura_rc.h"
 #include "sakura.hh"
 
@@ -393,11 +395,77 @@ BOOL CDlgFind::OnBnClicked( int wID )
 			}
 		}
 		return TRUE;
+	case IDC_BUTTON_MARKER:
+		if( 0 < GetData() ){
+			SetColorMarkerSearch(this, pcEditView, m_pShareData->m_Common.m_sSearch.m_bAutoCloseDlgFind);
+		}
+		return TRUE;
 	case IDCANCEL:
 		CloseDialog( 0 );
 		return TRUE;
 	}
 	return FALSE;
+}
+
+void CDlgFind::SetColorMarkerSearch(CDialog* this_, CEditView* pcEditView, BOOL bAutoClose)
+{
+	const int MENU_MARKER0 = 100;
+	const int MENU_MARKER1 = 101;
+	const int MENU_MARKER2 = 102;
+	const int MENU_MARKER3 = 103;
+	const int MENU_MARKER4 = 104;
+	const int MENU_MARKER5 = 105;
+	const int MENU_MARKERDLG = 106;
+	HMENU hMenu = ::CreatePopupMenu();
+	int iPos = 0;
+	::InsertMenu(hMenu, iPos++, MF_BYPOSITION | MF_STRING, MENU_MARKER0, LS(STR_MARKER_SEARCH));
+	for( int i = 0; i < 5; i++ ){
+		TCHAR szLabel[256];
+		const wchar_t *pName = GetDllShareData().m_Common.m_sSearch.m_sColorMarker.m_szSetNames[i];
+		if( L'\0' == pName[0] ){
+			pName = LSW(STR_MARKER_PRESET_NAME1 + i);
+		}
+		auto_sprintf(szLabel, LS(STR_MARKER_SEARCH_SET), i + 1, pName);
+		::InsertMenu(hMenu, iPos++, MF_BYPOSITION | MF_STRING, MENU_MARKER1 + i, szLabel);
+	}
+	::InsertMenu(hMenu, iPos++, MF_BYPOSITION | MF_STRING, MENU_MARKERDLG, LS(STR_MARKER_SEARCH_DLG));
+	POINT pt;
+	RECT rc;
+	::GetWindowRect(this_->GetItemHwnd(IDC_BUTTON_MARKER), &rc);
+	pt.x = rc.left;
+	pt.y = rc.bottom;
+	RECT rcWork;
+	GetMonitorWorkRect(pt, &rcWork);	// モニタのワークエリア
+	int nId = ::TrackPopupMenu(hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_RETURNCMD,
+								( pt.x > rcWork.left )? pt.x: rcWork.left,
+								( pt.y < rcWork.bottom )? pt.y: rcWork.bottom,
+								0, this_->GetHwnd(), NULL);
+	::DestroyMenu( hMenu );
+	if( nId != 0 ){
+		bool bClose = true;
+		if( MENU_MARKER0 <= nId && nId <= MENU_MARKER5 ){
+			int nIndex = nId - MENU_MARKER0;
+			pcEditView->GetCommander().HandleCommand(F_SETCOLORMARKER_SEARCH_SET, false, nIndex, 0, 0, 0);
+		}else{
+			CDlgColorMarker cDlg;
+			if( cDlg.DoModal(G_AppInstance(), this_->GetHwnd(), (LPARAM)0, pcEditView->GetDocument(), true) ){
+				// ダイアログを表示したので、別画面で再検索されていると困るのでもう一度取得
+				if( 0 < this_->GetData() ){
+					wchar_t szMarkerInfo[MAX_MARKER_INFO];
+					CColorMarkerVisitor().MarkerItemToStr2(cDlg.m_cItem, szMarkerInfo);
+					pcEditView->GetCommander().HandleCommand(F_SETCOLORMARKER_SEARCH_STR, false, (LPARAM)szMarkerInfo, 0, 0, 0);
+				}
+			}else{
+				// キャンセルした
+				bClose = false;
+			}
+		}
+		if( bClose ){
+			if( bAutoClose ){
+				this_->CloseDialog(0);
+			}
+		}
+	}
 }
 
 BOOL CDlgFind::OnActivate( WPARAM wParam, LPARAM lParam )

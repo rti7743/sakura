@@ -78,6 +78,7 @@ protected:
 		return m_pTypeData->m_ColorInfoArr[nColorIndex].m_bDisp;
 	}
 
+public:
 	virtual void Update(const STypeConfig& type)
 	{
 		CFigure::Update(type);
@@ -90,12 +91,14 @@ protected:
 		}
 	}
 
+protected:
 	EColorIndexType GetDispColorIdx(void) const{ return m_nDispColorIndex; }
 
 	// é¿ëïï‚èï
 	bool DrawImp_StyleSelect(SColorStrategyInfo* pInfo);
 	void DrawImp_StylePop(SColorStrategyInfo* pInfo);
 	void DrawImp_DrawUnderline(SColorStrategyInfo* pInfo, DispPos&);
+	ColorInfoBase SetColorInfoFromMarker(SColorStrategyInfo* pInfo, const ColorInfoBase&, int);
 
 protected:
 	EColorIndexType m_nDispColorIndex;

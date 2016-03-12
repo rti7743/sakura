@@ -63,6 +63,7 @@ enum EOutlineType{
 	OUTLINE_BOOKMARK,	//	2001.12.03 hor
 	OUTLINE_PLUGIN,		//	2009.10.29 syat プラグインによるアウトライン解析
 	OUTLINE_FILETREE,	//	2012.06.20 Moca ファイルツリー
+	OUTLINE_COLORMARKER,	// 2016.03.01 カラーマーカー
 	OUTLINE_DEFAULT =-1,//	2001.12.03 hor
 	OUTLINE_UNKNOWN	= 99,
 	OUTLINE_TREE = 100,		// 汎用ツリー 2010.03.28 syat

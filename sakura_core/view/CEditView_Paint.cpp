@@ -32,6 +32,7 @@
 #include "view/colors/CColorStrategy.h"
 #include "view/colors/CColor_Found.h"
 #include "view/figures/CFigureManager.h"
+#include "view/figures/CFigure_Eol.h"
 #include "types/CTypeSupport.h"
 #include "doc/CEditDoc.h"
 #include "doc/layout/CLayout.h"
@@ -46,7 +47,7 @@
 #endif
 #endif
 
-void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayoutYInt nLineNum);
+static bool GetLineMarker(const CDocLine* pcDocLine, CMarkerItem& markerGyou, COLORREF& colorBack);
 
 /*
 	PAINT_LINENUMBER = (1<<0), //!< 行番号
@@ -363,12 +364,16 @@ CColor3Setting CEditView::GetColorIndex(
 
 	if(!pcLayout){
 		CColor3Setting cColor = { COLORIDX_TEXT, COLORIDX_TEXT, COLORIDX_TEXT };
+		cColor.InitMarker();
 		return cColor;
 	}
 	// 2014.12.30 Skipモードの時もCOLORIDX_TEXT
 	if (CColorStrategyPool::getInstance()->IsSkipBeforeLayout()) {
-		CColor3Setting cColor = { COLORIDX_TEXT, COLORIDX_TEXT, COLORIDX_TEXT };
-		return cColor;
+		if( CColorMarkerVisitor().GetColorMarkerCount(pcLayout->GetDocLineRef()) == 0 ){
+			CColor3Setting cColor = { COLORIDX_TEXT, COLORIDX_TEXT, COLORIDX_TEXT };
+			cColor.InitMarker();
+			return cColor;
+		}
 	}
 
 	const CLayoutColorInfo* colorInfo;
@@ -448,7 +453,7 @@ CColor3Setting CEditView::GetColorIndex(
 									cLineStr.GetLength(),
 									pInfo->m_nPosInLogic
 								);
-		if( pcLayoutNext && pcLayoutNext->GetLogicOffset() <= pInfo->m_nPosInLogic ){
+		if( pcLayoutNext && 0 < pcLayoutNext->GetLogicOffset() && pcLayoutNext->GetLogicOffset() <= pInfo->m_nPosInLogic ){
 			nLineNumScan++;
 			pInfo->m_pDispPos->SetLayoutLineRef(nLineNumScan);
 			pcLayoutNext = pcLayoutNext->GetNextLayout();
@@ -468,25 +473,61 @@ CColor3Setting CEditView::GetColorIndex(
 
 	@date 2013.05.08 novice 範囲外チェック削除
 */
-void CEditView::SetCurrentColor( CGraphics& gr, EColorIndexType eColorIndex,  EColorIndexType eColorIndex2, EColorIndexType eColorIndexBg)
+void CEditView::SetCurrentColor( CGraphics& gr, const CColor3Setting& cColor )
 {
+	EColorIndexType eColorIndex   = cColor.eColorIndex;
+	EColorIndexType eColorIndex2  = cColor.eColorIndex2;
+	EColorIndexType eColorIndexBg = cColor.eColorIndexBg;
+
 	//インデックス決定
 	int		nColorIdx = ToColorInfoArrIndex(eColorIndex);
 	int		nColorIdx2 = ToColorInfoArrIndex(eColorIndex2);
 	int		nColorIdxBg = ToColorInfoArrIndex(eColorIndexBg);
 
 	//実際に色を設定
-	const ColorInfo& info  = m_pTypeData->m_ColorInfoArr[nColorIdx];
-	const ColorInfo& info2 = m_pTypeData->m_ColorInfoArr[nColorIdx2];
-	const ColorInfo& infoBg = m_pTypeData->m_ColorInfoArr[nColorIdxBg];
-	COLORREF fgcolor = GetTextColorByColorInfo2(info, info2);
-	gr.SetTextForeColor(fgcolor);
+	const ColorInfoBase& info  = m_pTypeData->m_ColorInfoArr[nColorIdx];
+	const ColorInfoBase& info2 = m_pTypeData->m_ColorInfoArr[nColorIdx2];
+	const ColorInfoBase& infoBg = m_pTypeData->m_ColorInfoArr[nColorIdxBg];
+	ColorInfoBase info3 = info2;
+	if( cColor.bEnableMarker && !(COLORIDX_SEARCH <= nColorIdx2 && nColorIdx2 <= COLORIDX_SEARCHTAIL) ){
+		if( cColor.cMarker.IsBoldSet() ){
+			info3.m_sFontAttr.m_bBoldFont = cColor.cMarker.IsBold();
+		}
+		if( cColor.cMarker.IsUnderLineSet() ){
+			info3.m_sFontAttr.m_bUnderLine = cColor.cMarker.IsUnderLine();
+		}
+		if( cColor.cMarker.m_cTEXT != -1 ){
+			info3.m_sColorAttr.m_cTEXT = cColor.cMarker.m_cTEXT;
+		}
+		if( cColor.cMarker.m_cBACK != -1 ){
+			info3.m_sColorAttr.m_cBACK = cColor.cMarker.m_cBACK;
+		}
+	}
+
 	// 2012.11.21 背景色がテキストとおなじなら背景色はカーソル行背景
-	const ColorInfo& info3 = (info2.m_sColorAttr.m_cBACK == m_crBack ? infoBg : info2);
-	COLORREF bkcolor = (nColorIdx == nColorIdx2) ? info3.m_sColorAttr.m_cBACK : GetBackColorByColorInfo2(info, info3);
-	gr.SetTextBackColor(bkcolor);
+	const ColorInfoBase& info4 = (info3.GetBackColor() == m_crBack ? infoBg : info3);
+	COLORREF fgcolor;
+	COLORREF bkcolor;
 	SFONT sFont;
-	sFont.m_sFontAttr = (info.m_sColorAttr.m_cTEXT != info.m_sColorAttr.m_cBACK) ? info.m_sFontAttr : info2.m_sFontAttr;
+	if( nColorIdx == nColorIdx2 ){
+		// 通常色(未選択)
+		fgcolor = info3.GetTextColor();
+		bkcolor = info4.GetBackColor();
+		sFont.m_sFontAttr = info3.m_sFontAttr;
+	}else if( info.GetTextColor() != info.GetBackColor() ){
+		// 指定選択色
+		const ColorInfoBase& info5 = (info.GetBackColor() == m_crBack ? infoBg : info);
+		fgcolor = info.GetTextColor();
+		bkcolor = info5.GetBackColor();
+		sFont.m_sFontAttr = info.m_sFontAttr;
+	}else{
+		// アルファor反転
+		fgcolor = GetTextColorByColorInfo2(info, info3);
+		bkcolor = GetBackColorByColorInfo2(info, info4);
+		sFont.m_sFontAttr = info3.m_sFontAttr;
+	}
+	gr.SetTextForeColor(fgcolor);
+	gr.SetTextBackColor(bkcolor);
 	sFont.m_hFont = GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
 	gr.SetMyFont(sFont);
 }
@@ -525,7 +566,7 @@ inline COLORREF MakeColor2(COLORREF a, COLORREF b, int alpha)
 #endif
 }
 
-COLORREF CEditView::GetTextColorByColorInfo2(const ColorInfo& info, const ColorInfo& info2)
+COLORREF CEditView::GetTextColorByColorInfo2(const ColorInfoBase& info, const ColorInfoBase& info2)
 {
 	if( info.m_sColorAttr.m_cTEXT != info.m_sColorAttr.m_cBACK ){
 		return info.m_sColorAttr.m_cTEXT;
@@ -538,7 +579,7 @@ COLORREF CEditView::GetTextColorByColorInfo2(const ColorInfo& info, const ColorI
 	return MakeColor2(info.m_sColorAttr.m_cTEXT, info2.m_sColorAttr.m_cTEXT, alpha);
 }
 
-COLORREF CEditView::GetBackColorByColorInfo2(const ColorInfo& info, const ColorInfo& info2)
+COLORREF CEditView::GetBackColorByColorInfo2(const ColorInfoBase& info, const ColorInfoBase& info2)
 {
 	if( info.m_sColorAttr.m_cTEXT != info.m_sColorAttr.m_cBACK ){
 		return info.m_sColorAttr.m_cBACK;
@@ -767,11 +808,22 @@ void CEditView::OnPaint2( HDC _hdc, PAINTSTRUCT *pPs, BOOL bDrawFromComptibleBmp
 			if(!sPos.GetLayoutRef())
 				break;
 
+			bool bEnableMarker = false;
+			CMarkerItem markerGyou;
+			COLORREF colorBack = -1;
+			const CDocLine* pcDocLine = sPos.GetLayoutRef()->GetDocLineRef();
+			if( pcDocLine ){
+				bEnableMarker = GetLineMarker(pcDocLine, markerGyou, colorBack);
+			}
+
 			//1行描画（行番号のみ）
 			GetTextDrawer().DispLineNumber(
 				gr,
 				sPos.GetLayoutLineRef(),
-				sPos.GetDrawPos().y
+				sPos.GetDrawPos().y,
+				bEnableMarker,
+				markerGyou,
+				colorBack
 			);
 			//行を進める
 			sPos.ForwardDrawLine(1);		//描画Y座標＋＋
@@ -889,6 +941,18 @@ bool CEditView::DrawLogicLine(
 	pool->SetCurrentView(this);
 	pool->NotifyOnStartScanLogic();
 	bool bSkipBeforeLayout = pool->IsSkipBeforeLayout();
+	{
+		const CLayout* pcLayout = pInfo->m_pDispPos->GetLayoutRef();
+		const CDocLine* docLine = NULL;
+		if( pcLayout ){
+			docLine = pcLayout->GetDocLineRef();
+		}
+		if( docLine ){
+			if( 0 != CColorMarkerVisitor().GetColorMarkerCount(docLine) ){
+				bSkipBeforeLayout = false;
+			}
+		}
+	}
 
 	//DispPosを保存しておく
 	pInfo->m_sDispPosBegin = *pInfo->m_pDispPos;
@@ -916,7 +980,7 @@ bool CEditView::DrawLogicLine(
 			}
 		}else{
 			CColor3Setting cColor = GetColorIndex(pcLayout, pInfo->m_pDispPos->GetLayoutLineRef(), 0, pInfo, true);
-			SetCurrentColor(pInfo->m_gr, cColor.eColorIndex, cColor.eColorIndex2, cColor.eColorIndexBg);
+			SetCurrentColor(pInfo->m_gr, cColor);
 		}
 	}
 
@@ -956,6 +1020,31 @@ bool CEditView::DrawLogicLine(
 	}
 
 	return bDispEOF;
+}
+
+static bool GetLineMarker(const CDocLine* pcDocLine, CMarkerItem& markerGyou, COLORREF& colorBack)
+{
+	bool bEnableMarker = false;
+	CColor3Setting::InitMarker(markerGyou);
+	int nCount = CColorMarkerVisitor().GetColorMarkerCount(pcDocLine);
+	if( nCount ){
+		std::vector<const CMarkerItem*> stack;
+		for( int i = 0; i < nCount; i++ ){
+			const CMarkerItem& item = *CColorMarkerVisitor().GetColorMarker(pcDocLine, i);
+			if( item.m_nBegin == 0 ){
+				if( item.IsLineAll() && item.m_cBACK != -1 ){
+					colorBack = item.m_cBACK;
+				}
+				if( item.IsGyou() ){
+					stack.push_back(&item);
+				}
+			}else{
+				break;
+			}
+		}
+		bEnableMarker = SColorStrategyInfo::GetMarkerByArray(stack, markerGyou);
+	}
+	return bEnableMarker;
 }
 
 /*!
@@ -1000,7 +1089,7 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 			}
 			if( bChange ){
 				pInfo->DoChangeColor(&cColor);
-				SetCurrentColor(pInfo->m_gr, cColor.eColorIndex, cColor.eColorIndex2, cColor.eColorIndexBg);
+				SetCurrentColor(pInfo->m_gr, cColor);
 			}
 		}
 		return false;
@@ -1022,9 +1111,18 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 					&& pInfo->m_pDispPos->GetLayoutLineRef() < cActiveView.GetTextArea().GetBottomLine())
 						? cPageViewBg
 						: cTextType);
+	COLORREF colorBack = cBackType.GetBackColor();
+	bool bEnableMarker = false;
+	CMarkerItem markerGyou;
+	{
+		const CDocLine* pcDocLine = (pInfo->m_pDispPos->GetLayoutRef() ? pInfo->m_pDispPos->GetLayoutRef()->GetDocLineRef(): NULL);
+		if( pcDocLine ){
+			bEnableMarker = GetLineMarker(pcDocLine, markerGyou, colorBack);
+		}
+	}
 	bool bTransText = IsBkBitmap();
 	if( bTransText ){
-		bTransText = cBackType.GetBackColor() == cTextType.GetBackColor();
+		bTransText = colorBack == cTextType.GetBackColor();
 	}
 
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
@@ -1033,7 +1131,10 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 	GetTextDrawer().DispLineNumber(
 		pInfo->m_gr,
 		pInfo->m_pDispPos->GetLayoutLineRef(),
-		pInfo->m_pDispPos->GetDrawPos().y
+		pInfo->m_pDispPos->GetDrawPos().y,
+		bEnableMarker,
+		markerGyou,
+		colorBack
 	);
 
 
@@ -1050,7 +1151,7 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 	{
 		RECT rcClip;
 		if(!bTransText && GetTextArea().GenerateClipRect(&rcClip, *pInfo->m_pDispPos, pcLayout->GetIndent())){
-			cBackType.FillBack(pInfo->m_gr,rcClip);
+			pInfo->m_gr.FillSolidMyRect(rcClip, colorBack);
 		}
 		//描画位置進める
 		pInfo->m_pDispPos->ForwardDrawCol(pcLayout->GetIndent());
@@ -1081,7 +1182,7 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 			if( pInfo->CheckChangeColor(cLineStr) ){
 				CColor3Setting cColor;
 				pInfo->DoChangeColor(&cColor);
-				SetCurrentColor(pInfo->m_gr, cColor.eColorIndex, cColor.eColorIndex2, cColor.eColorIndexBg);
+				SetCurrentColor(pInfo->m_gr, cColor);
 			}
 
 			//1文字情報取得 $$高速化可能
@@ -1115,7 +1216,9 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 
 	// 必要なら折り返し記号描画
 	if(pcLayout && pcLayout->GetLayoutEol().GetLen()==0 && pcLayout->GetNextLayout()!=NULL){
-		_DispWrap(pInfo->m_gr,pInfo->m_pDispPos,this,pInfo->m_pDispPos->GetLayoutLineRef());
+		CFigure_Wrap drawerWrap;
+		drawerWrap.Update(GetDocument()->m_cDocType.GetDocumentAttribute());
+		drawerWrap.DrawImp(pInfo);
 	}
 
 	// 行末背景描画
@@ -1123,7 +1226,7 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 	bool rcClipRet = GetTextArea().GenerateClipRectRight(&rcClip,*pInfo->m_pDispPos);
 	if(rcClipRet){
 		if( !bTransText ){
-			cBackType.FillBack(pInfo->m_gr,rcClip);
+			pInfo->m_gr.FillSolidMyRect(rcClip, colorBack);
 		}
 		CTypeSupport cSelectType(this, COLORIDX_SELECT);
 		if( GetSelectionInfo().IsTextSelected() && cSelectType.IsDisp() ){
@@ -1141,7 +1244,7 @@ bool CEditView::DrawLayoutLine(SColorStrategyInfo* pInfo)
 				RECT rcDraw;
 				if( ::IntersectRect(&rcDraw, &rcClip, &rcSelect) ){
 					COLORREF color = GetBackColorByColorInfo2(cSelectType.GetColorInfo(), cBackType.GetColorInfo());
-					if( color != cBackType.GetBackColor() ){
+					if( color != colorBack ){
 						pInfo->m_gr.FillSolidMyRect(rcDraw, color);
 					}
 				}

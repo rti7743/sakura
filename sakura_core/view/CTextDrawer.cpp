@@ -356,7 +356,10 @@ void CTextDrawer::DispWrapLine(
 void CTextDrawer::DispLineNumber(
 	CGraphics&		gr,
 	CLayoutInt		nLineNum,
-	int				y
+	int				y,
+	bool			bEnableMarker,
+	CMarkerItem		marker,
+	COLORREF		backColorLineAll
 ) const
 {
 	//$$ 高速化：SearchLineByLayoutYにキャッシュを持たせる
@@ -380,6 +383,10 @@ void CTextDrawer::DispLineNumber(
 			: cEvenLineBg.IsDisp() && nLineNum % 2 == 1
 				? cEvenLineBg
 				: cTextType);
+	COLORREF backColor = cBackType.GetBackColor();
+	if( backColorLineAll != -1 ){
+		backColor = backColorLineAll;
+	}
 
 
 	// -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
@@ -443,7 +450,7 @@ void CTextDrawer::DispLineNumber(
 	rcLineNum.bottom = y + nLineHeight;
 	
 	bool bTrans = pView->IsBkBitmap() && cTextType.GetBackColor() == cColorExtType.GetBackColor();
-	bool bTransText = pView->IsBkBitmap() && cTextType.GetBackColor() == cBackType.GetBackColor();
+	bool bTransText = pView->IsBkBitmap() && cTextType.GetBackColor() == backColor;
 
 	COLORREF fgcolor = cColorExtType.GetTextColor();
 	COLORREF bgcolor = cColorExtType.GetBackColor();
@@ -467,14 +474,14 @@ void CTextDrawer::DispLineNumber(
 	}
 	// 2014.01.29 Moca 背景色がテキストと同じなら、透過色として行背景色を適用
 	if( bgcolor == cTextType.GetBackColor() ){
-		bgcolor = cBackType.GetBackColor();
-		bTrans = pView->IsBkBitmap() && cTextType.GetBackColor() == bgcolor;
+		bgcolor = backColor;
+		bTrans = pView->IsBkBitmap();
 		bDispLineNumTrans = true;
 	}
 	if(!pcLayout){
 		//行が存在しない場合は、テキスト描画色で塗りつぶし
 		if( !bTransText ){
-			cBackType.FillBack(gr,rcLineNum);
+			gr.FillSolidMyRect(rcLineNum, backColor);
 		}
 		bDispLineNumTrans = true;
 	}
@@ -518,6 +525,22 @@ void CTextDrawer::DispLineNumber(
 			if( cGyouType.IsStrikeOut() == sFont.m_sFontAttr.m_bStrikeOut ){
 				sFont.m_sFontAttr.m_bStrikeOut = cGyouModType.IsStrikeOut();
 				bChange = true;
+			}
+		}
+		if( bEnableMarker ){
+			if( marker.IsBoldSet() ){
+				sFont.m_sFontAttr.m_bBoldFont = marker.IsBold();
+				bChange = true;
+			}
+			if( marker.IsUnderLineSet() ){
+				sFont.m_sFontAttr.m_bUnderLine = marker.IsUnderLine();
+				bChange = true;
+			}
+			if( marker.m_cTEXT != -1 ){
+				fgcolor = marker.m_cTEXT;
+			}
+			if( marker.m_cBACK != -1 ){
+				bgcolor = marker.m_cBACK;
 			}
 		}
 		if( bChange ){
@@ -619,7 +642,7 @@ void CTextDrawer::DispLineNumber(
 		rcRest.right  = pView->GetTextArea().GetAreaLeft();
 		rcRest.top    = y;
 		rcRest.bottom = y + nLineHeight;
-		cBackType.FillBack(gr,rcRest);
+		gr.FillSolidMyRect(rcRest, backColor);
 	}
 
 	// 行番号部分のノート線描画

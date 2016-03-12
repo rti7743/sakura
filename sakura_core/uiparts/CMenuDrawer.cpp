@@ -327,11 +327,11 @@ CMenuDrawer::CMenuDrawer()
 /* 185 */		F_INS_DATE	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//日付挿入	//Nov. 5, 2000 JEPRO 追加
 /* 186 */		F_INS_TIME	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//時刻挿入	//Nov. 5, 2000 JEPRO 追加
 /* 187 */		F_CTRL_CODE_DIALOG	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//コントロールコードの入力(ダイアログ)	//@@@ 2002.06.02 MIK
-/* 188 */		F_DISABLE	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 189 */		F_DISABLE	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 190 */		F_DISABLE	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 191 */		F_DISABLE	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 192 */		F_DISABLE	/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
+/* 188 */		F_SETCOLORMARKER1		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカーセット1
+/* 189 */		F_SETCOLORMARKER2		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカーセット2
+/* 190 */		F_SETCOLORMARKER3		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカーセット3
+/* 191 */		F_SETCOLORMARKER4		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカーセット4
+/* 192 */		F_SETCOLORMARKER5		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカーセット5
 
 /* 変換系(7段目32個: 193-224) */
 /* 193 */		F_TOLOWER				/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//小文字
@@ -361,8 +361,8 @@ CMenuDrawer::CMenuDrawer()
 /* 217 */		F_TOHANKATA				/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//全角カタカナ→半角カタカナ	//Aug. 29, 2002 ai
 /* 218 */		F_FILETREE				/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ファイルツリー表示
 /* 219 */		F_SHOWMINIMAP			/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ミニマップを表示
-/* 220 */		F_DISABLE				/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 221 */		F_DISABLE				/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
+/* 220 */		F_SETCOLORMARKER		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカー設定
+/* 221 */		F_COLORMARKER_VIEW		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカー一覧
 /* 222 */		F_DISABLE				/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
 /* 223 */		F_TAGJUMP_CLOSE			/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//閉じてタグジャンプ(元ウィンドウclose)
 /* 224 */		F_OUTLINE_TOGGLE		/* , TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//アウトライン解析(toggle) // 20060201 aroka
@@ -433,10 +433,10 @@ CMenuDrawer::CMenuDrawer()
 /* 281 */		F_EXECMD_DIALOG			/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//外部コマンド実行//Sept. 20, 2000 JEPRO 名称をCMMANDからCOMMANDに変更(EXECCMMAND→EXECCMMAND)
 /* 282 */		F_EXECEXTMACRO			/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//名前を指定してマクロ実行	//2008.10.22 syat 追加
 /* 283 */		F_PLUGCOMMAND			/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//プラグインコマンド用に予約
-/* 284 */		F_DISABLE				/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 285 */		F_DISABLE				/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 286 */		F_DISABLE				/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
-/* 287 */		F_DISABLE				/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//ダミー
+/* 284 */		F_DELCOLORMARKER		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカー削除
+/* 285 */		F_DLGCOLORMARKER		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//カラーマーカー詳細設定
+/* 286 */		F_COLORMARKER_PREV		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//前のカラーマーカー
+/* 287 */		F_COLORMARKER_NEXT		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//次のカラーマーカー
 /* 288 */		F_TAB_CLOSEOTHER		/*, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 */,	//このタブ以外を閉じる		// 2009.07.07 syat,ウィンドウ系に空きがないので上の行を侵食
 
 /* カスタムメニュー(10段目25個: 289-313) */

@@ -84,6 +84,22 @@ struct CColor3Setting {
 	EColorIndexType eColorIndex;    //!< 選択を含む現在の色
 	EColorIndexType eColorIndex2;   //!< 選択以外の現在の色
 	EColorIndexType eColorIndexBg;  //!< 背景色
+	bool bEnableMarker;
+	CMarkerItem cMarker;
+	void InitMarker(){
+		bEnableMarker = false;
+		InitMarker(cMarker);
+	}
+	static void InitMarker(CMarkerItem& marker){
+		marker.m_nBegin = 0;
+		marker.m_nEnd = 0;
+		marker.m_nBold = 0;
+		marker.m_nUnderLine = 0;
+		marker.m_cTEXT = -1;
+		marker.m_cBACK = -1;
+		marker.m_nGyouLine = 0;
+		marker.m_nExtValue = 0;
+	}
 };
 
 struct SColorStrategyInfo{
@@ -91,6 +107,7 @@ struct SColorStrategyInfo{
 		m_cIndex.eColorIndex = COLORIDX_TEXT;
 		m_cIndex.eColorIndex2 = COLORIDX_TEXT;
 		m_cIndex.eColorIndexBg = COLORIDX_TEXT;
+		m_cIndex.InitMarker();
 	}
 
 	//参照
@@ -118,6 +135,8 @@ struct SColorStrategyInfo{
 	EColorIndexType GetCurrentColor() const { return m_cIndex.eColorIndex; }
 	EColorIndexType GetCurrentColor2() const { return m_cIndex.eColorIndex2; }
 	EColorIndexType GetCurrentColorBg() const{ return m_cIndex.eColorIndexBg; }
+	bool GetEnableMarker() const{ return m_cIndex.bEnableMarker; }
+	const CMarkerItem& GetMarkerItem() const{ return m_cIndex.cMarker; }
 
 	//! 現在のスキャン位置
 	CLogicInt GetPosInLogic() const
@@ -132,6 +151,8 @@ struct SColorStrategyInfo{
 	{
 		return m_pDispPos->GetLayoutRef();
 	}
+
+	static bool GetMarkerByArray(const std::vector<const CMarkerItem*>& vecMarker, CMarkerItem& ret);
 };
 
 class CColorStrategy{
@@ -230,6 +251,10 @@ private:
 
 	bool	m_bSkipBeforeLayoutGeneral;
 	bool	m_bSkipBeforeLayoutFound;
+
+public:
+	std::vector<const CMarkerItem*>	m_vecMarker;
+	int m_nMarkerCurret;
 };
 
 #endif /* SAKURA_CCOLORSTRATEGY_BC7B5956_A0AF_4C9C_9C0E_07FE658028AC9_H_ */

@@ -522,6 +522,33 @@ BOOL CViewCommander::HandleCommand(
 	case F_FUNCLIST_NEXT:	Command_FUNCLIST_NEXT();break;					// 次の関数リストマーク	2014.01.05
 	case F_FUNCLIST_PREV:	Command_FUNCLIST_PREV();break;					// 前の関数リストマーク	2014.01.05
 
+	// カラーマーカー
+	case F_SETCOLORMARKER:		bRet = Command_SETCOLORMARKER_SET((int)lparam1);break;		// カラーマーカー設定
+	case F_SETCOLORMARKER1:		HandleCommand(F_SETCOLORMARKER, bRedraw, 1, 0, 0, 0);break;		// カラーマーカーセット1
+	case F_SETCOLORMARKER2:		HandleCommand(F_SETCOLORMARKER, bRedraw, 2, 0, 0, 0);break;		// カラーマーカーセット2
+	case F_SETCOLORMARKER3:		HandleCommand(F_SETCOLORMARKER, bRedraw, 3, 0, 0, 0);break;		// カラーマーカーセット3
+	case F_SETCOLORMARKER4:		HandleCommand(F_SETCOLORMARKER, bRedraw, 4, 0, 0, 0);break;		// カラーマーカーセット4
+	case F_SETCOLORMARKER5:		HandleCommand(F_SETCOLORMARKER, bRedraw, 5, 0, 0, 0);break;		// カラーマーカーセット5
+	case F_SETCOLORMARKER6:		HandleCommand(F_SETCOLORMARKER, bRedraw, 6, 0, 0, 0);break;		// カラーマーカーセット6
+	case F_SETCOLORMARKER7:		HandleCommand(F_SETCOLORMARKER, bRedraw, 7, 0, 0, 0);break;		// カラーマーカーセット7
+	case F_SETCOLORMARKER8:		HandleCommand(F_SETCOLORMARKER, bRedraw, 8, 0, 0, 0);break;		// カラーマーカーセット8
+	case F_SETCOLORMARKER9:		HandleCommand(F_SETCOLORMARKER, bRedraw, 9, 0, 0, 0);break;		// カラーマーカーセット9
+	case F_SETCOLORMARKER10:	HandleCommand(F_SETCOLORMARKER, bRedraw, 10, 0, 0, 0);break;		// カラーマーカーセット10
+	case F_SETCOLORMARKER_STR:	bRet = Command_SETCOLORMARKER_STR((LPCWSTR)lparam1);break;	// カラーマーカー文字列(マクロ)
+	case F_SETCOLORMARKER_DIRECT:	bRet = Command_SETCOLORMARKER_DIRECT((LPCWSTR)lparam1);break;	// カラーマーカー設定ダイレクト(マクロ)
+	case F_DELCOLORMARKER:		Command_DELCOLORMARKER();break;			// カラーマーカー削除
+	case F_DLGCOLORMARKER:		Command_DLGCOLORMARKER();break;			// カラーマーカー詳細設定(ダイアログ)
+	case F_COLORMARKER_NEXT:	Command_COLORMARKER_NEXT();break;		// 次のカラーマーカー
+	case F_COLORMARKER_PREV:	Command_COLORMARKER_PREV();break;		// 前のカラーマーカー
+	case F_COLORMARKER_VIEW:	bRet = Command_FUNCLIST( (BOOL)lparam1 ,OUTLINE_COLORMARKER );break;	// カラーマーカー一覧
+	case F_SETCOLORMARKER_SEARCH_SET: bRet = Command_SETCOLORMARKER_SEARCH_SET((int)lparam1);break;		// /*! カラーマーカー検索設定(セットn)
+	case F_SETCOLORMARKER_SEARCH_STR: bRet = Command_SETCOLORMARKER_SEARCH_STR((LPCWSTR)lparam1);break;	// /*! カラーマーカー検索設定(マクロ)
+	case F_DELCOLORMARKER_STR:	bRet = Command_DELCOLORMARKER_STR((LPCWSTR)lparam1);break;	//カラーマーカー指定削除
+	case F_DELCOLORMARKER_ALL:	Command_DELCOLORMARKER_ALL();break;					//カラーマーカー全削除
+	case F_DELCOLORMARKER_EXTVALUE:	Command_DELCOLORMARKER_EXTVALUE((int)lparam1, (int)lparam2);break;	//カラーマーカー削除識別値
+	case F_COLORMARKER_LOAD:	Command_COLORMARKER_LOAD((LPCWSTR)lparam1);break;	//カラーマーカー読み込み
+	case F_COLORMARKER_SAVE:	Command_COLORMARKER_SAVE((LPCWSTR)lparam1);break;	//カラーマーカー書き込み
+	case F_COLORMARKER_SETPRESET:	bRet = Command_COLORMARKER_SETPRESET((int)lparam1, (LPCWSTR)lparam2, (LPCWSTR)lparam3);break;	//カラーマーカープリセット設定
 
 	/* モード切り替え系 */
 	case F_CHGMOD_INS:		Command_CHGMOD_INS();break;		//挿入／上書きモード切り替え

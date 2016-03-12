@@ -46,6 +46,7 @@ enum EMacroParamType{
 	EMacroParamTypeNull,
 	EMacroParamTypeInt,
 	EMacroParamTypeStr,
+	EMacroParamTypeUInt,
 };
 struct CMacroParam{
 	WCHAR*			m_pData;
@@ -73,9 +74,10 @@ struct CMacroParam{
 		m_nDataLen = 0;
 		m_eType = EMacroParamTypeNull;
 	}
-	void SetStringParam( const WCHAR* szParam, int nLength = -1 );
+	void SetStringParam( const WCHAR* szParam, int nLength = -1, EMacroParamType eType = EMacroParamTypeStr );
 	void SetStringParam( const ACHAR* lParam ){ SetStringParam(to_wchar(lParam)); }
 	void SetIntParam( const int nParam );
+	void SetUIntParam( const UINT nParam );
 };
 
 /*! @brief キーボードマクロの1コマンド
@@ -115,6 +117,7 @@ public:
 	void AddStringParam( const WCHAR* szParam, int nLength = -1 );
 	void AddStringParam( const ACHAR* lParam ){ return AddStringParam(to_wchar(lParam)); }
 	void AddIntParam( const int nParam );
+	void AddUIntParam( const UINT nParam );
 	void AddParamCopyFromCMacro( const CMacro* );
 	int GetParamCount() const;
 
@@ -134,6 +137,7 @@ public:
 
 protected:
 	static CStringRef GetParamAt(CMacroParam*, int);
+	void AddMacroParamList(CMacroParam*);
 
 	/*
 	||  実装ヘルパ関数

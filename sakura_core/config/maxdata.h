@@ -81,6 +81,10 @@ enum maxdata{
 	MAX_MAINMENU_TOP			= 20,	// 登録できるメインメニューの数
 	MAX_MAIN_MENU_NAME_LEN		= 40,	// メインメニュー名文字列長
 
+	// マーカー
+	MAX_MARKER_INFO				= 100,	// マーカーの書式化文字列の長さ目安
+	MAX_MARKER_NAME				= 64,
+
 	//マウスジェスチャー
 	MAX_GESTURE_LENGTH			= 16,	// ジェスチャーのアクション数+2
 	MAX_MOUSE_GESTURE_COUNT		= 100,	// 登録できるジェスチャー数

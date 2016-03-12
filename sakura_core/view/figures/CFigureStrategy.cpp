@@ -91,19 +91,45 @@ bool CFigureSpace::DrawImp(SColorStrategyInfo* pInfo)
 	return true;
 }
 
+ColorInfoBase CFigureSpace::SetColorInfoFromMarker(SColorStrategyInfo* pInfo, const ColorInfoBase& colorBase, int nColorIdx)
+{
+	ColorInfoBase color = colorBase;
+	if( pInfo->GetEnableMarker() && !(COLORIDX_SEARCH <= nColorIdx && nColorIdx <= COLORIDX_SEARCHTAIL) ){
+		const CMarkerItem& marker = pInfo->GetMarkerItem();
+		if( marker.IsBoldSet() ){
+			color.m_sFontAttr.m_bBoldFont = marker.IsBold();
+		}
+		if( marker.IsUnderLineSet() ){
+			color.m_sFontAttr.m_bUnderLine = marker.IsUnderLine();
+		}
+		if( marker.m_cTEXT != -1 ){
+			color.m_sColorAttr.m_cTEXT = marker.m_cTEXT;
+		}
+		if( marker.m_cBACK != -1 ){
+			color.m_sColorAttr.m_cBACK = marker.m_cBACK;
+		}
+	}
+	return color;
+}
+
 bool CFigureSpace::DrawImp_StyleSelect(SColorStrategyInfo* pInfo)
 {
 	// この DrawImp はここ（基本クラス）でデフォルト動作を実装しているが
 	// 仮想関数なので派生クラス側のオーバーライドで個別に仕様変更可能
 	CEditView* pcView = pInfo->m_pcView;
+	const int		nColorIdx = ToColorInfoArrIndex(pInfo->GetCurrentColor());
+	const int		nColorIdx2 = ToColorInfoArrIndex(pInfo->GetCurrentColor2());
+	const int		nColorIdxBg = ToColorInfoArrIndex(pInfo->GetCurrentColorBg());
 
-	CTypeSupport cCurrentType(pcView, pInfo->GetCurrentColor());	// 周辺の色（現在の指定色/選択色）
-	CTypeSupport cCurrentType2(pcView, pInfo->GetCurrentColor2());	// 周辺の色（現在の指定色）
-	CTypeSupport cTextType(pcView, COLORIDX_TEXT);				// テキストの指定色
-	CTypeSupport cSpaceType(pcView, GetDispColorIdx());	// 空白の指定色
-	CTypeSupport cCurrentTypeBg(pcView, pInfo->GetCurrentColorBg());
-	CTypeSupport& cCurrentType1 = (cCurrentType.GetBackColor() == cTextType.GetBackColor() ? cCurrentTypeBg: cCurrentType);
-	CTypeSupport& cCurrentType3 = (cCurrentType2.GetBackColor() == cTextType.GetBackColor() ? cCurrentTypeBg: cCurrentType2);
+	const ColorInfoBase& colorType = m_pTypeData->m_ColorInfoArr[nColorIdx];		// 周辺の色（現在の指定色/選択色）
+	const ColorInfoBase& colorType2 = m_pTypeData->m_ColorInfoArr[nColorIdx2];	// 周辺の色（現在の指定色）
+	const ColorInfoBase& colorText = m_pTypeData->m_ColorInfoArr[COLORIDX_TEXT];
+	const ColorInfoBase& colorSpace = m_pTypeData->m_ColorInfoArr[GetDispColorIdx()];
+	const ColorInfoBase& colorBg = m_pTypeData->m_ColorInfoArr[nColorIdxBg];
+	const COLORREF crTextBack = colorText.GetBackColor();
+
+	ColorInfoBase colorType3 = SetColorInfoFromMarker(pInfo, colorType2, nColorIdx2);
+	const ColorInfoBase& colorType4 = (colorType3.GetBackColor() == crTextBack ? colorBg: colorType3);
 
 	// 空白記号類は特に明示指定した部分以外はなるべく周辺の指定に合わせるようにしてみた	// 2009.05.30 ryoji
 	// 例えば、下線を指定していない場合、正規表現キーワード内なら正規表現キーワード側の下線指定に従うほうが自然な気がする。
@@ -121,37 +147,46 @@ bool CFigureSpace::DrawImp_StyleSelect(SColorStrategyInfo* pInfo)
 	// ・混合色の場合は従来通り。
 	COLORREF crText;
 	COLORREF crBack;
-	bool blendColor = pInfo->GetCurrentColor() != pInfo->GetCurrentColor2() && cCurrentType.GetTextColor() == cCurrentType.GetBackColor(); // 選択混合色
 	bool bBold;
 	bool bItalic;
-	if( blendColor ){
-		CTypeSupport& cText = cSpaceType.GetTextColor() == cTextType.GetTextColor() ? cCurrentType2 : cSpaceType;
-		CTypeSupport& cBack = cSpaceType.GetBackColor() == cTextType.GetBackColor() ? cCurrentType3 : cSpaceType;
-		crText = pcView->GetTextColorByColorInfo2(cCurrentType.GetColorInfo(), cText.GetColorInfo());
-		crBack = pcView->GetBackColorByColorInfo2(cCurrentType.GetColorInfo(), cBack.GetColorInfo());
-		bBold = cCurrentType2.IsBoldFont();
-		bItalic = cCurrentType2.IsItalic();
+	const bool bNotSelecting = pInfo->GetCurrentColor() == pInfo->GetCurrentColor2();
+	const bool blendColor = !bNotSelecting && colorType.GetTextColor() == colorType.GetBackColor(); // 選択混合色
+	const bool bText = colorSpace.GetTextColor() == colorText.GetTextColor();
+	const bool bBack = colorSpace.GetBackColor() == crTextBack;
+	if( bNotSelecting ){
+		// 通常色(未選択)
+		crText = (bText ? colorType3 : colorSpace).GetTextColor();
+		crBack = (bBack ? colorType4 : colorSpace).GetBackColor();
+		bBold = colorType3.IsBoldFont();
+		bItalic = colorType3.IsItalic();
+	}else if( !blendColor ){
+		// 指定選択色
+		const ColorInfoBase& colorType5 = (colorType.GetBackColor() == crTextBack ? colorBg: colorType);
+		crText = (bText ? colorType : colorSpace).GetTextColor();
+		crBack = (bBack ? colorType5 : colorSpace).GetBackColor();
+		bBold = colorType.IsBoldFont();
+		bItalic = colorType.IsItalic();
 	}else{
-		CTypeSupport& cText = cSpaceType.GetTextColor() == cTextType.GetTextColor() ? cCurrentType : cSpaceType;
-		CTypeSupport& cBack = cSpaceType.GetBackColor() == cTextType.GetBackColor() ? cCurrentType1 : cSpaceType;
-		crText = cText.GetTextColor();
-		crBack = cBack.GetBackColor();
-		bBold = cCurrentType.IsBoldFont();
-		bItalic = cCurrentType.IsItalic();
+		// アルファor反転
+		const ColorInfoBase& cText = (bText ? colorType3 : colorSpace);
+		const ColorInfoBase& cBack = (bBack ? colorType4 : colorSpace);
+		crText = pcView->GetTextColorByColorInfo2(colorType, cText);
+		crBack = pcView->GetBackColorByColorInfo2(colorType, cBack);
+		bBold = colorType3.IsBoldFont();
+		bItalic = colorType3.IsItalic();
 	}
-	//cSpaceType.SetGraphicsState_WhileThisObj(pInfo->gr);
 
 	pInfo->m_gr.PushTextForeColor(crText);
 	pInfo->m_gr.PushTextBackColor(crBack);
 	// Figureが下線指定ならこちらで下線を指定。元の色のほうが下線指定なら、DrawImp_DrawUnderlineで下線だけ指定
 	SFONT sFont;
-	sFont.m_sFontAttr.m_bBoldFont = cSpaceType.IsBoldFont() || bBold;
-	sFont.m_sFontAttr.m_bUnderLine = cSpaceType.HasUnderLine();
-	sFont.m_sFontAttr.m_bItalic = cSpaceType.IsItalic() || bItalic;
-	sFont.m_sFontAttr.m_bStrikeOut = cSpaceType.IsStrikeOut();
+	sFont.m_sFontAttr.m_bBoldFont = colorSpace.IsBoldFont() || bBold;
+	sFont.m_sFontAttr.m_bUnderLine = colorSpace.HasUnderLine();
+	sFont.m_sFontAttr.m_bItalic = colorSpace.IsItalic() || bItalic;
+	sFont.m_sFontAttr.m_bStrikeOut = colorSpace.IsStrikeOut();
 	sFont.m_hFont = pInfo->m_pcView->GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
 	pInfo->m_gr.PushMyFont(sFont);
-	bool bTrans = pcView->IsBkBitmap() && cTextType.GetBackColor() == crBack;
+	bool bTrans = pcView->IsBkBitmap() && colorText.GetBackColor() == crBack;
 	return bTrans;
 }
 
@@ -166,10 +201,18 @@ void CFigureSpace::DrawImp_DrawUnderline(SColorStrategyInfo* pInfo, DispPos& sPo
 {
 	CEditView* pcView = pInfo->m_pcView;
 
-	CTypeSupport cCurrentType(pcView, pInfo->GetCurrentColor());	// 周辺の色
-	bool blendColor = pInfo->GetCurrentColor() != pInfo->GetCurrentColor2() && cCurrentType.GetTextColor() == cCurrentType.GetBackColor(); // 選択混合色
+	const int		nColorIdx = ToColorInfoArrIndex(pInfo->GetCurrentColor());
+	const int		nColorIdx2 = ToColorInfoArrIndex(pInfo->GetCurrentColor2());
+	const ColorInfoBase& colorType = m_pTypeData->m_ColorInfoArr[nColorIdx];
+	const ColorInfoBase& colorType2 = m_pTypeData->m_ColorInfoArr[nColorIdx2];
 
-	CTypeSupport colorStyle(pcView, blendColor ? pInfo->GetCurrentColor2() : pInfo->GetCurrentColor());	// 周辺の色
+	ColorInfoBase colorType3 = SetColorInfoFromMarker(pInfo, colorType2, nColorIdx2);
+
+	// 指定選択色
+	bool bSelectColor = (pInfo->GetCurrentColor() != pInfo->GetCurrentColor2() && colorType.GetTextColor() != colorType.GetBackColor());
+
+	const ColorInfoBase& colorStyle = (bSelectColor ? colorType : colorType3);
+
 	CTypeSupport cSpaceType(pcView, GetDispColorIdx());	// 空白の指定色
 
 	if( (!cSpaceType.HasUnderLine() && colorStyle.HasUnderLine())

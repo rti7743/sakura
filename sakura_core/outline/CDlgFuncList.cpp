@@ -176,6 +176,8 @@ EFunctionCode CDlgFuncList::GetFuncCodeRedraw(int outlineType)
 		return F_BOOKMARK_VIEW;
 	}else if( outlineType == OUTLINE_FILETREE ){
 		return F_FILETREE;
+	}else if( outlineType == OUTLINE_COLORMARKER ){
+		return F_COLORMARKER_VIEW;
 	}
 	return F_OUTLINE;
 }
@@ -186,6 +188,8 @@ static int GetOutlineTypeRedraw(int outlineType)
 		return OUTLINE_BOOKMARK;
 	}else if( outlineType == OUTLINE_FILETREE ){
 		return OUTLINE_FILETREE;
+	}else if( outlineType == OUTLINE_COLORMARKER ){
+		return OUTLINE_COLORMARKER;
 	}
 	return OUTLINE_DEFAULT;
 }
@@ -507,6 +511,9 @@ void CDlgFuncList::SetData()
 		::SetWindowText( GetHwnd(), _T("") );
 	}
 	else{
+		// 2016.03.01 再描画無効
+		::SendMessageAny( hwndList, WM_SETREDRAW, (WPARAM)FALSE, (LPARAM)0 );
+
 		m_nViewType = VIEWTYPE_LIST;
 		switch( m_nListType ){
 		case OUTLINE_C:
@@ -530,13 +537,18 @@ void CDlgFuncList::SetData()
 			::SetWindowText( GetHwnd(), LS(STR_DLGFNCLST_TITLE_ERLANG) );
 			break;
 		case OUTLINE_BOOKMARK:
+		case OUTLINE_COLORMARKER:
 			LV_COLUMN col;
 			col.mask = LVCF_TEXT;
 			col.pszText = const_cast<TCHAR*>(LS(STR_DLGFNCLST_LIST_TEXT));
 			col.iSubItem = 0;
 			//	Apr. 23, 2005 genta 行番号を左端へ
 			ListView_SetColumn( hwndList, FL_COL_NAME, &col );
-			::SetWindowText( GetHwnd(), LS(STR_DLGFNCLST_TITLE_BOOK) );
+			if( OUTLINE_BOOKMARK == m_nListType ){
+				::SetWindowText( GetHwnd(), LS(STR_DLGFNCLST_TITLE_BOOK) );
+			}else if( OUTLINE_COLORMARKER == m_nListType ){
+				::SetWindowText( GetHwnd(), LS(STR_CUSTMENU_COLORMARKER) );	// ファイルツリー
+			}
 			break;
 		case OUTLINE_LIST:	// 汎用リスト 2010.03.28 syat
 			::SetWindowText( GetHwnd(), _T("") );
@@ -638,6 +650,11 @@ void CDlgFuncList::SetData()
 			//	To Here Apr. 23, 2005 genta 行番号を左端へ
 
 			item.mask = LVIF_TEXT;
+			std::tstring tstrAppText;
+			if( m_pcFuncInfoArr->ContainAppendText(pcFuncInfo->m_nInfo) ){
+				tstrAppText = to_tchar(m_pcFuncInfoArr->GetAppendText(pcFuncInfo->m_nInfo).c_str());
+				item.pszText = const_cast<TCHAR*>(tstrAppText.c_str());
+			}else
 			if(  1 == pcFuncInfo->m_nInfo ){item.pszText = const_cast<TCHAR*>(LS(STR_DLGFNCLST_REMARK01));}else
 			if( 10 == pcFuncInfo->m_nInfo ){item.pszText = const_cast<TCHAR*>(LS(STR_DLGFNCLST_REMARK02));}else
 			if( 20 == pcFuncInfo->m_nInfo ){item.pszText = const_cast<TCHAR*>(LS(STR_DLGFNCLST_REMARK03));}else
@@ -785,6 +802,8 @@ void CDlgFuncList::SetData()
 		::ShowWindow( GetDlgItem( GetHwnd(), IDC_STATIC_nSortType ), SW_HIDE );
 		//ListView_SortItems( hwndList, CompareFunc_Asc, (LPARAM)this );  // 2005.04.05 zenryaku ソート状態を保持
 		SortListView( hwndList, m_nSortCol );	// 2005.04.23 genta 関数化(ヘッダ書き換えのため)
+		// 2016.03.01 再描画
+		::SendMessageAny( hwndList, WM_SETREDRAW, (WPARAM)TRUE, (LPARAM)0 );
 	}
 }
 
@@ -1648,6 +1667,9 @@ void CDlgFuncList::SetDocLineFuncList()
 	if( m_nOutlineType == OUTLINE_FILETREE ){
 		return;
 	}
+	if( m_nOutlineType == OUTLINE_COLORMARKER ){
+		return;
+	}
 	CEditView* pcEditView=(CEditView*)m_lParam;
 	CDocLineMgr* pcDocLineMgr = &pcEditView->GetDocument()->m_cDocLineMgr;
 	
@@ -2288,7 +2310,7 @@ void CDlgFuncList::SortListView(HWND hwndList, int sortcol)
 		col.mask = LVCF_TEXT;
 	// From Here 2001.12.03 hor
 	//	col.pszText = _T("関数名 *");
-		if(OUTLINE_BOOKMARK == m_nListType){
+		if(OUTLINE_BOOKMARK == m_nListType || OUTLINE_COLORMARKER == m_nListType){
 			col.pszText = const_cast<TCHAR*>( sortcol == col_no ? LS(STR_DLGFNCLST_LIST_TEXT_M) : LS(STR_DLGFNCLST_LIST_TEXT) );
 		}else{
 			col.pszText = const_cast<TCHAR*>( sortcol == col_no ? LS(STR_DLGFNCLST_LIST_FUNC_M) : LS(STR_DLGFNCLST_LIST_FUNC) );

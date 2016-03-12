@@ -58,7 +58,11 @@ int MessageBoxF ( HWND hwndOwner, UINT uType, LPCTSTR lpCaption, LPCTSTR lpText,
 //エラー：赤丸に「×」[OK]
 int ErrorMessage   (HWND hwnd, LPCTSTR format, ...);
 int TopErrorMessage(HWND hwnd, LPCTSTR format, ...);	//(TOPMOST)
+#ifdef _DEBUG
+void ErrorBeep();
+#else
 #define ErrorBeep()     ::MessageBeep(MB_ICONSTOP)
+#endif
 
 //警告：三角に「！」[OK]
 int WarningMessage   (HWND hwnd, LPCTSTR format, ...);

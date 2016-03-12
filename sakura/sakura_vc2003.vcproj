@@ -2146,6 +2146,12 @@
 					RelativePath="..\sakura_core\dlg\CDlgCancel.h">
 				</File>
 				<File
+					RelativePath="..\sakura_core\dlg\CDlgColorMarker.cpp">
+				</File>
+				<File
+					RelativePath="..\sakura_core\dlg\CDlgColorMarker.cpp">
+				</File>
+				<File
 					RelativePath="..\sakura_core\dlg\CDlgCompare.cpp">
 				</File>
 				<File
@@ -2348,6 +2354,12 @@
 				</File>
 				<File
 					RelativePath="..\sakura_core\docplus\CBookmarkManager.h">
+				</File>
+ 				<File
+					RelativePath="..\sakura_core\docplus\CColorMarker.cpp">
+				</File>
+				<File
+					RelativePath="..\sakura_core\docplus\CColorMarker.h">
 				</File>
 				<File
 					RelativePath="..\sakura_core\docplus\CDiffManager.cpp">
@@ -2597,6 +2609,9 @@
 				</File>
 				<File
 					RelativePath="..\sakura_core\cmd\CViewCommander_Clipboard.cpp">
+				</File>
+				<File
+					RelativePath="..\sakura_core\cmd\CViewCommander_ColorMarker.cpp">
 				</File>
 				<File
 					RelativePath="..\sakura_core\cmd\CViewCommander_Convert.cpp">

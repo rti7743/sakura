@@ -158,6 +158,32 @@ bool SColorStrategyInfo::CheckChangeColor(const CStringRef& cLineStr)
 			}
 		}
 	}
+	const CDocLine* pcDocLine = (m_pDispPos->GetLayoutRef() ? m_pDispPos->GetLayoutRef()->GetDocLineRef(): NULL);
+	if( pcDocLine ){
+		int nCount = CColorMarkerVisitor().GetColorMarkerCount(pcDocLine);
+		if( nCount ){
+			for( int i = static_cast<int>(pool->m_vecMarker.size()) - 1; 0 <= i ; i-- ){
+				const CMarkerItem& item = *(pool->m_vecMarker[i]);
+				if( item.m_nEnd <= this->GetPosInLogic() && !(item.m_nEnd == 0 && item.IsLineAll()) ){
+					pool->m_vecMarker.erase(pool->m_vecMarker.begin() + i);
+					bChange = true;
+				}
+			}
+			for( int i = pool->m_nMarkerCurret; i < nCount; i++ ){
+				const CMarkerItem& item = *CColorMarkerVisitor().GetColorMarker(pcDocLine, i);
+				if( item.m_nBegin == this->GetPosInLogic() ){
+					if( !(item.m_nEnd == 0 && !item.IsLineAll()) ){
+						// 通常と行全体を追加
+						pool->m_vecMarker.push_back(&item);
+						bChange = true;
+					}
+				}else if( this->GetPosInLogic() < item.m_nBegin ){
+					pool->m_nMarkerCurret = i; // 1万文字*1万マークだと1億ループになってしまうので現在位置を覚えておく
+					break;
+				}
+			}
+		}
+	}
 
 	return bChange;
 }
@@ -183,10 +209,38 @@ void SColorStrategyInfo::DoChangeColor(CColor3Setting *pcColor)
 	}
 
 	m_cIndex.eColorIndexBg = m_colorIdxBackLine;
+	m_cIndex.InitMarker();
+	CColorStrategyPool* pool = CColorStrategyPool::getInstance();
+	m_cIndex.bEnableMarker = GetMarkerByArray(pool->m_vecMarker, m_cIndex.cMarker);
 
 	*pcColor = m_cIndex;
 }
 
+
+bool SColorStrategyInfo::GetMarkerByArray(const std::vector<const CMarkerItem*>& vecMarker, CMarkerItem& ret)
+{
+	bool bChange = false;
+	for( int i = 0; i < static_cast<int>(vecMarker.size()); i++ ){
+		const CMarkerItem& item = *(vecMarker[i]);
+		if( item.IsBoldSet() ){
+			ret.m_nBold = item.m_nBold;
+			bChange = true;
+		}
+		if( item.IsUnderLineSet() ){
+			ret.m_nUnderLine = item.m_nUnderLine;
+			bChange = true;
+		}
+		if( item.m_cTEXT != -1 ){
+			ret.m_cTEXT = item.m_cTEXT;
+			bChange = true;
+		}
+		if( item.m_cBACK != -1 ){
+			ret.m_cBACK = item.m_cBACK;
+			bChange = true;
+		}
+	}
+	return bChange;
+}
 
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 //                          プール                             //
@@ -248,6 +302,8 @@ void CColorStrategyPool::NotifyOnStartScanLogic()
 	for(int i = 0; i < size; i++ ){
 		GetStrategy(i)->OnStartScanLogic();
 	}
+	m_vecMarker.clear();
+	m_nMarkerCurret = 0;
 }
 
 

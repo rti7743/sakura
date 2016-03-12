@@ -30,9 +30,6 @@
 #include "env/DLLSHAREDATA.h"
 #include "window/CEditWnd.h"
 
-//折り返し描画
-void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView);
-
 //EOF描画関数
 //実際には pX と nX が更新される。
 //2004.05.29 genta
@@ -59,6 +56,11 @@ bool CFigure_Eol::Match(const wchar_t* pText, int nTextLen) const
 	return false;
 }
 
+inline const ColorInfo& GetColorInfo(const STypeConfig* p, int nColorIndex)
+{
+	return p->m_ColorInfoArr[ToColorInfoArrIndex(EColorIndexType(nColorIndex))];
+}
+
 // 2006.04.29 Moca 選択処理のため縦線処理を追加
 //$$ 高速化可能。
 bool CFigure_Eol::DrawImp(SColorStrategyInfo* pInfo)
@@ -69,48 +71,63 @@ bool CFigure_Eol::DrawImp(SColorStrategyInfo* pInfo)
 	const CLayout* pcLayout = pInfo->m_pDispPos->GetLayoutRef();
 	CEol cEol = pcLayout->GetLayoutEol();
 	if(cEol.GetLen()){
+		
 		// CFigureSpace::DrawImp_StyleSelectもどき。選択・検索色を優先する
-		CTypeSupport cCurrentType(pcView, pInfo->GetCurrentColor());	// 周辺の色（現在の指定色/選択色）
-		CTypeSupport cCurrentType2(pcView, pInfo->GetCurrentColor2());	// 周辺の色（現在の指定色）
-		CTypeSupport cTextType(pcView, COLORIDX_TEXT);				// テキストの指定色
-		CTypeSupport cSpaceType(pcView, GetDispColorIdx());	// 空白の指定色
-		CTypeSupport cSearchType(pcView, COLORIDX_SEARCH);	// 検索色(EOL固有)
-		CTypeSupport cCurrentTypeBg(pcView, pInfo->GetCurrentColorBg());
-		CTypeSupport& cCurrentType3 = (cCurrentType2.GetBackColor() == cTextType.GetBackColor() ? cCurrentTypeBg: cCurrentType2);
+		const ColorInfoBase& colorType = GetColorInfo(m_pTypeData, pInfo->GetCurrentColor());	// 周辺の色（現在の指定色/選択色）
+		const ColorInfoBase& colorType2 = GetColorInfo(m_pTypeData, pInfo->GetCurrentColor2());	// 周辺の色（現在の指定色）
+		const ColorInfoBase& colorText = GetColorInfo(m_pTypeData, COLORIDX_TEXT);				// テキストの指定色
+		const ColorInfoBase& colorSpace = GetColorInfo(m_pTypeData, GetDispColorIdx());	// 空白の指定色
+		const ColorInfoBase& colorBg = GetColorInfo(m_pTypeData, pInfo->GetCurrentColorBg());
+		const COLORREF crTextBack = colorText.GetBackColor();
+
+		ColorInfoBase colorType3 = SetColorInfoFromMarker(pInfo, colorType2, ToColorInfoArrIndex(pInfo->GetCurrentColor2()));
+		const ColorInfoBase& colorType4 = (colorType3.GetBackColor() == crTextBack ? colorBg: colorType3);
+		const ColorInfoBase* pcSearch = NULL;	// 検索色(EOL固有)
 		COLORREF crText;
 		COLORREF crBack;
-		bool bSelecting = pInfo->GetCurrentColor() != pInfo->GetCurrentColor2();
-		bool blendColor = bSelecting && cCurrentType.GetTextColor() == cCurrentType.GetBackColor(); // 選択混合色
-		CTypeSupport& currentStyle = blendColor ? cCurrentType2 : cCurrentType;
-		CTypeSupport *pcText, *pcBack;
-		if( bSelecting && !blendColor ){
-			// 選択文字色固定指定
-			pcText = &cCurrentType;
-			pcBack = &cCurrentType;
-		}else if( pInfo->GetCurrentColor2() == COLORIDX_SEARCH ){
-			// 検索色優先
-			pcText = &cSearchType;
-			pcBack = &cSearchType;
+		const bool bNotSelecting = pInfo->GetCurrentColor() == pInfo->GetCurrentColor2();
+		const bool blendColor = !bNotSelecting && colorType.GetTextColor() == colorType.GetBackColor(); // 選択混合色
+		bool bBold;
+		bool bItalic;
+		const ColorInfoBase *pcText, *pcBack;
+		if( !bNotSelecting && !blendColor ){
+			// 指定選択色:選択色を優先
+			pcText = &colorType;
+			pcBack = (colorType.GetBackColor() == crTextBack ? &colorBg: &colorType); // colorType5
+			bBold = colorType.IsBoldFont();
+			bItalic = colorType.IsItalic();
+		}else if( COLORIDX_SEARCH <= pInfo->GetCurrentColor2() && pInfo->GetCurrentColor2() <= COLORIDX_SEARCHTAIL ){
+			// 検索and通常,検索andアルファ:検索色優先
+			pcSearch = &GetColorInfo(m_pTypeData, pInfo->GetCurrentColor2());
+			pcText = pcSearch;
+			pcBack = (pcSearch->GetBackColor() == crTextBack ? &colorBg: pcSearch);
+			bBold = pcSearch->IsBoldFont();
+			bItalic = pcSearch->IsItalic();
 		}else{
-			pcText = cSpaceType.GetTextColor() == cTextType.GetTextColor() ? &cCurrentType2 : &cSpaceType;
-			pcBack = cSpaceType.GetBackColor() == cTextType.GetBackColor() ? &cCurrentType3 : &cSpaceType;
+			// アルファor通常:改行の色優先
+			const bool bText = colorSpace.GetTextColor() == colorText.GetTextColor();
+			const bool bBack = colorSpace.GetBackColor() == crTextBack;
+			pcText = (bText ? &colorType3 : &colorSpace);
+			pcBack = (bBack ? &colorType4 : &colorSpace);
+			bBold = colorType3.IsBoldFont();
+			bItalic = colorType3.IsItalic();
 		}
 		if( blendColor ){
 			// 混合色(検索色を優先しつつ)
-			crText = pcView->GetTextColorByColorInfo2(cCurrentType.GetColorInfo(), pcText->GetColorInfo());
-			crBack = pcView->GetBackColorByColorInfo2(cCurrentType.GetColorInfo(), pcBack->GetColorInfo());
+			crText = pcView->GetTextColorByColorInfo2(colorType, *pcText);
+			crBack = pcView->GetBackColorByColorInfo2(colorType, *pcBack);
 		}else{
 			crText = pcText->GetTextColor();
 			crBack = pcBack->GetBackColor();
 		}
 		pInfo->m_gr.PushTextForeColor(crText);
 		pInfo->m_gr.PushTextBackColor(crBack);
-		bool bTrans = pcView->IsBkBitmap() && cTextType.GetBackColor() == crBack;
+		bool bTrans = pcView->IsBkBitmap() && colorText.GetBackColor() == crBack;
 		SFONT sFont;
-		sFont.m_sFontAttr.m_bBoldFont = cSpaceType.IsBoldFont() || currentStyle.IsBoldFont();
-		sFont.m_sFontAttr.m_bUnderLine = cSpaceType.HasUnderLine();
-		sFont.m_sFontAttr.m_bItalic = cSpaceType.IsItalic() || currentStyle.IsItalic();
-		sFont.m_sFontAttr.m_bStrikeOut = cSpaceType.IsStrikeOut();
+		sFont.m_sFontAttr.m_bBoldFont = colorSpace.IsBoldFont() || bBold;
+		sFont.m_sFontAttr.m_bUnderLine = colorSpace.HasUnderLine();
+		sFont.m_sFontAttr.m_bItalic = colorSpace.IsItalic() || bItalic;
+		sFont.m_sFontAttr.m_bStrikeOut = colorSpace.IsStrikeOut();
 		
 		sFont.m_hFont = pInfo->m_pcView->GetFontset().ChooseFontHandle( 0, sFont.m_sFontAttr );
 		pInfo->m_gr.PushMyFont(sFont);
@@ -135,10 +152,18 @@ bool CFigure_Eol::DrawImp(SColorStrategyInfo* pInfo)
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 
 // 折り返し描画
-void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayoutYInt nLineNum )
+bool CFigure_Wrap::DrawImp(SColorStrategyInfo* pInfo){
+	// 1文字進んでしまうので戻す
+	CLogicXInt posBk = pInfo->m_nPosInLogic;
+	bool ret = CFigureSpace::DrawImp(pInfo);
+	pInfo->m_nPosInLogic = posBk;
+	return ret;
+}
+
+void CFigure_Wrap::DispSpace(CGraphics& gr, DispPos* pDispPos, CEditView* pcView, bool bTrans) const
 {
-	CTypeSupport cWrapType(pcView,COLORIDX_WRAP);
 	const wchar_t* szText;
+	CTypeSupport cWrapType(pcView, this->GetColorIdx());
 	if (cWrapType.IsDisp()) {
 		szText = L"<";
 	}else{
@@ -148,43 +173,6 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 	RECT rcClip2;
 	if(pcView->GetTextArea().GenerateClipRect(&rcClip2, *pDispPos, width))
 	{
-		//サポートクラス
-		CTypeSupport cWrapType(pcView,COLORIDX_WRAP);
-		CTypeSupport cTextType(pcView,COLORIDX_TEXT);
-		CTypeSupport cBgLineType(pcView,COLORIDX_CARETLINEBG);
-		CTypeSupport cEvenBgLineType(pcView,COLORIDX_EVENLINEBG);
-		CTypeSupport cPageViewBgLineType(pcView,COLORIDX_PAGEVIEW);
-		bool bBgcolor = cWrapType.GetBackColor() == cTextType.GetBackColor();
-		EColorIndexType eBgcolorOverwrite = COLORIDX_WRAP;
-		bool bTrans = pcView->IsBkBitmap();
-		if( cWrapType.IsDisp() ){
-			CEditView& cActiveView = pcView->m_pcEditWnd->GetActiveView();
-			if( cBgLineType.IsDisp() && pcView->GetCaret().GetCaretLayoutPos().GetY2() == nLineNum ){
-				if( bBgcolor ){
-					eBgcolorOverwrite = COLORIDX_CARETLINEBG;
-					bTrans = bTrans && cBgLineType.GetBackColor() == cTextType.GetBackColor();
-				}
-			}else if( cEvenBgLineType.IsDisp() && nLineNum % 2 == 1 ){
-				if( bBgcolor ){
-					eBgcolorOverwrite = COLORIDX_EVENLINEBG;
-					bTrans = bTrans && cEvenBgLineType.GetBackColor() == cTextType.GetBackColor();
-				}
-			}else if( pcView->m_bMiniMap && cActiveView.GetTextArea().GetViewTopLine() <= nLineNum && nLineNum < cActiveView.GetTextArea().GetBottomLine() ){
-				eBgcolorOverwrite = COLORIDX_PAGEVIEW;
-				bTrans = bTrans && cPageViewBgLineType.GetBackColor() == cTextType.GetBackColor();
-			}
-		}
-		bool bChangeColor = false;
-
-		//描画文字列と色の決定
-		if( cWrapType.IsDisp() )
-		{
-			cWrapType.SetGraphicsState_WhileThisObj(gr);
-			if( eBgcolorOverwrite != COLORIDX_WRAP ){
-				bChangeColor = true;
-				gr.PushTextBackColor( CTypeSupport(pcView, eBgcolorOverwrite).GetBackColor() );
-			}
-		}
 		int fontNo = WCODE::GetFontNo(*szText);
 		int nHeightMargin = pcView->GetTextMetrics().GetCharHeightMarginByFontNo(fontNo);
 		int nDx[1] = {(Int)width};
@@ -200,9 +188,6 @@ void _DispWrap(CGraphics& gr, DispPos* pDispPos, const CEditView* pcView, CLayou
 			wcslen(szText),
 			nDx
 		);
-		if( bChangeColor ){
-			gr.PopTextBackColor();
-		}
 	}
 	pDispPos->ForwardDrawCol(width);
 }

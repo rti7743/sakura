@@ -20,6 +20,8 @@ class CFuncInfo;
 #include <map>
 #include "util/design_template.h"
 
+class CLayoutMgr;
+
 // 標準的な付加情報定数
 #define FL_OBJ_DEFINITION	0	// 親クラスの定義位置
 #define FL_OBJ_DECLARE		1	// 関数プロトタイプ宣言
@@ -44,10 +46,14 @@ public:
 	void AppendData( CLogicInt, CLayoutInt, const NOT_TCHAR*, int, int nDepth = 0 );	/* 配列の最後にデータを追加する 2002.04.01 YAZAKI 深さ導入*/
 	void AppendData( CLogicInt nLogicLine, CLogicInt nLogicCol, CLayoutInt nLayoutLine, CLayoutInt nLayoutCol, const TCHAR*, const TCHAR*, int, int nDepth = 0 );	/* 配列の最後にデータを追加する 2010.03.01 syat 桁導入*/
 	void AppendData( CLogicInt nLogicLine, CLogicInt nLogicCol, CLayoutInt nLayoutLine, CLayoutInt nLayoutCol, const NOT_TCHAR*, const NOT_TCHAR*, int, int nDepth = 0 );	/* 配列の最後にデータを追加する 2010.03.01 syat 桁導入*/
+
+
+	void AppendData2( CLayoutMgr*, const CLogicPoint& ptPos, const wchar_t*, const wchar_t* = NULL, int nInfo = 0, int nDepth = 0 );
 	int	GetNum( void ){	return m_nFuncInfoArrNum; }	/* 配列要素数を返す */
 	void Empty( void );
 	void DUMP( void );
 	void SetAppendText( int info, std::wstring s, bool overwrite );
+	bool ContainAppendText( int info ) const;
 	std::wstring GetAppendText( int info );
 	int AppendTextLenMax(){ return m_nAppendTextLenMax; }
 

@@ -464,6 +464,42 @@ bool CShareData::InitShareData()
 
 			sSearch.m_nTagJumpMode = 1;				//タグジャンプモード
 			sSearch.m_nTagJumpModeKeyword = 3;			//タグジャンプモード
+
+			// カラーマーカー
+			Setting_ColorMarker& sMarker = sSearch.m_sColorMarker;
+			sMarker.m_bSaveColorMarker = false;
+			CMarkerItem item;
+			item.m_nBegin = 0;
+			item.m_nEnd = 0;
+			item.m_nBold = 0;
+			item.m_nUnderLine = 0;
+			// item.m_cTEXT = RGB(0,0,0);
+			// item.m_cBACK = RGB(160, 255, 255);
+			item.m_nGyouLine = 0;
+			item.m_nExtValue = 0;
+			SColorAttr presetItems[10] = {
+				{RGB(  0,   0,   0), RGB(160, 255, 255)},
+				{RGB(  0,   0,   0), RGB(153, 255, 153)},
+				{RGB(  0,   0,   0), RGB(255, 153, 153)},
+				{RGB(  0,   0,   0), RGB(255, 153, 255)},
+				{RGB(  0,   0,   0), RGB(255, 192, 130)},
+				{RGB(255, 255, 255), RGB(  0,   0, 255)},
+				{RGB(255, 255, 255), RGB(  0, 192,   0)},
+				{RGB(255, 255, 255), RGB(255,   0,   0)},
+				{RGB(255, 255, 255), RGB(255,   0, 255)},
+				{RGB(255, 255, 255), RGB(128, 128, 128)},
+			};
+			const int nPresetCount = _countof(presetItems);
+			for( int i = 0; i < _countof(sMarker.m_ColorItems); i++ ){
+				CMarkerItem& data = sMarker.m_ColorItems[i];
+				SColorAttr& preset = presetItems[i % nPresetCount];
+				data = item;
+				data.m_cTEXT = preset.m_cTEXT;
+				data.m_cBACK = preset.m_cBACK;
+				data.m_nExtValue = i + 1;
+				sMarker.m_szSetNames[i][0] = L'\0';
+			}
+			sMarker.m_ColorItemLast = sMarker.m_ColorItems[0];
 		}
 
 		// [キー割り当て]タブ
@@ -1377,12 +1413,6 @@ void CShareData::InitPopupMenu(CommonSetting* pCommon)
 	rMenu.m_nCustMenuItemFuncArr[0][n] = F_0;
 	rMenu.m_nCustMenuItemKeyArr [0][n] = '\0';
 	n++;
-	rMenu.m_nCustMenuItemFuncArr[0][n] = F_COPY_CRLF;	//Nov. 9, 2000 JEPRO 「CRLF改行でコピー」を追加
-	rMenu.m_nCustMenuItemKeyArr [0][n] = 'L';
-	n++;
-	rMenu.m_nCustMenuItemFuncArr[0][n] = F_COPY_ADDCRLF;
-	rMenu.m_nCustMenuItemKeyArr [0][n] = 'H';
-	n++;
 	rMenu.m_nCustMenuItemFuncArr[0][n] = F_PASTEBOX;	//Nov. 9, 2000 JEPRO 「矩形貼り付け」を復活
 	rMenu.m_nCustMenuItemKeyArr [0][n] = 'X';
 	n++;
@@ -1402,25 +1432,14 @@ void CShareData::InitPopupMenu(CommonSetting* pCommon)
 	rMenu.m_nCustMenuItemFuncArr[0][n] = F_TAGJUMPBACK;
 	rMenu.m_nCustMenuItemKeyArr [0][n] = 'B';
 	n++;
-	rMenu.m_nCustMenuItemFuncArr[0][n] = F_0;		//Oct. 15, 2000 JEPRO 以下に「選択範囲内全行コピー」と「引用符付きコピー」を追加
-	rMenu.m_nCustMenuItemKeyArr [0][n] = '\0';
-	n++;
-	rMenu.m_nCustMenuItemFuncArr[0][n] = F_COPYLINES;
-	rMenu.m_nCustMenuItemKeyArr [0][n] = '@';
-	n++;
-	rMenu.m_nCustMenuItemFuncArr[0][n] = F_COPYLINESASPASSAGE;
-	rMenu.m_nCustMenuItemKeyArr [0][n] = '.';
-	n++;
 	rMenu.m_nCustMenuItemFuncArr[0][n] = F_0;
 	rMenu.m_nCustMenuItemKeyArr [0][n] = '\0';
 	n++;
-	rMenu.m_nCustMenuItemFuncArr[0][n] = F_COPYPATH;
-	rMenu.m_nCustMenuItemKeyArr [0][n] = '\\';
-	n++;
-	rMenu.m_nCustMenuItemFuncArr[0][n] = F_PROPERTY_FILE;
-	rMenu.m_nCustMenuItemKeyArr [0][n] = 'F';		//Nov. 9, 2000 JEPRO 「やり直し」とバッティングしていたアクセスキーを変更(R→F)
+	rMenu.m_nCustMenuItemFuncArr[0][n] = F_CUSTMENU_2;
+	rMenu.m_nCustMenuItemKeyArr [0][n] = '\0';
 	n++;
 	rMenu.m_nCustMenuItemNumArr[0] = n;
+	rMenu.m_bCustMenuPopupArr[0] = true; // サブメニュー展開
 
 	/* カスタムメニュー１ */
 	rMenu.m_nCustMenuItemNumArr[1] = 7;
@@ -1438,6 +1457,31 @@ void CShareData::InitPopupMenu(CommonSetting* pCommon)
 	rMenu.m_nCustMenuItemKeyArr [1][5] = '\0';
 	rMenu.m_nCustMenuItemFuncArr[1][6] = F_WINCLOSE;
 	rMenu.m_nCustMenuItemKeyArr [1][6] = 'C';
+
+	/* カスタムメニュー2 :カラーマーカー */
+	const int nCM = 2;
+	n = 0;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_SETCOLORMARKER;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = 'C'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_SETCOLORMARKER1;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = '1'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_SETCOLORMARKER2;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = '2'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_SETCOLORMARKER3;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = '3'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_SETCOLORMARKER4;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = '4'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_SETCOLORMARKER5;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = '5'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_DELCOLORMARKER;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = 'D'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_DLGCOLORMARKER;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = 'E'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_0;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = '\0'; n++;
+	rMenu.m_nCustMenuItemFuncArr[nCM][n] = F_BOOKMARK_SET;
+	rMenu.m_nCustMenuItemKeyArr [nCM][n] = 'B'; n++;
+	rMenu.m_nCustMenuItemNumArr[nCM] = n;
 
 	/* タブメニュー */	//@@@ 2003.06.14 MIK
 	n = 0;

@@ -134,4 +134,9 @@ int TopCustomMessage(HWND hwnd, UINT uType, LPCTSTR format, ...){   va_list p;va
 int PleaseReportToAuthor(HWND hwnd, LPCTSTR format, ...){ va_list p;va_start(p, format);int n=VMessageBoxF  (hwnd, MB_OK | MB_ICONSTOP | MB_TOPMOST, LS(STR_ERR_DLGDOCLMN1), format, p);va_end(p);return n;}
 
 
+#ifdef _DEBUG
+void ErrorBeep(){
+	::MessageBeep(MB_ICONSTOP);
+}
+#endif
 

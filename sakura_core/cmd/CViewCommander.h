@@ -245,6 +245,25 @@ public:
 	CColorStrategy* GetColorStrategyHTML(const CStringRef&, int, const CColorStrategyPool*, CColorStrategy**, CColorStrategy**, bool& bChange);
 	void Command_CREATEKEYBINDLIST( void );			// キー割り当て一覧をコピー //Sept. 15, 2000 JEPRO	Command_の作り方がわからないので殺してある
 
+	// カラーマーカー
+	BOOL Command_SETCOLORMARKER_SET(int nIndex);	// カラーマーカーセットn
+	BOOL Command_SETCOLORMARKER_STR(LPCWSTR pszMarkar);		// カラーマーカー設定文字列(マクロ)
+	void Command_SETCOLORMARKER(const CMarkerItem& item);	// カラーマーカー設定(Sub)
+	BOOL Command_SETCOLORMARKER_DIRECT(LPCWSTR pszMarkar);		// カラーマーカー設定ダイレクト(マクロ)
+	BOOL Command_SETCOLORMARKER_ITEM(const CMarkerItem& item, CLogicYInt nLineNum, bool bDirect);		// カラーマーカーセット(Sub)
+	BOOL Command_SETCOLORMARKER_SEARCH_SET(int nIdex); // カラーマーカー検索設定(セットn)
+	BOOL Command_SETCOLORMARKER_SEARCH_STR(LPCWSTR pszMarkar); // カラーマーカー検索設定(マクロ)
+	void Command_SETCOLORMARKER_SEARCH(CMarkerItem& marker); // カラーマーカー検索設定
+	void Command_DELCOLORMARKER(void);			// カラーマーカー削除
+	void Command_DLGCOLORMARKER(void);			// カラーマーカーダイアログ
+	void Command_COLORMARKER_NEXT(void);		// 次のカラーマーカー
+	void Command_COLORMARKER_PREV(void);		// 前のカラーマーカー
+	BOOL Command_DELCOLORMARKER_STR(LPCWSTR pszMarker);	//カラーマーカー指定削除
+	void Command_DELCOLORMARKER_ALL(void);	//カラーマーカー全削除
+	void Command_DELCOLORMARKER_EXTVALUE(UINT nExtValue, UINT nExtValue2);
+	void Command_COLORMARKER_LOAD(LPCWSTR pszFileName);	//カラーマーカー読み込み
+	void Command_COLORMARKER_SAVE(LPCWSTR pszFileName);	//カラーマーカー書き込み
+	BOOL Command_COLORMARKER_SETPRESET(int nIndex, LPCWSTR pszMarker, LPCWSTR pszName);	//カラーマーカープリセット・履歴設定
 
 	/* 挿入系 */
 	void Command_INS_DATE( void );	//日付挿入

@@ -47,6 +47,19 @@ struct ColorInfoBase{
 	bool		m_bDisp;			//!< 表示
 	SFontAttr	m_sFontAttr;		//!< フォント属性
 	SColorAttr	m_sColorAttr;		//!< 色属性
+
+	//!前景色(文字色)
+	COLORREF GetTextColor() const { return m_sColorAttr.m_cTEXT; }
+	//!背景色
+	COLORREF GetBackColor() const { return m_sColorAttr.m_cBACK; }
+	//!太字かどうか
+	bool IsBoldFont() const { return m_sFontAttr.m_bBoldFont; }
+	//!下線を持つかどうか
+	bool HasUnderLine() const { return m_sFontAttr.m_bUnderLine; }
+	//!斜体
+	bool IsItalic() const { return m_sFontAttr.m_bItalic; }
+	//!取り消し線
+	bool IsStrikeOut() const { return m_sFontAttr.m_bStrikeOut; }
 };
 
 //! 名前とインデックス付き色設定

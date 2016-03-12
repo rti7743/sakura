@@ -391,6 +391,57 @@ struct CommonSetting_Format
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
 //                           検索                              //
 // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- //
+
+enum EGyouLineMode{
+	E_GYOULINE_STRING = 0,	//!< テキストマーカー
+	E_GYOULINE_GYOU,		//!< 行番号
+	E_GYOULINE_LINE,		//!< 行全体
+	E_GYOULINE_LINEGYOU,	//!< 行番号・行全体
+};
+
+class CMarkerItem
+{
+public:
+	CLogicXInt	m_nBegin;
+	CLogicXInt	m_nEnd;
+	char		m_nBold; // 0:未設定, 1:太字 2:太字なし
+	char		m_nUnderLine; // 0:未設定, 1:下線 2:下線なし
+	char		m_nGyouLine; // EGyouLineMode
+	COLORREF	m_cTEXT;
+	COLORREF	m_cBACK;
+	UINT		m_nExtValue;
+	bool IsBoldSet() const{
+		return (1 <= m_nBold && m_nBold <= 2);
+	}
+	bool IsUnderLineSet() const{
+		return (1 <= m_nUnderLine && m_nUnderLine <= 2);
+	}
+	bool IsBold() const{
+		return m_nBold == 1;
+	}
+	bool IsUnderLine() const{
+		return m_nUnderLine == 1;
+	}
+	bool IsGyouOrLine() const{
+		return ((m_nGyouLine & E_GYOULINE_LINEGYOU) != 0);
+	}
+	bool IsGyou() const{
+		return ((m_nGyouLine & E_GYOULINE_GYOU) != 0);
+	}
+	bool IsLineAll() const{
+		return ((m_nGyouLine & E_GYOULINE_LINE) != 0);
+	}
+};
+
+struct Setting_ColorMarker
+{
+	bool			m_bSaveColorMarker;			//!< カラーマーカーの保存
+	CMarkerItem 	m_ColorItemLast;			//!< 最後に使った色
+	CMarkerItem 	m_ColorItems[10];			//!< プリセット
+	wchar_t			m_szSetNames[10][MAX_MARKER_NAME];	//!< プリセット名
+	DWORD			m_dwChooseColor[16];		//!< 色選択ダイアログの見本
+};
+
 struct CommonSetting_Search
 {
 	int				m_nSearchKeySequence;		//!< 検索シーケンス(未保存)
@@ -429,6 +480,8 @@ struct CommonSetting_Search
 
 	int				m_nTagJumpMode;				//!< タグジャンプモード(0-3)
 	int				m_nTagJumpModeKeyword;		//!< タグジャンプモード(0-3)
+
+	Setting_ColorMarker m_sColorMarker;			//!< カラーマーカー
 
 	//INI内設定のみ
 	BOOL			m_bUseCaretKeyWord;			//!< キャレット位置の単語を辞書検索		// 2006.03.24 fon
