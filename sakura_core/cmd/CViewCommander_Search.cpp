@@ -1108,14 +1108,12 @@ int CViewCommander::Command_REPLACE_ALL_core()
 				lineCnt = (Int)rLayoutMgr.GetLineCount();
 				// 検索後の範囲終端
 				ptOld = GetSelect().GetTo();
-				bool bChangeLine = false;
 				// 前回の検索行と違う？
 				if(ptOld.y!=linPrev){
 					colDif=(0);
 					CLogicPoint boxTo;
 					rLayoutMgr.LayoutToLogic(CLayoutPoint(sRangeA.GetTo().x,ptOld.y), &boxTo);
 					boxSelToX = boxTo.x;
-					bChangeLine = true;
 				}
 				linPrev=(Int)ptOld.GetY2();
 				CLogicPoint logicTo;
@@ -1131,8 +1129,8 @@ int CViewCommander::Command_REPLACE_ALL_core()
 					|| (GetSelect().GetFrom().y != ptOld.y)) {
 					// 2016.01.13 行をまたいでいる場合もスキップ
 					CLayoutYInt		linNext;			//次回の検索行(矩形)
-					if ((logicTo.x <= boxSelToX + colDif) || (GetSelect().GetFrom().y != ptOld.y)) {
-						// To以上か行が違えば次の行。ToではなくFromの次の行からにする
+					if ((boxSelToX + colDif < logicTo.x) || (GetSelect().GetFrom().y != ptOld.y)) {
+						// To超か行が違えば次の行。ToではなくFromの次の行からにする
 						linNext = GetSelect().GetFrom().GetY2() + CLayoutYInt(1);
 					}else{
 						linNext = GetSelect().GetFrom().GetY2();
