@@ -332,7 +332,7 @@ void CDlgConfigChildMacro::InitDialog( HWND hwndDlg )
 {
 	struct ColumnData_CDlgConfigChildMacro_Init ColumnList[] = {
 		{ STR_PROPCOMMACR_LIST1, 40 },
-		{ STR_PROPCOMMACR_LIST2, 150 },
+		{ STR_PROPCOMMACR_LIST2, 200 },
 		{ STR_PROPCOMMACR_LIST3, 150 },
 		{ STR_PROPCOMMACR_LIST4, 40 },
 		{ STR_PROPCOMMACR_LIST5, 40 },
@@ -349,14 +349,14 @@ void CDlgConfigChildMacro::InitDialog( HWND hwndDlg )
 	int pos;
 	RECT rc;
 	::GetWindowRect( hListView, &rc );
-	int width = rc.right - rc.left;
+	int width = rc.right - rc.left - ::GetSystemMetrics(SM_CXHSCROLL);
 	
 	for( pos = 0; pos < _countof( ColumnList ); ++pos ){
 		
 		memset_raw( &sColumn, 0, sizeof( sColumn ));
 		sColumn.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM | LVCF_FMT;
 		sColumn.pszText = const_cast<TCHAR*>(LS(ColumnList[pos].titleId));
-		sColumn.cx = ColumnList[pos].width * width / 499;
+		sColumn.cx = ColumnList[pos].width * width / (499 - 17);
 		sColumn.iSubItem = pos;
 		sColumn.fmt = LVCFMT_LEFT;
 		

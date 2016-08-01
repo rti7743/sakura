@@ -777,15 +777,12 @@ void CViewCommander::Command_SORT(BOOL bAsc)	//bAsc:TRUE=¸‡,FALSE=~‡
 		}
 		lastData.cmemLine._SetStringLength(nLen);
 	}
-	// 2010.08.22 Moca swap‚Åíœ
 	{
 		// 2016.03.04 Moca sta“àƒf[ƒ^‚Ìíœ–Y‚êC³
 		int nSize = (int)sta.size();
 		for(int k = 0; k < nSize; k++){
 			delete sta[k];
 		}
-		std::vector<SORTDATA*> temp;
-		temp.swap(sta);
 	}
 
 	CLayoutRange sSelectOld_Layout;

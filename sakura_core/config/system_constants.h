@@ -532,13 +532,13 @@
 	Version x170:
 	ダイアログフォント 2014.11.28 Moca
 
-	Version x171:
+	Version 170/x171:
 	ini読み取り専用オプション 2014.12.08 Moca
 
 	Version x172:
 	sakura_history.ini分離設定 2014.12.08 Moca
 
-	Version x173:
+	Version 169/x173:
 	左右リピート文字数 2014.01.08 Moca
 
 	Version x174:

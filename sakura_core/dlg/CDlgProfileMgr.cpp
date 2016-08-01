@@ -137,6 +137,8 @@ void CDlgProfileMgr::SetData( int nSelIndex )
 		nSelIndex = 0;
 	}
 	List_SetCurSel( hwndList, nSelIndex );
+	DlgItem_Enable( GetHwnd(), IDC_BUTTON_PROF_DELETE, nSelIndex != 0 );
+	DlgItem_Enable( GetHwnd(), IDC_BUTTON_PROF_RENAME, nSelIndex != 0 );
 
 	DlgItem_Enable( GetHwnd(), IDC_BUTTON_PROF_DEFCLEAR, settings.m_nDefaultIndex != -1 );
 	CheckDlgButtonBool( GetHwnd(), IDC_CHECK_PROF_DEFSTART, settings.m_bDefaultSelect );
@@ -318,7 +320,7 @@ void CDlgProfileMgr::CreateProf()
 	std::tstring strTitle = LS(STR_DLGPROFILE_NEW_PROF_TITLE);
 	std::tstring strMessage = LS(STR_DLGPROFILE_NEW_PROF_MSG);
 	szText[0] = _T('\0');
-	if( !cDlgInput1.DoModal(G_AppInstance(), GetHwnd(), strTitle.c_str(), strMessage.c_str(), max_size, szText) ){
+	if( !cDlgInput1.DoModal(::GetModuleHandle(NULL), GetHwnd(), strTitle.c_str(), strMessage.c_str(), max_size, szText) ){
 		return;
 	}
 	if( szText[0] == _T('\0') ){
@@ -379,7 +381,7 @@ void CDlgProfileMgr::RenameProf()
 	std::tstring strTitle = LS(STR_DLGPROFILE_RENAME_TITLE);
 	std::tstring strMessage = LS(STR_DLGPROFILE_RENAME_MSG);
 	int max_size = _MAX_PATH;
-	if( !cDlgInput1.DoModal(G_AppInstance(), GetHwnd(), strTitle.c_str(), strMessage.c_str(), max_size, szText) ){
+	if( !cDlgInput1.DoModal(::GetModuleHandle(NULL), GetHwnd(), strTitle.c_str(), strMessage.c_str(), max_size, szText) ){
 		return;
 	}
 	if( szText[0] == _T('\0') ){
