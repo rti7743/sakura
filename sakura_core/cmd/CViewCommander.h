@@ -336,6 +336,7 @@ public:
 	void Command_Diff_Prev( void );						/* 前の差分へ */	//@@@ 2002.05.25 MIK
 	void Command_Diff_Reset( void );					/* 差分の全解除 */	//@@@ 2002.05.25 MIK
 	void Command_BRACKETPAIR( void );					/* 対括弧の検索 */
+	void Command_HTMLTAGPAIR( void );					/* 対HTMLタグの検索 */
 // From Here 2001.12.03 hor
 	void Command_BOOKMARK_SET( void );					/* ブックマーク設定・解除 */
 	void Command_BOOKMARK_NEXT( void );					/* 次のブックマークへ */

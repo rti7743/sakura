@@ -1615,3 +1615,27 @@ void CViewCommander::Command_BRACKETPAIR( void )
 		//	何もしない
 	}
 }
+
+//	Dec. 25 rti7743
+//	対HTMLタグの検索
+void CViewCommander::Command_HTMLTAGPAIR( void )
+{
+	CLayoutPoint ptColLine;
+	//int nLine, nCol;
+
+	int mode = 3;
+	/*
+	bit0(in)  : 表示領域外を調べるか？ 0:調べない  1:調べる
+	bit1(in)  : 前方文字を調べるか？   0:調べない  1:調べる
+	bit2(out) : 見つかった位置         0:後ろ      1:前
+	*/
+	if( m_pCommanderView->SearchHTMLTag( GetCaret().GetCaretLayoutPos(), &ptColLine, &mode ) ){	// 02/09/18 ai
+		//	2005.06.24 Moca
+		//	2006.07.09 genta 表示更新漏れ：新規関数にて対応
+		m_pCommanderView->MoveCursorSelecting( ptColLine, m_pCommanderView->GetSelectionInfo().m_bSelectingLock );
+	}
+	else{
+		//	失敗した場合は nCol/nLineには有効な値が入っていない.
+		//	何もしない
+	}
+}

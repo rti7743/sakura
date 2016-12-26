@@ -501,6 +501,7 @@ public:
 	void DrawBracketPair( bool );								/* ëŒäáå ÇÃã≠í≤ï\é¶ 02/09/18 ai */
 	bool IsBracket( const wchar_t*, CLogicInt, CLogicInt );					/* äáå îªíË 03/01/09 ai */
 
+	bool  SearchHTMLTag( const CLayoutPoint& ptPos, CLayoutPoint* pptLayoutNew, int* mode );	// ëŒHTMLÉ^ÉOÇÃåüçı
 	int getHTMLTagName( const wchar_t *cline ,const CLogicPoint& ptPos , wchar_t *out_html_tag, int max_html_tag_size);
 	bool SearchHTMLTagForward(CLogicPoint ptPos,CLayoutPoint* pptLayoutNew,const wchar_t* tagname,int* mode);
 	bool SearchHTMLTagBackward(CLogicPoint ptPos,CLayoutPoint* pptLayoutNew,const wchar_t* tagname,int* mode);

@@ -356,6 +356,7 @@ const EFunctionCode pnFuncList_Search[] = {	//Oct. 16, 2000 JEPRO 変数名変更(Lis
 	F_DIFF_PREV			,	//前の差分へ
 	F_DIFF_RESET		,	//差分の全解除
 	F_BRACKETPAIR		,	//対括弧の検索
+	F_HTMLTAGPAIR		,	//対HTMLタグの検索
 	F_BOOKMARK_SET		,	//ブックマーク設定・解除
 	F_BOOKMARK_NEXT		,	//次のブックマークへ
 	F_BOOKMARK_PREV		,	//前のブックマークへ

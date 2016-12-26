@@ -348,6 +348,7 @@ F_TAGJUMP_CLOSE		= 30945,	//閉じてタグジャンプ(元ウィンドウclose)			なし
 F_TAGJUMP_KEYWORD	= 30946,	//キーワードを指定してダイレクトタグジャンプ	const WCHAR* keyword
 F_COMPARE			= 30950,	//ファイル内容比較								なし
 F_BRACKETPAIR		= 30960,	//対括弧の検索									なし
+F_HTMLTAGPAIR		= 30961,	//対HTMLタグの検索								なし
 F_BOOKMARK_SET		= 30970,	//ブックマーク設定・解除						なし
 F_BOOKMARK_NEXT		= 30971,	//次のブックマークへ							なし
 F_BOOKMARK_PREV		= 30972,	//前のブックマークへ							なし

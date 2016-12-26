@@ -510,6 +510,7 @@ BOOL CViewCommander::HandleCommand(
 	case F_DIFF_PREV:		Command_Diff_Prev();break;						/* DIFF差分表示(前へ) */		//@@@ 2002.05.25 MIK
 	case F_DIFF_RESET:		Command_Diff_Reset();break;						/* DIFF差分表示(全解除) */		//@@@ 2002.05.25 MIK
 	case F_BRACKETPAIR:		Command_BRACKETPAIR();	break;					//対括弧の検索
+	case F_HTMLTAGPAIR:		Command_HTMLTAGPAIR();	break;					//対HTMLタグの検索
 // From Here 2001.12.03 hor
 	case F_BOOKMARK_SET:	Command_BOOKMARK_SET();break;					/* ブックマーク設定・解除 */
 	case F_BOOKMARK_NEXT:	Command_BOOKMARK_NEXT();break;					/* 次のブックマークへ */

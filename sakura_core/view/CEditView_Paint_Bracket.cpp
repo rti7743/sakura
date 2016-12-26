@@ -375,50 +375,6 @@ bool CEditView::SearchBracket(
 		}
 	}
 
-	//HTMLタグ検索
-	//2016/12/24 rti7743
-	wchar_t html_tag[64];
-	int found_html_tag = getHTMLTagName( cline , ptPos , html_tag , 64);
-	if(found_html_tag == 0)
-	{
-		return false;
-	}
-
-	//閉じタグいらないタグだったら無視.
-	static const wchar_t* aSkipTags[] = {
-		 L"BR"
-		,L"IMG"
-		,L"HR"
-		,L"META"
-		,L"INPUT"
-		,L"EMBED"
-		,L"AREA"
-		,L"BASE"
-		,L"COL"
-		,L"KEYGEN"
-		,L"LINK"
-		,L"PARAM"
-		,L"SOURCE"
-		//終端
-		,NULL
-	};
-	for( int i = 0; aSkipTags[i] ; i++ )
-	{
-		if ( wcscmp(html_tag,aSkipTags[i]) == 0 )
-		{//閉じタグ不要の検索禁止タグ
-			return false;
-		}
-	}
-
-	if ( found_html_tag == 1 )
-	{
-		return SearchHTMLTagForward( ptPos, pptLayoutNew, html_tag, mode );
-	}
-	else if ( found_html_tag == 2 )
-	{
-		return SearchHTMLTagBackward( ptPos, pptLayoutNew, html_tag, mode );
-	}
-
 	return false;
 }
 
@@ -642,6 +598,90 @@ bool CEditView::IsBracket( const wchar_t *pLine, CLogicInt x, CLogicInt size )
 //@@@ 2003.01.09 End
 
 /*!
+	@brief 対HTMLタグの検索
+
+	カーソル位置のHTMLタグに対応するHTMLタグを探す。カーソル位置がHTMLタグでない場合は
+	カーソルの後ろの文字がHTMLタグかどうかを調べる。
+
+	カーソルの前後いずれもがHTMLタグでない場合は何もしない。
+
+	@param ptLayout [in] 検索開始点の物理座標
+	@param pptLayoutNew [out] 移動先のレイアウト座標
+	@param mode [in,out] bit0(in)  : 表示領域外を調べるか？ 0:調べない  1:調べる
+						 bit1(in)  : 前方文字を調べるか？   0:調べない  1:調べる (このbitを参照)
+						 bit2(out) : 見つかった位置         0:後ろ      1:前     (このbitを更新)
+
+	@retval true 成功
+	@retval false 失敗
+
+	@author rti7743
+	@date Dec. 25, 2016 rti7743
+*/
+bool CEditView::SearchHTMLTag(
+	const CLayoutPoint&	ptLayout,
+	CLayoutPoint*		pptLayoutNew,
+	int*				mode
+)
+{
+	CLogicInt len;	//	行の長さ
+
+	CLogicPoint ptPos;
+
+	m_pcEditDoc->m_cLayoutMgr.LayoutToLogic( ptLayout, &ptPos );
+	const wchar_t *cline = m_pcEditDoc->m_cDocLineMgr.GetLine(ptPos.GetY2())->GetDocLineStrWithEOL(&len);
+
+	//	Jun. 19, 2000 genta
+	if( cline == NULL )	//	最後の行に本文がない場合
+		return false;
+
+	//HTMLタグ検索
+	//2016/12/24 rti7743
+	wchar_t html_tag[64];
+	int found_html_tag = getHTMLTagName( cline , ptPos , html_tag , 64);
+	if(found_html_tag == 0)
+	{
+		return false;
+	}
+
+	//閉じタグいらないタグだったら無視.
+	static const wchar_t* aSkipTags[] = {
+		 L"BR"
+		,L"IMG"
+		,L"HR"
+		,L"META"
+		,L"INPUT"
+		,L"EMBED"
+		,L"AREA"
+		,L"BASE"
+		,L"COL"
+		,L"KEYGEN"
+//		,L"LINK" //RSSなどのxmlで使われることがあるので外すか
+		,L"PARAM"
+		,L"SOURCE"
+		//終端
+		,NULL
+	};
+	for( int i = 0; aSkipTags[i] ; i++ )
+	{
+		if( wcscmp(html_tag,aSkipTags[i]) == 0 )
+		{//閉じタグ不要の検索禁止タグ
+			return false;
+		}
+	}
+
+	if( found_html_tag == 1 )
+	{
+		return SearchHTMLTagForward( ptPos, pptLayoutNew, html_tag, mode );
+	}
+	else if( found_html_tag == 2 )
+	{
+		return SearchHTMLTagBackward( ptPos, pptLayoutNew, html_tag, mode );
+	}
+
+	return false;
+}
+
+/*!
 	@brief 現在位置にあるHTMLタグを取得
 
 	@author rti7743
@@ -660,12 +700,12 @@ int CEditView::getHTMLTagName( const wchar_t *cline ,const CLogicPoint& ptPos , 
 	int x = ptPos.x;
 	for( ; x >= 0 ; x--)
 	{
-		if ( cline[x] == L'<' )
+		if( cline[x] == L'<' )
 		{
 			break;
 		}
 	}
-	if (x < 0)
+	if(x < 0)
 	{//タグではない
 		return 0;
 	}
@@ -673,7 +713,7 @@ int CEditView::getHTMLTagName( const wchar_t *cline ,const CLogicPoint& ptPos , 
 
 	//タグ名の取得
 	bool isCloseTag = false;
-	if ( cline[x] == L'/' )
+	if( cline[x] == L'/' )
 	{//閉じタグ
 		isCloseTag = true;
 		x++; // skip /
@@ -682,7 +722,7 @@ int CEditView::getHTMLTagName( const wchar_t *cline ,const CLogicPoint& ptPos , 
 	int x2 = x;
 	for( ; cline[x2] ; x2++ )
 	{
-		if (cline[x2] == L' '
+		if(cline[x2] == L' '
 		 || cline[x2] == L'\t'
 		 || cline[x2] == L'/'
 		 || cline[x2] == L'>' 
@@ -695,7 +735,7 @@ int CEditView::getHTMLTagName( const wchar_t *cline ,const CLogicPoint& ptPos , 
 	}
 
 	const int size = x2-x;
-	if (size+1 >= max_html_tag_size)
+	if(size+1 >= max_html_tag_size)
 	{//タグの長さが長すぎる
 		return 0;
 	}
@@ -703,7 +743,7 @@ int CEditView::getHTMLTagName( const wchar_t *cline ,const CLogicPoint& ptPos , 
 	for(int i = 0 ; i < size ; i++)
 	{
 		wchar_t c = cline[x+i];
-		if (c >= L'a' && c <= L'z')
+		if(c >= L'a' && c <= L'z')
 		{
 			c = c - L'a' + L'A'; //強制大文字
 		}
@@ -711,7 +751,7 @@ int CEditView::getHTMLTagName( const wchar_t *cline ,const CLogicPoint& ptPos , 
 	}
 	out_html_tag[size] = 0; //null終端
 
-	if (isCloseTag)
+	if(isCloseTag)
 	{
 		return 2; //閉じタグ
 	}
@@ -797,47 +837,47 @@ bool CEditView::SearchHTMLTagForward(
 
 			//クウォートの読み飛ばし.
 
-			if (qskip == quote_skip_none){
-				if (*cPos == L'"'){
+			if(qskip == quote_skip_none){
+				if(*cPos == L'"'){
 					qskip = quote_skip_dquote;
 					continue;
 				}
 			}
-			else if (qskip == quote_skip_dquote){ //" " を読み飛ばす
-				if (*cPos == L'\\'){
+			else if(qskip == quote_skip_dquote){ //" " を読み飛ばす
+				if(*cPos == L'\\'){
 					qskip = quote_skip_escape_dquote;
 				}
-				else if (*cPos == L'"'){
+				else if(*cPos == L'"'){
 					qskip = quote_skip_none;
 				}
 				continue;
 			}
-			else if (qskip == quote_skip_escape_dquote){ // \" を読み飛ばす
+			else if(qskip == quote_skip_escape_dquote){ // \" を読み飛ばす
 				qskip = quote_skip_dquote;
 				continue;
 			}
-			else if (qskip == quote_skip_htmlcomment_s1){// <!-- -->
-				if (*cPos == L'-'){
+			else if(qskip == quote_skip_htmlcomment_s1){// <!-- -->
+				if(*cPos == L'-'){
 					qskip = quote_skip_htmlcomment_s2;
 					continue;
 				}
 				qskip = quote_skip_none;
 			}
-			else if (qskip == quote_skip_htmlcomment_s2){// <!-- -->
-				if (*cPos == L'-'){
+			else if(qskip == quote_skip_htmlcomment_s2){// <!-- -->
+				if(*cPos == L'-'){
 					qskip = quote_skip_htmlcomment_e1;
 					continue;
 				}
 				qskip = quote_skip_none;
 			}
-			else if (qskip == quote_skip_htmlcomment_e1){// <!-- -->
-				if (*cPos == L'-'){
+			else if(qskip == quote_skip_htmlcomment_e1){// <!-- -->
+				if(*cPos == L'-'){
 					qskip = quote_skip_htmlcomment_e2;
 				}
 				continue;
 			}
-			else if (qskip == quote_skip_htmlcomment_e2){// <!-- -->
-				if (*cPos == L'-'){
+			else if(qskip == quote_skip_htmlcomment_e2){// <!-- -->
+				if(*cPos == L'-'){
 					qskip = quote_skip_htmlcomment_e3;
 				}
 				else{
@@ -845,8 +885,8 @@ bool CEditView::SearchHTMLTagForward(
 				}
 				continue;
 			}
-			else if (qskip == quote_skip_htmlcomment_e3) {// <!-- -->
-				if (*cPos == L'>'){
+			else if(qskip == quote_skip_htmlcomment_e3) {// <!-- -->
+				if(*cPos == L'>'){
 					qskip = quote_skip_none;
 				}
 				else{
@@ -855,36 +895,36 @@ bool CEditView::SearchHTMLTagForward(
 				continue;
 			}
 
-			if (state == state_need_start_braket){
-				if (*cPos == L'<'){
+			if(state == state_need_start_braket){
+				if(*cPos == L'<'){
 					state = state_need_if_slash;
 				}
 
 				continue;
 			}
 
-			if (state == state_need_if_slash){
+			if(state == state_need_if_slash){
 				isCLoseTag =  (*cPos == L'/');
 				state = state_need_tagname;
 				tag_match_pos = 0;
-				if (isCLoseTag){
+				if(isCLoseTag){
 					continue; //skip /
 				}
 			}
 
-			if (state == state_need_tagname){
-				if (tagname[tag_match_pos]){
+			if(state == state_need_tagname){
+				if(tagname[tag_match_pos]){
 					wchar_t c = *cPos;
-					if (c >= L'a' && c <= L'z'){
+					if(c >= L'a' && c <= L'z'){
 						c = c - L'a' + L'A'; //強制大文字
 					}
-					if ( c == tagname[tag_match_pos]){
+					if( c == tagname[tag_match_pos]){
 						tag_match_pos++;
 						continue;
 					}
 
 					state = state_need_start_braket;
-					if ( !isCLoseTag && c == L'!'){ //<!-- のコメントかも知れない
+					if( !isCLoseTag && c == L'!'){ //<!-- のコメントかも知れない
 						qskip = quote_skip_htmlcomment_s1;
 						continue;
 					}
@@ -892,12 +932,12 @@ bool CEditView::SearchHTMLTagForward(
 				}
 
 				//タグ名の終端までマッチ
-				if (*cPos == L'>'){ 
+				if(*cPos == L'>'){ 
 					//<div> 名前後即閉じ
 					state = state_need_end_braket;
 					lastPos = *cPos;
 				}
-				else if (*cPos == L' ' || *cPos == L'\t' || *cPos == L'\r' || *cPos == L'\n'){
+				else if(*cPos == L' ' || *cPos == L'\t' || *cPos == L'\r' || *cPos == L'\n'){
 					//<div >
 					state = state_need_end_braket;
 					lastPos = *cPos;
@@ -909,24 +949,24 @@ bool CEditView::SearchHTMLTagForward(
 				}
 			}
 
-			if (state == state_need_end_braket){
+			if(state == state_need_end_braket){
 				if(*cPos != L'>'){
 					lastPos = *cPos;
 					continue;
 				}
 
 				//タグの終わり
-				if (isCLoseTag){
+				if(isCLoseTag){
 					--level;
 					if( level == 0 ){	//	見つかった！
-						ptPos.x = cPos - cline - 1;
+						ptPos.x = cPos - cline;
 						m_pcEditDoc->m_cLayoutMgr.LogicToLayout( ptPos, pptLayoutNew );
 						return true;
 						//	Happy Ending
 					}
 				}
 				else{
-					if (lastPos == L'/'){
+					if(lastPos == L'/'){
 						//<div /> 自己完結しているので無視
 					}
 					else{//<div>
@@ -949,8 +989,9 @@ bool CEditView::SearchHTMLTagForward(
 		//	次の行へ
 		ptPos.y++;
 		ci = ci->GetNextLine();	//	次のアイテム
-		if( ci == NULL )
+		if( ci == NULL ){
 			break;	//	終わりに達した
+		}
 
 		cline = ci->GetDocLineStrWithEOL( &len );
 		cPos = cline;
@@ -1027,7 +1068,7 @@ bool CEditView::SearchHTMLTagBackward(
 	bool isCLoseTag = false;
 	int tag_match_pos = 0;
 	const int tagname_size = wcslen(tagname) - 1;
-	if(tagname_size <= 0)
+	if(tagname_size < 0)
 	{
 		return false;
 	}
@@ -1040,42 +1081,42 @@ bool CEditView::SearchHTMLTagBackward(
 			}
 
 			//クウォートの読み飛ばし.
-			if (qskip == quote_skip_none){
-				if (*pPos == L'"'){
+			if(qskip == quote_skip_none){
+				if(*pPos == L'"'){
 					qskip = quote_skip_dquote;
 					continue;
 				}
 			}
-			else if (qskip == quote_skip_dquote){//" " を読み飛ばす
-				if (*pPos == L'"')
+			else if(qskip == quote_skip_dquote){//" " を読み飛ばす
+				if(*pPos == L'"')
 				{
 					qskip = quote_skip_if_term_dquote;
 				}
 				continue;
 			}
-			else if (qskip == quote_skip_if_term_dquote){
-				if (*pPos == L'\\')
+			else if(qskip == quote_skip_if_term_dquote){
+				if(*pPos == L'\\')
 				{// \" なのでまだ継続中
 					qskip = quote_skip_dquote;
 					continue;
 				}
 				qskip = quote_skip_none;
 			}
-			else if (qskip == quote_skip_htmlcomment_e1){// <!-- -->
-				if (*pPos == L'-'){
+			else if(qskip == quote_skip_htmlcomment_e1){// <!-- -->
+				if(*pPos == L'-'){
 					qskip = quote_skip_htmlcomment_s1;
 					continue;
 				}
 				qskip = quote_skip_none;
 			}
-			else if (qskip == quote_skip_htmlcomment_s1){// <!-- -->
-				if (*pPos == L'-'){
+			else if(qskip == quote_skip_htmlcomment_s1){// <!-- -->
+				if(*pPos == L'-'){
 					qskip = quote_skip_htmlcomment_s2;
 				}
 				continue;
 			}
-			else if (qskip == quote_skip_htmlcomment_s2){// <!-- -->
-				if (*pPos == L'-'){
+			else if(qskip == quote_skip_htmlcomment_s2){// <!-- -->
+				if(*pPos == L'-'){
 					qskip = quote_skip_htmlcomment_s3;
 				}
 				else{
@@ -1083,8 +1124,8 @@ bool CEditView::SearchHTMLTagBackward(
 				}
 				continue;
 			}
-			else if (qskip == quote_skip_htmlcomment_s3){// <!-- -->
-				if (*pPos == L'!'){
+			else if(qskip == quote_skip_htmlcomment_s3){// <!-- -->
+				if(*pPos == L'!'){
 					qskip = quote_skip_htmlcomment_s4;
 				}
 				else{
@@ -1092,8 +1133,8 @@ bool CEditView::SearchHTMLTagBackward(
 				}
 				continue;
 			}
-			else if (qskip == quote_skip_htmlcomment_s4){// <!-- -->
-				if (*pPos == L'<'){
+			else if(qskip == quote_skip_htmlcomment_s4){// <!-- -->
+				if(*pPos == L'<'){
 					qskip = quote_skip_none;
 				}
 				else{
@@ -1103,7 +1144,7 @@ bool CEditView::SearchHTMLTagBackward(
 			}
 
 
-			if (state == state_need_end_braket) {
+			if(state == state_need_end_braket) {
 				if(*pPos == L'>'){
 					state = state_need_if_slash;
 				}
@@ -1111,7 +1152,7 @@ bool CEditView::SearchHTMLTagBackward(
 			}
 
 			//後ろから読んでいるので <div/> みたいに 即閉じの可能性検証
-			if (state == state_need_if_slash) {
+			if(state == state_need_if_slash) {
 				if(*pPos == L'/'){ //即閉じタグ <div/> なので読み飛ばす
 					state = state_need_end_braket;
 					continue;
@@ -1127,8 +1168,8 @@ bool CEditView::SearchHTMLTagBackward(
 
 			//タグのアトリビュートがあった後で、スペースがあってタグの名前があるので、
 			//そのスペースを探す<div a=fの スペース
-			if (state == state_need_space){
-				if (*pPos == L' ' 
+			if(state == state_need_space){
+				if(*pPos == L' ' 
 					|| *pPos == L'\t' 
 					|| *pPos == L'\r' 
 					|| *pPos == L'\n'){
@@ -1136,12 +1177,12 @@ bool CEditView::SearchHTMLTagBackward(
 					tag_match_pos = 0;
 					continue;
 				}
-				if (*pPos == L'<'){
+				if(*pPos == L'<'){
 					state = state_need_end_braket;
 					continue;
 				}
 
-				if (*pPos == L'(' 
+				if(*pPos == L'(' 
 					|| *pPos == L')' 
 					|| *pPos == L'{' 
 					|| *pPos == L'}' 
@@ -1152,31 +1193,31 @@ bool CEditView::SearchHTMLTagBackward(
 			}
 
 			//タグの名前
-			if (state == state_need_tagname){
-				if (*pPos == L'>'){
+			if(state == state_need_tagname){
+				if(*pPos == L'>'){
 					state = state_need_if_slash;
 					continue;
 				}
-				if (tag_match_pos == 0){
-					if (*pPos == L' ' 
+				if(tag_match_pos == 0){
+					if(*pPos == L' ' 
 						|| *pPos == L'\t' 
 						|| *pPos == L'\r' 
 						|| *pPos == L'\n'){
 						continue;
 					}
 				}
-				if ( tag_match_pos <= tagname_size){
-					if (*pPos == L'<'){
+				if(tag_match_pos <= tagname_size){
+					if(*pPos == L'<'){
 						state = state_need_end_braket;
 						continue;
 					}
 
 					wchar_t c = *pPos;
-					if (c >= L'a' && c <= L'z'){
+					if(c >= L'a' && c <= L'z'){
 						c = c - L'a' + L'A'; //強制大文字
 					}
 					
-					if ( c != tagname[tagname_size - tag_match_pos]){ //名前が違う
+					if(c != tagname[tagname_size - tag_match_pos]){ //名前が違う
 						state = state_need_space; // div で <divaaa> を無視するために必要.
 						tag_match_pos=0;
 					}
@@ -1189,29 +1230,29 @@ bool CEditView::SearchHTMLTagBackward(
 			}
 
 			//名前の後に / があれば</div>みたいな閉じタグ 
-			if (state == state_need_if_fist_slash) {
+			if(state == state_need_if_fist_slash) {
 				isCLoseTag =  (*pPos == L'/');
 				state = state_need_start_braket;
-				if (isCLoseTag) {
+				if(isCLoseTag) {
 					continue;
 				}
 			}
 			
 			//タグ開始の<検索
-			if (state == state_need_start_braket) {
-				if (*pPos != L'<') {
+			if(state == state_need_start_braket) {
+				if(*pPos != L'<') {
 					state = state_need_tagname;
 					tag_match_pos = 0;
 					continue;
 				}
 				
-				if (isCLoseTag)	{ //閉じタグ
+				if(isCLoseTag)	{ //閉じタグ
 					++level;
 				}
 				else{ //開始タグ
 					--level;
 					if( level == 0 ){	//	見つかった！
-						ptPos.x = cPos - cline + 2;
+						ptPos.x = pPos - cline;
 						m_pcEditDoc->m_cLayoutMgr.LogicToLayout( ptPos, pptLayoutNew );
 						return true;
 						//	Happy Ending
@@ -1222,16 +1263,17 @@ bool CEditView::SearchHTMLTagBackward(
 		}
 
 		nSearchNum--;
-		if( ( 0 > nSearchNum ) && ( 0 == (*mode & 1 ) ) )
-		{	// 表示領域外を調べないモードで表示領域の先頭の場合
+		if( ( 0 > nSearchNum ) && ( 0 == (*mode & 1 ) ) ){	
+			// 表示領域外を調べないモードで表示領域の先頭の場合
 			break;
 		}
 
 		//	次の行へ
 		ptPos.y--;
 		ci = ci->GetPrevLine();	//	次のアイテム
-		if( ci == NULL )
+		if( ci == NULL ){
 			break;	//	終わりに達した
+		}
 
 		cline = ci->GetDocLineStrWithEOL( &len );
 		cPos = cline + len;
@@ -1239,4 +1281,3 @@ bool CEditView::SearchHTMLTagBackward(
 
 	return false;
 }
-

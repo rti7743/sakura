@@ -3440,6 +3440,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     F_BRACKETPAIR           "対括弧の検索"
+    F_HTMLTAGPAIR           "対HTMLタグの検索"
     F_BOOKMARK_SET          "ブックマーク設定・解除"
     F_BOOKMARK_NEXT         "次のブックマークへ"
     F_BOOKMARK_PATTERN      "該当行マーク"
